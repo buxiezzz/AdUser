@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AD 用户创建工具 - 规则管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root{--color-primary:#00897B;--color-bg-light:#F0F2F5;--color-sidebar-bg:white;--color-card-bg:white;--color-text-dark:#424242;--color-text-light:#616161;--color-input-bg:#F9F9F9;--color-border-light:#D1D5DB}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:var(--color-bg-light);margin:0;min-height:100vh}
+        .sidebar{width:240px;background-color:var(--color-sidebar-bg);box-shadow:2px 0 10px rgba(0,0,0,.05);padding-top:20px;position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;}
+        .main-content{padding:30px;margin-left: 240px;}
+        .sidebar-title{font-size:18px;font-weight:600;padding:0 20px 25px;color:var(--color-text-dark)}.nav-item{padding:12px 20px;font-size:15px;color:var(--color-text-dark);text-decoration:none;display:flex;align-items:center;transition:background-color .2s;margin:0 10px;border-radius:8px}.nav-item-active{background-color:var(--color-primary) !important;color:white !important;font-weight:600}.nav-item:hover:not(.nav-item-active){background-color:#F0F0F0}.nav-icon{margin-right:15px;width:18px}.header{background-color:var(--color-card-bg);border-radius:12px;padding:18px 25px;margin-bottom:30px;box-shadow:0 1px 5px rgba(0,0,0,.05);display:flex;justify-content:space-between;align-items:center}.welcome-title{font-size:20px;font-weight:500;color:var(--color-text-dark);margin:0}.connection-info{font-size:14px;color:var(--color-primary)}.card{background-color:var(--color-card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);padding:35px;margin-bottom:30px}.card-title{font-size:22px;font-weight:600;color:var(--color-text-dark);border-bottom:1px solid #E0E0E0;padding-bottom:15px;margin-bottom:25px}.form-group{margin-bottom:20px;display:flex;align-items:center;}.form-group label{width:180px;font-size:15px;color:var(--color-text-light);text-align:right;padding-right:20px;flex-shrink:0}.form-group input, .form-group select{flex-grow:1;padding:12px;border:1px solid var(--color-border-light);border-radius:8px;font-size:15px;background-color:var(--color-input-bg)}.btn{padding:10px 25px;color:white;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;transition:background-color .2s; text-decoration: none; display: inline-block;}.btn-create{background-color:var(--color-primary)}.btn-create:hover{background-color:#00695C}.btn-delete{background-color:#E53935}.btn-delete:hover{background-color:#C62828}.btn-edit{background-color:#546E7A; margin-right: 10px;}.btn-edit:hover{background-color:#37474F;}.btn-save{background-color:#43A047;}.btn-save:hover{background-color:#2E7D32;}.btn-cancel{background-color:#757575; margin-left:10px;}.btn-cancel:hover{background-color:#424242;}.rule-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #f0f0f0}.rule-item:last-child{border-bottom:none}.rule-key{font-weight:600;font-size:15px; word-break: break-all;}.rule-value{font-family:monospace;background-color:#f3f4f6;padding:4px 8px;border-radius:4px;color:#374151; word-break: break-all;}.alert{padding:15px;border-radius:8px;margin-bottom:20px;font-weight:500;font-size:14px}.alert-success{background-color:#E6FFFA;color:#38A169;border:1px solid #A7F3D0}.alert-error{background-color:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5}
+        .help-text { color: #666; font-size: 14px; margin-top: -15px; margin-bottom: 20px; }
+        .help-text strong { color: #c0392b; }
+        .edit-mode-form { border: 2px solid var(--color-primary); padding: 20px; border-radius: 8px; margin-top: 15px; background-color: #F8F9FA; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Sidebar content... (no changes) -->
+        <div class="sidebar-title">AD 管理面板</div>
+        <a href="{{ url_for('main.dashboard') }}" class="nav-item"><i class="fas fa-user-plus nav-icon"></i>用户创建</a>
+        <a href="{{ url_for('management.positions') }}" class="nav-item"><i class="fas fa-layer-group nav-icon"></i>职位管理</a>
+        <a href="{{ url_for('management.rules') }}" class="nav-item nav-item-active"><i class="fas fa-scroll nav-icon"></i>规则管理</a>
+        <a href="{{ url_for('management.settings') }}" class="nav-item"><i class="fas fa-cogs nav-icon"></i>服务器设置</a>
+        <a href="{{ url_for('auth.logout') }}" class="nav-item"><i class="fas fa-sign-out-alt nav-icon"></i>退出登录</a>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <h2 class="welcome-title">规则管理</h2>
+            <div class="connection-info">连接到: {{ config.DOMAIN_CONTROLLER_IP }} ({{ config.DOMAIN_NAME }})</div>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %} <div class="alert alert-{{ category }}">{{ message }}</div> {% endfor %}
+        {% endwith %}
+
+        <!-- --- 动态表单区域 --- -->
+        {% set form_type = edit_data.type if edit_data else '' %}
+
+        <div class="card" {% if form_type and form_type != 'ou_group' %}style="display:none;"{% endif %}>
+            <div class="card-title">{{ '编辑' if form_type == 'ou_group' else '' }}自动加组规则</div>
+            <p class="help-text">提示: 关键字应为目标 OU 的<strong>部分或完整 DN 路径</strong>，例如 `武汉1营队` 或 `OU=武汉1营队,OU=武汉,DC=...`。</p>
+            <form method="POST" action="{{ url_for('management.rules') }}" class="{{ 'edit-mode-form' if form_type == 'ou_group' }}">
+                {% if form_type == 'ou_group' %}
+                    <input type="hidden" name="action" value="edit">
+                    <input type="hidden" name="original_key" value="{{ edit_data.key }}">
+                {% else %}
+                    <input type="hidden" name="action" value="create">
+                {% endif %}
+                <input type="hidden" name="rule_type" value="ou_group">
+
+                <div class="form-group"><label for="ou_group_key">OU 关键字:</label><input type="text" id="ou_group_key" name="key" value="{{ edit_data.key if form_type == 'ou_group' else '' }}" placeholder="例如：武汉1营队" required list="ou-list"></div>
+                <div class="form-group">
+                    <label for="ou_group_value">目标组:</label>
+                    <select id="ou_group_value" name="value" required>
+                        <option value="">-- 从AD中选择一个组 --</option>
+                        {% for group_dn in group_options %}
+                        <option value="{{ group_dn }}" {% if form_type == 'ou_group' and edit_data.value == group_dn %}selected{% endif %}>{{ group_dn.split(',')[0].replace('CN=', '') }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="text-align: center;">
+                    {% if form_type == 'ou_group' %}
+                        <button type="submit" class="btn btn-save">保存更改</button><a href="{{ url_for('management.rules') }}" class="btn btn-cancel">取消</a>
+                    {% else %}
+                        <button type="submit" class="btn btn-create">添加加组规则</button>
+                    {% endif %}
+                </div>
+            </form>
+            <hr style="border:none; border-top:1px solid #eee; margin: 30px 0;">
+            {% for key, value in rules.ou_group_rules.items() %}
+            <div class="rule-item">
+                <div><span class="rule-key">{{ key }}</span> → <span class="rule-value">{{ value.split(',')[0].replace('CN=', '') }}</span></div>
+                <div>
+                    <a href="{{ url_for('management.rules', action='edit', type='ou_group', key=key) }}" class="btn btn-edit">编辑</a>
+                    <form method="POST" action="{{ url_for('management.rules') }}" style="display: inline;"><input type="hidden" name="action" value="delete"><input type="hidden" name="rule_type" value="ou_group"><input type="hidden" name="key" value="{{ key }}"><button type="submit" class="btn btn-delete" onclick="return confirm('确定删除吗？')">删除</button></form>
+                </div>
+            </div>
+            {% else %} <p style="text-align: center; color: #999;">暂无自动加组规则。</p> {% endfor %}
+        </div>
+
+        <!-- --- 描述生成规则卡片 --- -->
+        <div class="card">
+            <div class="card-title">描述生成规则</div>
+
+            <!-- 单位规则 -->
+            <div {% if form_type and form_type != 'battalion' %}style="display:none;"{% endif %}>
+                <h3 style="font-weight: 500; font-size: 16px; color: #555;">{{ '编辑' if form_type == 'battalion' else '' }}单位规则 (OU关键字 → 代码)</h3>
+                <form method="POST" action="{{ url_for('management.rules') }}" class="{{ 'edit-mode-form' if form_type == 'battalion' }}">
+                    {% if form_type == 'battalion' %}<input type="hidden" name="action" value="edit"><input type="hidden" name="original_key" value="{{ edit_data.key }}">{% else %}<input type="hidden" name="action" value="create">{% endif %}<input type="hidden" name="rule_type" value="battalion">
+                    <div class="form-group"><label>OU 关键字:</label><input type="text" name="key" value="{{ edit_data.key if form_type == 'battalion' else '' }}" placeholder="例如：研发中心" required list="ou-list"></div>
+                    <div class="form-group"><label>对应代码:</label><input type="text" name="value" value="{{ edit_data.value if form_type == 'battalion' else '' }}" placeholder="例如：RD" required></div>
+                    <div style="text-align: center;">{% if form_type == 'battalion' %}<button type="submit" class="btn btn-save">保存更改</button><a href="{{ url_for('management.rules') }}" class="btn btn-cancel">取消</a>{% else %}<button type="submit" class="btn btn-create">添加单位规则</button>{% endif %}</div>
+                </form>
+                <hr style="border:none; border-top:1px solid #eee; margin: 30px 0;">
+                {% for key, value in rules.battalion_rules.items() %}<div class="rule-item"><div><span class="rule-key">{{ key }}</span> → <span class="rule-value">{{ value }}</span></div><div><a href="{{ url_for('management.rules', action='edit', type='battalion', key=key) }}" class="btn btn-edit">编辑</a><form method="POST" action="{{ url_for('management.rules') }}" style="display: inline;"><input type="hidden" name="action" value="delete"><input type="hidden" name="rule_type" value="battalion"><input type="hidden" name="key" value="{{ key }}"><button type="submit" class="btn btn-delete" onclick="return confirm('确定删除吗？')">删除</button></form></div></div>{% else %} <p style="text-align: center; color: #999;">暂无单位规则。</p> {% endfor %}
+            </div>
+
+            <!-- 职位规则 -->
+            <div {% if form_type and form_type != 'position' %}style="display:none;"{% endif %}>
+                <h3 style="font-weight: 500; font-size: 16px; color: #555; margin-top: 40px;">{{ '编辑' if form_type == 'position' else '' }}职位规则 (职位名称 → 代码)</h3>
+                <form method="POST" action="{{ url_for('management.rules') }}" class="{{ 'edit-mode-form' if form_type == 'position' }}">
+                    {% if form_type == 'position' %}<input type="hidden" name="action" value="edit"><input type="hidden" name="original_key" value="{{ edit_data.key }}">{% else %}<input type="hidden" name="action" value="create">{% endif %}<input type="hidden" name="rule_type" value="position">
+                    <div class="form-group"><label>职位名称:</label><select name="key" required>{% for pos in position_options %}<option value="{{ pos }}" {% if form_type == 'position' and edit_data.key == pos %}selected{% endif %}>{{ pos }}</option>{% endfor %}</select></div>
+                    <div class="form-group"><label>对应代码:</label><input type="text" name="value" value="{{ edit_data.value if form_type == 'position' else '' }}" placeholder="例如：SWE" required></div>
+                    <div style="text-align: center;">{% if form_type == 'position' %}<button type="submit" class="btn btn-save">保存更改</button><a href="{{ url_for('management.rules') }}" class="btn btn-cancel">取消</a>{% else %}<button type="submit" class="btn btn-create">添加职位规则</button>{% endif %}</div>
+                </form>
+                <hr style="border:none; border-top:1px solid #eee; margin: 30px 0;">
+                {% for key, value in rules.position_rules.items() %}<div class="rule-item"><div><span class="rule-key">{{ key }}</span> → <span class="rule-value">{{ value }}</span></div><div><a href="{{ url_for('management.rules', action='edit', type='position', key=key) }}" class="btn btn-edit">编辑</a><form method="POST" action="{{ url_for('management.rules') }}" style="display: inline;"><input type="hidden" name="action" value="delete"><input type="hidden" name="rule_type" value="position"><input type="hidden" name="key" value="{{ key }}"><button type="submit" class="btn btn-delete" onclick="return confirm('确定删除吗？')">删除</button></form></div></div>{% else %} <p style="text-align: center; color: #999;">暂无职位规则。</p> {% endfor %}
+            </div>
+
+            <!-- 部门规则 -->
+            <div {% if form_type and form_type != 'department' %}style="display:none;"{% endif %}>
+                <h3 style="font-weight: 500; font-size: 16px; color: #555; margin-top: 40px;">{{ '编辑' if form_type == 'department' else '' }}部门规则 (OU关键字 → 描述前缀)</h3>
+                <form method="POST" action="{{ url_for('management.rules') }}" class="{{ 'edit-mode-form' if form_type == 'department' }}">
+                    {% if form_type == 'department' %}<input type="hidden" name="action" value="edit"><input type="hidden" name="original_key" value="{{ edit_data.key }}">{% else %}<input type="hidden" name="action" value="create">{% endif %}<input type="hidden" name="rule_type" value="department">
+                    <div class="form-group"><label>OU 关键字:</label><input type="text" name="key" value="{{ edit_data.key if form_type == 'department' else '' }}" placeholder="例如：行政部" required list="ou-list"></div>
+                    <div class="form-group"><label>描述前缀:</label><input type="text" name="value" value="{{ edit_data.value if form_type == 'department' else '' }}" placeholder="例如：ADM" required></div>
+                    <div style="text-align: center;">{% if form_type == 'department' %}<button type="submit" class="btn btn-save">保存更改</button><a href="{{ url_for('management.rules') }}" class="btn btn-cancel">取消</a>{% else %}<button type="submit" class="btn btn-create">添加部门规则</button>{% endif %}</div>
+                </form>
+                <hr style="border:none; border-top:1px solid #eee; margin: 30px 0;">
+                {% for key, value in rules.department_rules.items() %}<div class="rule-item"><div><span class="rule-key">{{ key }}</span> → <span class="rule-value">{{ value }}</span></div><div><a href="{{ url_for('management.rules', action='edit', type='department', key=key) }}" class="btn btn-edit">编辑</a><form method="POST" action="{{ url_for('management.rules') }}" style="display: inline;"><input type="hidden" name="action" value="delete"><input type="hidden" name="rule_type" value="department"><input type="hidden" name="key" value="{{ key }}"><button type="submit" class="btn btn-delete" onclick="return confirm('确定删除吗？')">删除</button></form></div></div>{% else %} <p style="text-align: center; color: #999;">暂无部门规则。</p> {% endfor %}
+            </div>
+        </div>
+    </div>
+    <datalist id="ou-list">{% for ou in ou_options %}<option value="{{ ou }}">{% endfor %}</datalist>
+</body>
+</html>

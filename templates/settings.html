@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>服务器设置</title>
+    <style>
+        :root { --color-primary: #00897B; --color-bg-light: #F0F2F5; --color-card-bg: white; --color-text-dark: #424242; --color-text-light: #4A5568; --color-input-bg: #F9F9F9; --color-border-light: #D1D5DB; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--color-bg-light); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .settings-card { background-color: var(--color-card-bg); border-radius: 16px; padding: 40px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); width: 500px; }
+        .card-title { font-size: 24px; font-weight: 600; color: var(--color-text-dark); margin-bottom: 30px; border-bottom: 1px solid #E0E0E0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--color-text-light); font-size: 15px; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--color-border-light); border-radius: 8px; font-size: 15px; box-sizing: border-box; background-color: var(--color-input-bg); transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-group input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 1px var(--color-primary); }
+        .btn-save { padding: 10px 25px; background-color: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
+        .btn-save:hover { background-color: #388E3C; }
+        .back-link { margin-left: 15px; color: var(--color-primary); text-decoration: none; font-weight: 500; padding: 10px 15px; border-radius: 8px; transition: background-color 0.2s; }
+        .back-link:hover { background-color: #F0F2F5; }
+    </style>
+</head>
+<body>
+    <div class="settings-card">
+        <div class="card-title">服务器连接配置</div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{% if category == 'error' %}⚠️{% endif %}{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('management.settings') }}">
+            <div class="form-group">
+                <label for="dc_ip">域控制器主机名 (FQDN):</label>
+                <input type="text" id="dc_ip" name="dc_ip" value="{{ config.DOMAIN_CONTROLLER_IP }}" required>
+            </div>
+            <div class="form-group">
+                <label for="domain_name">域名 (例如 long.cn):</label>
+                <input type="text" id="domain_name" name="domain_name" value="{{ config.DOMAIN_NAME }}" required>
+            </div>
+            <div class="form-group">
+                <label for="default_user_password">默认用户密码:</label>
+                <input type="password" id="default_user_password" name="default_user_password" value="{{ config.DEFAULT_USER_PASSWORD }}" required>
+            </div>
+            <div style="text-align: center; margin-top: 40px;">
+                <button type="submit" class="btn-save">保 存</button>
+                <a href="{{ url_for('main.dashboard') if 'bind_username' in session else url_for('auth.login') }}" class="back-link">返 回</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "机械工程师": [
+    "CN=Proj-机械部项目资料-RO,OU=Projects-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
+    "CN=WH-MD-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+  ],
+  "电气工程师": [
+    "CN=ALL-ED-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
+    "CN=WH-ED-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+  ],
+  "工程电工": [
+    "CN=WH-ME-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+  ],
+  "人事专员": [
+    "CN=WH-HR-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+  ]
+}

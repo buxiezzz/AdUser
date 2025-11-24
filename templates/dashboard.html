@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AD 用户创建工具 - 控制面板</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root{--color-primary:#00897B;--color-bg-light:#F0F2F5;--color-sidebar-bg:white;--color-card-bg:white;--color-text-dark:#424242;--color-text-light:#616161;--color-input-bg:#F9F9F9;--color-border-light:#D1D5DB}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:var(--color-bg-light);margin:0;min-height:100vh}
+        .sidebar{width:240px;background-color:var(--color-sidebar-bg);box-shadow:2px 0 10px rgba(0,0,0,.05);padding-top:20px;position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;}
+        .main-content{padding:30px;margin-left: 240px;}
+        .sidebar-title{font-size:18px;font-weight:600;padding:0 20px 25px;color:var(--color-text-dark)}.nav-item{padding:12px 20px;font-size:15px;color:var(--color-text-dark);text-decoration:none;display:flex;align-items:center;transition:background-color .2s;margin:0 10px;border-radius:8px}.nav-item-active{background-color:var(--color-primary) !important;color:white !important;font-weight:600}.nav-item:hover:not(.nav-item-active){background-color:#F0F0F0}.nav-icon{margin-right:15px;width:18px}.header{background-color:var(--color-card-bg);border-radius:12px;padding:18px 25px;margin-bottom:30px;box-shadow:0 1px 5px rgba(0,0,0,.05);display:flex;justify-content:space-between;align-items:center}.welcome-title{font-size:20px;font-weight:500;color:var(--color-text-dark);margin:0}.connection-info{font-size:14px;color:var(--color-primary)}.card{background-color:var(--color-card-bg);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05);padding:35px; margin-bottom: 30px;}.card-title{font-size:22px;font-weight:600;color:var(--color-text-dark);border-bottom:1px solid #E0E0E0;padding-bottom:15px;margin-bottom:25px}.form-group{margin-bottom:20px;display:flex;align-items:center}.form-group label{width:250px;font-size:15px;color:var(--color-text-light);text-align:right;padding-right:20px;flex-shrink:0}.form-group input,.form-group select{flex-grow:1;padding:12px;border:1px solid var(--color-border-light);border-radius:8px;font-size:15px;background-color:var(--color-input-bg);transition:border-color .2s,box-shadow .2s}.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 1px var(--color-primary)}.form-group.align-top{align-items:flex-start;padding-top:10px}.btn-create{padding:12px 50px;background-color:var(--color-primary);color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;transition:background-color .2s,box-shadow .2s;box-shadow:0 4px 10px rgba(0,137,123,.3)}.btn-create:hover{background-color:#00695C;box-shadow:0 6px 15px rgba(0,137,123,.4)}.alert{padding:15px;border-radius:8px;margin-bottom:20px;font-weight:500;font-size:14px;word-break: break-all;}.alert-success{background-color:#E6FFFA;color:#38A169;border:1px solid #A7F3D0}.alert-error{background-color:#FEE2E2;color:#DC2626;border:1px solid #FCA5A5}.alert-warning{background-color:#FFFBEB;color:#D97706;border:1px solid #FCD34D}.default-password-display{font-size:15px;color:var(--color-text-light);background-color:var(--color-input-bg);padding:12px;border:1px solid var(--color-border-light);border-radius:8px;flex-grow:1}
+        .batch-instructions { background-color: #f8f9fa; border-left: 4px solid var(--color-primary); padding: 15px; margin-top: 20px; font-size: 14px; color: #555; border-radius: 4px;}
+        .batch-instructions code { background-color: #e9ecef; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .batch-results { margin-top: 25px; background-color: #2d333b; color: #cdd9e5; padding: 20px; border-radius: 8px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 14px; white-space: pre-wrap; }
+        .template-link { text-decoration: none; color: var(--color-primary); font-size: 14px; margin-left: 20px; font-weight: 500;}
+        .template-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-title">AD 管理面板</div>
+        <a href="{{ url_for('main.dashboard') }}" class="nav-item nav-item-active"><i class="fas fa-user-plus nav-icon"></i>用户创建</a>
+        <a href="{{ url_for('management.positions') }}" class="nav-item"><i class="fas fa-layer-group nav-icon"></i>职位管理</a>
+        <a href="{{ url_for('management.rules') }}" class="nav-item"><i class="fas fa-scroll nav-icon"></i>规则管理</a>
+        <a href="{{ url_for('management.settings') }}" class="nav-item"><i class="fas fa-cogs nav-icon"></i>服务器设置</a>
+        <a href="{{ url_for('auth.logout') }}" class="nav-item"><i class="fas fa-sign-out-alt nav-icon"></i>退出登录</a>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <h2 class="welcome-title">欢迎, {{ session.display_username }}!</h2>
+            <div class="connection-info">连接到: {{ config.DOMAIN_CONTROLLER_IP }} ({{ config.DOMAIN_NAME }})</div>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %} <div class="alert alert-{{ category }}">{{ message }}</div> {% endfor %}
+        {% endwith %}
+        {% if result_message %} <div class="alert alert-{{ result_type }}">单用户创建结果: {{ result_message }}</div> {% endif %}
+
+        <div class="card">
+            <div class="card-title">创建单个域用户</div>
+            <form method="POST" action="{{ url_for('main.dashboard') }}" style="max-width: 800px; margin: 0 auto;">
+                <div class="form-group">
+                    <label for="ou_path">目标组织单元 (OU):</label>
+                    <select id="ou_path" name="ou_path" required>
+                        <option value="">-- 请选择目标组织单元 --</option>
+                        {% for ou in ou_options %}<option value="{{ ou.dn }}">{{ ou.name }}</option>{% else %}<option value="">-- 无法加载 OU 列表 --</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new_display_name">新用户姓名 (Display Name):</label>
+                    <input type="text" id="new_display_name" name="new_display_name" placeholder="例如：张三" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_username">新用户登录名 (sAMAccountName):</label>
+                    <input type="text" id="new_username" name="new_username" placeholder="例如：zhangsan" required>
+                </div>
+                {% if positions %}
+                <div class="form-group">
+                    <label for="position_name">职位 (自动选择用户组):</label>
+                    <select id="position_name" name="position_name">
+                        <option value="">-- 请选择一个职位 --</option>
+                        {% for position_name in positions.keys() %}<option value="{{ position_name }}">{{ position_name }}</option>{% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="form-group align-top" style="display: none;">
+                    <label for="groups">所属用户组:</label>
+                    <select id="groups" name="groups" multiple>
+                        {% for group_dn in group_options %}<option value="{{ group_dn }}">{{ group_dn.split(',')[0].replace('CN=', '') }}</option>{% else %}<option value="" disabled></option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>用户密码 (默认):</label>
+                    <div class="default-password-display">{{ config.DEFAULT_USER_PASSWORD }}</div>
+                </div>
+                <div style="text-align: center; margin-top: 40px;"><button type="submit" class="btn-create">创 建 域 用 户</button></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="card-title">批量创建用户 (通过 CSV)</div>
+            <form method="POST" action="{{ url_for('main.batch_create') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="user_file">选择 CSV 文件:</label>
+                    <input type="file" id="user_file" name="user_file" accept=".csv" required>
+                </div>
+                <div style="text-align: center; margin-top: 20px; display: flex; align-items: center; justify-content: center;">
+                    <button type="submit" class="btn-create"><i class="fas fa-upload"></i> 上传并创建</button>
+                    <a href="{{ url_for('main.download_template') }}" class="template-link">
+                        <i class="fas fa-download"></i> 下载 CSV 模板文件
+                    </a>
+                </div>
+            </form>
+            <div class="batch-instructions">
+                <strong>CSV 文件格式说明:</strong>
+                <p>文件必须为 <strong>UTF-8 with BOM</strong> 编码，并包含表头。列的顺序必须如下：</p>
+                <code>姓名,登录名,OU路径,职位</code>
+                <ul>
+                    <li><b>姓名 (必填):</b> 用户的显示名称，例如 "李四"。</li>
+                    <li><b>登录名 (必填):</b> 用户的 sAMAccountName，例如 "lisi"。</li>
+                    <li><b>OU路径 (必填):</b> 完整的 OU distinguishedName，例如 "OU=Marketing,OU=Shanghai,DC=your,DC=domain,DC=com"。如果OU不存在，系统将尝试自动创建。</li>
+                    <li><b>职位 (可选):</b> 在"职位管理"中定义的职位名称。如果填写，将自动关联用户组。</li>
+                </ul>
+            </div>
+            {% if batch_results %}
+            <div class="batch-results">
+                <strong>批量创建结果报告:</strong>
+                <hr style="border-color: #444;">
+{% for result in batch_results %}
+{{ result }}
+{% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const positionsData = {{ positions | tojson | safe }};
+        document.addEventListener('DOMContentLoaded', function() {
+            const positionSelect = document.getElementById('position_name');
+            const groupSelect = document.getElementById('groups');
+            if (positionSelect && groupSelect) {
+                const groupOptions = Array.from(groupSelect.options);
+                positionSelect.addEventListener('change', function() {
+                    const selectedPosition = this.value;
+                    const groupsForPosition = positionsData[selectedPosition] || [];
+                    groupOptions.forEach(option => {
+                        option.selected = groupsForPosition.includes(option.value);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

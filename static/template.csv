@@ -1,0 +1,3 @@
+姓名,登录名,OU路径,职位
+示例-张三,zhangsan,"OU=Sales,OU=Shanghai,DC=example,DC=com",销售专员
+示例-李四,lisi,"OU=IT,OU=Beijing,DC=example,DC=com",

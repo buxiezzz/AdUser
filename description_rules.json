@@ -1,0 +1,21 @@
+{
+  "battalion_rules": {
+    "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉3营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH3"
+  },
+  "position_rules": {
+    "机械工程师": "MD",
+    "电气工程师": "ED",
+    "工程电工": "ME"
+  },
+  "department_rules": {
+    "OU=武汉人事部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH-HR"
+  },
+  "ou_group_rules": {
+    "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "CN=WH-联队1营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
+    "OU=武汉3营,OU=武汉,DC=sk1,DC=net,DC=cn": "CN=WH-联队3营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
+    "OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "CN=WH-联队2营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
+    "OU=武汉人事部,OU=武汉,DC=sk1,DC=net,DC=cn": "CN=WH-HR-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+  }
+}
