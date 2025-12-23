@@ -161,6 +161,17 @@ def get_ou_list():
         print(f"Error fetching OU list: {e}")
     finally:
         if conn and conn.bound: conn.unbind()
+    # 使用全局配置过滤 OU
+    region_filter = CONFIG.get('ACTIVE_REGION_CODE', 'all')
+    
+    # 查找匹配的配置项
+    selected_region_config = next((item for item in CONFIG.get('REGION_OPTIONS', []) if item["code"] == region_filter), None)
+
+    if selected_region_config and selected_region_config.get('keywords'):
+        keywords = selected_region_config['keywords']
+        # 只要 DN 中包含任意一个关键词即保留
+        ou_list = [dn for dn in ou_list if any(k in dn for k in keywords)]
+
     return sorted(list(set(ou_list)))
 
 

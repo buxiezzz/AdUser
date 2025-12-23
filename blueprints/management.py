@@ -14,7 +14,8 @@ def settings():
         current_config, _ = load_config()
         current_config.update(
             {'DOMAIN_CONTROLLER_IP': request.form.get('dc_ip'), 'DOMAIN_NAME': request.form.get('domain_name'),
-             'DEFAULT_USER_PASSWORD': request.form.get('default_user_password')})
+             'DEFAULT_USER_PASSWORD': request.form.get('default_user_password'),
+             'ACTIVE_REGION_CODE': request.form.get('active_region')})
         save_config(current_config)
         CONFIG.update(current_config)
         flash('服务器配置已更新。', 'success')

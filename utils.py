@@ -16,8 +16,17 @@ def load_config():
             return json.loads(content), False
     except FileNotFoundError:
         print(f"INFO: '{CONFIG_FILE}' not found. Creating a new one...")
-        DEFAULT_CONFIG = {"DOMAIN_CONTROLLER_IP": "your_dc.your_domain.com", "DOMAIN_NAME": "your_domain.com",
-                          "DEFAULT_USER_PASSWORD": "ChangeMePlease123!"}
+        DEFAULT_CONFIG = {
+            "DOMAIN_CONTROLLER_IP": "your_dc.your_domain.com",
+            "DOMAIN_NAME": "your_domain.com",
+            "DEFAULT_USER_PASSWORD": "ChangeMePlease123!",
+            "REGION_OPTIONS": [
+                {"code": "all", "name": "显示所有地区 (Default)", "keywords": []},
+                {"code": "wuhan", "name": "仅显示武汉 (Wuhan)", "keywords": ["武汉", "Wuhan"]},
+                {"code": "shanghai", "name": "仅显示上海 (Shanghai)", "keywords": ["上海", "Shanghai"]},
+                {"code": "changsha", "name": "仅显示长沙 (Changsha)", "keywords": ["长沙", "Changsha"]}
+            ]
+        }
         save_config(DEFAULT_CONFIG)
         return DEFAULT_CONFIG, True  # 返回 True 表示是首次运行
     except json.JSONDecodeError:
