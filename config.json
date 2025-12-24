@@ -1,5 +1,37 @@
 {
   "DOMAIN_CONTROLLER_IP": "WIN-U36DV62MVIP.long.cn",
   "DOMAIN_NAME": "long.cn",
-  "DEFAULT_USER_PASSWORD": "Aa111111#"
+  "DEFAULT_USER_PASSWORD": "Aa111111#",
+  "REGION_OPTIONS": [
+    {
+      "code": "all",
+      "name": "显示所有地区 (Default)",
+      "keywords": []
+    },
+    {
+      "code": "wuhan",
+      "name": "仅显示武汉 (Wuhan)",
+      "keywords": [
+        "武汉",
+        "Wuhan"
+      ]
+    },
+    {
+      "code": "shanghai",
+      "name": "仅显示上海 (Shanghai)",
+      "keywords": [
+        "上海",
+        "Shanghai"
+      ]
+    },
+    {
+      "code": "changsha",
+      "name": "仅显示长沙 (Changsha)",
+      "keywords": [
+        "长沙",
+        "Changsha"
+      ]
+    }
+  ],
+  "ACTIVE_REGION_CODE": "wuhan"
 }
