@@ -27,6 +27,18 @@ const routes: Array<RouteRecordRaw> = [
                 meta: { title: '域用户开通向导' }
             },
             {
+                path: 'ad/users',
+                name: 'ADUsers',
+                component: () => import('../views/ad/Users.vue'),
+                meta: { title: '域用户检索' }
+            },
+            {
+                path: 'ad/groups',
+                name: 'ADGroups',
+                component: () => import('../views/ad/Groups.vue'),
+                meta: { title: '安全组策略' }
+            },
+            {
                 path: 'settings/system',
                 name: 'SystemSettings',
                 component: () => import('../views/settings/System.vue'),

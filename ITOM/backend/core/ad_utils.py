@@ -1,6 +1,6 @@
 # /ad_utils.py
 import ssl
-from ldap3 import Server, Connection, Tls, ALL, SUBTREE, LEVEL, MODIFY_ADD
+from ldap3 import Server, Connection, Tls, ALL, SUBTREE, LEVEL, BASE, MODIFY_ADD
 from .utils import load_rules
 from api.routers.settings import load_config
 
@@ -203,3 +203,243 @@ def get_group_list(bind_username: str, bind_password: str):
     finally:
         if conn and conn.bound: conn.unbind()
     return sorted(list(set(group_list)))
+
+
+def search_ad_users(bind_username: str, bind_password: str, keyword: str = ""):
+    """从 AD 检索用户列表，支持按显示名或账号过滤"""
+    users = []
+    conn = None
+    if not bind_username or not bind_password: return []
+    
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    domain_name = config.get('DOMAIN_NAME', '')
+    
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return []
+        
+        search_base = get_base_dn(domain_name)
+        
+        # 基础过滤：必须是 person 和 user
+        filter_str = '(&(objectClass=user)(objectCategory=person)'
+        if keyword:
+            # 加入关键词匹配：登录名 或 显示名
+            filter_str += f'(|(sAMAccountName=*{keyword}*)(displayName=*{keyword}*))'
+        filter_str += ')'
+        
+        conn.search(search_base, filter_str, SUBTREE, 
+                    attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName'])
+        
+        for entry in conn.entries:
+            user_info = {
+                'dn': str(entry.distinguishedName) if 'distinguishedName' in entry else '',
+                'username': str(entry.sAMAccountName) if 'sAMAccountName' in entry else '',
+                'display_name': str(entry.displayName) if 'displayName' in entry else '',
+                'description': str(entry.description) if 'description' in entry else '',
+                'upn': str(entry.userPrincipalName) if 'userPrincipalName' in entry else ''
+            }
+            users.append(user_info)
+    except Exception as e:
+        print(f"Error searching users: {e}")
+    finally:
+        if conn and conn.bound: conn.unbind()
+        
+    return users
+
+
+def get_ad_user_detail(bind_username: str, bind_password: str, sAMAccountName: str):
+    """获取单个域用户的详细信息，包括他所在的 memberOf 安全组"""
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    domain_name = config.get('DOMAIN_NAME', '')
+    
+    conn = None
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return None
+        
+        search_base = get_base_dn(domain_name)
+        conn.search(search_base, f'(sAMAccountName={sAMAccountName})', SUBTREE, 
+                    attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName', 'memberOf'])
+        
+        if conn.entries:
+            entry = conn.entries[0]
+            member_of = entry.memberOf.values if 'memberOf' in entry and entry.memberOf else []
+            # LDAP库返回的memberOf如果是单个可能会不是list，这里保证它是list
+            if not isinstance(member_of, list):
+                member_of = [member_of]
+                
+            return {
+                'dn': str(entry.distinguishedName),
+                'username': str(entry.sAMAccountName),
+                'display_name': str(entry.displayName) if 'displayName' in entry else '',
+                'description': str(entry.description) if 'description' in entry else '',
+                'upn': str(entry.userPrincipalName) if 'userPrincipalName' in entry else '',
+                'groups': [str(g) for g in member_of]
+            }
+        return None
+    except Exception as e:
+        print(f"Error getting user detail: {e}")
+        return None
+    finally:
+        if conn and conn.bound: conn.unbind()
+
+def change_user_password(bind_username: str, bind_password: str, user_dn: str, new_password: str):
+    """强制重置目标用户的密码"""
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    
+    conn = None
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return False, "连接域控失败"
+        
+        encoded_password = f'"{new_password}"'.encode('utf-16-le')
+        # 强制替换 unicodePwd
+        conn.modify(user_dn, {'unicodePwd': [(2, [encoded_password])]}) # 2 is MODIFY_REPLACE
+        
+        if conn.result['result'] == 0:
+            return True, "密码修改成功"
+        else:
+            return False, f"修改失败: {conn.result['description']}"
+    except Exception as e:
+        return False, f"发生异常: {str(e)}"
+    finally:
+        if conn and conn.bound: conn.unbind()
+
+def move_user_ou(bind_username: str, bind_password: str, user_dn: str, new_ou_dn: str):
+    """转移用户到新的 OU"""
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    
+    conn = None
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return False, "连接域控失败"
+        
+        # 提取用户的 CN 部分, 例如 CN=张三
+        cn_part = user_dn.split(',')[0]
+        
+        conn.modify_dn(user_dn, cn_part, new_superior=new_ou_dn)
+        
+        if conn.result['result'] == 0:
+            return True, "部门调整成功"
+        else:
+            return False, f"调整失败: {conn.result['description']}"
+    except Exception as e:
+        return False, f"发生异常: {str(e)}"
+    finally:
+        if conn and conn.bound: conn.unbind()
+
+from ldap3 import MODIFY_DELETE
+def update_user_groups(bind_username: str, bind_password: str, user_dn: str, old_groups: list, new_groups: list):
+    """差异化更新用户的安全组"""
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    
+    conn = None
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return False, "连接域控失败"
+        
+        old_set = set(old_groups)
+        new_set = set(new_groups)
+        
+        to_add = new_set - old_set
+        to_remove = old_set - new_set
+        
+        errors = []
+        for group in to_add:
+            conn.modify(group, {'member': [(MODIFY_ADD, [user_dn])]})
+            if conn.result['result'] != 0 and conn.result['result'] != 68: # 68 is already exists
+                errors.append(f"加入组 {group} 失败: {conn.result['description']}")
+                
+        for group in to_remove:
+            conn.modify(group, {'member': [(MODIFY_DELETE, [user_dn])]})
+            if conn.result['result'] != 0:
+                errors.append(f"移出组 {group} 失败: {conn.result['description']}")
+                
+        if errors:
+            return False, "; ".join(errors)
+        return True, "安全组权限更新成功"
+    except Exception as e:
+        return False, f"发生异常: {str(e)}"
+    finally:
+        if conn and conn.bound: conn.unbind()
+
+
+def get_group_members(bind_username: str, bind_password: str, group_dn: str):
+    """获取指定安全组的成员"""
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    
+    conn = None
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return []
+        
+        conn.search(group_dn, '(objectClass=group)', BASE, attributes=['member'])
+        
+        if conn.entries:
+            entry = conn.entries[0]
+            if 'member' in entry and entry.member:
+                members = entry.member.values
+                if not isinstance(members, list):
+                     members = [members]
+                return [str(m) for m in members]
+        return []
+    except Exception as e:
+        print(f"Error getting group members: {e}")
+        return []
+    finally:
+        if conn and conn.bound: conn.unbind()
+
+def update_group_members(bind_username: str, bind_password: str, group_dn: str, old_members: list, new_members: list):
+    """批量调整安全组内成员，自动分担移除和新增操作"""
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    
+    conn = None
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return False, "连接域控失败"
+        
+        old_set = set(old_members)
+        new_set = set(new_members)
+        
+        to_add = new_set - old_set
+        to_remove = old_set - new_set
+        
+        errors = []
+        if to_add:
+            conn.modify(group_dn, {'member': [(MODIFY_ADD, list(to_add))]})
+            if conn.result['result'] != 0 and conn.result['result'] != 68:
+                errors.append(f"添加新成员失败: {conn.result['description']}")
+                
+        if to_remove:
+            conn.modify(group_dn, {'member': [(MODIFY_DELETE, list(to_remove))]})
+            if conn.result['result'] != 0:
+                errors.append(f"移出旧成员失败: {conn.result['description']}")
+                
+        if errors:
+            return False, "; ".join(errors)
+        return True, "群组成员清单更新分布成功"
+    except Exception as e:
+        return False, f"发生异常: {str(e)}"
+    finally:
+        if conn and conn.bound: conn.unbind()
