@@ -1,6 +1,6 @@
 {
-  "DOMAIN_CONTROLLER_IP": "skad02.sk1.net.cn",
-  "DOMAIN_NAME": "sk1.net.cn",
+  "DOMAIN_CONTROLLER_IP": "10.20.108.4",
+  "DOMAIN_NAME": "long.cn",
   "DEFAULT_USER_PASSWORD": "Aa111111#",
   "REGION_OPTIONS": [
     {
@@ -22,8 +22,27 @@
   ],
   "ALLOW_REGISTRATION": false,
   "AUDIT_LOG": true,
-  "POSITIONS": [],
-  "BIND_USERNAME": "s12101018@sk1.net.cn",
+  "POSITIONS": [
+    {
+      "name": "机械工程师",
+      "suffix": "MD",
+      "default_groups": [
+        "CN=wh1,CN=Users,DC=long,DC=cn",
+        "CN=wh2,CN=Users,DC=long,DC=cn"
+      ]
+    }
+  ],
+  "BIND_USERNAME": "s12101018@long.cn",
   "BIND_PASSWORD": "ysyyrps@778",
-  "ACTIVE_REGION_CODE": "wuhan"
+  "ACTIVE_REGION_CODE": "wuhan",
+  "OU_GROUP_MAPPING": {
+    "OU=武汉1营队,OU=武汉,DC=long,DC=cn": [
+      "CN=wh-联队1营-users-Group,CN=Users,DC=long,DC=cn"
+    ]
+  },
+  "OU_PREFIX_MAPPING": {
+    "OU=武汉,DC=long,DC=cn": "WH",
+    "OU=武汉1营队,OU=武汉,DC=long,DC=cn": "WH1",
+    "OU=武汉2营队,OU=武汉,DC=long,DC=cn": "WH2"
+  }
 }

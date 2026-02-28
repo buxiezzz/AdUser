@@ -1,3 +1,0 @@
-Flask 
-ldap3
-gunicorn

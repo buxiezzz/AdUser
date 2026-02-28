@@ -37,6 +37,12 @@ const routes: Array<RouteRecordRaw> = [
                 name: 'SystemRules',
                 component: () => import('../views/settings/Rules.vue'),
                 meta: { title: '命名规范中心' }
+            },
+            {
+                path: 'settings/templates',
+                name: 'SystemTemplates',
+                component: () => import('../views/settings/Templates.vue'),
+                meta: { title: '权限模板配置' }
             }
         ]
     },

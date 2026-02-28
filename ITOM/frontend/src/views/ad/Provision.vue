@@ -114,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { User, Lock, Postcard } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -130,7 +130,8 @@ const loading = reactive({
 
 const ouOptions = ref<{dn: string, name: string}[]>([])
 const groupOptions = ref<string[]>([])
-const positionOptions = ref<{name: string, suffix: string}[]>([])
+const positionOptions = ref<{name: string, suffix: string, default_groups?: string[]}[]>([])
+const ouGroupMapping = ref<Record<string, string[]>>({})
 
 const form = reactive({
   new_username: '',
@@ -140,6 +141,42 @@ const form = reactive({
   position_name: '',
   groups: [] as string[]
 })
+
+let lastAutoAddedGroups: string[] = []
+
+const applyDefaultGroups = () => {
+  // 1. 先把上次自动添加的缺省组从选中列表中剔除（如果用户没删的话），避免切换时残留上一个选择的映射
+  const currentSelections = new Set(form.groups)
+  lastAutoAddedGroups.forEach(g => currentSelections.delete(g))
+  
+  // 2. 收集当前勾选 OU 和 Position 对应的最新默认组
+  const groupsToAdd = new Set<string>()
+  
+  if (form.ou_path && ouGroupMapping.value[form.ou_path]) {
+    ouGroupMapping.value[form.ou_path].forEach(g => groupsToAdd.add(g))
+  }
+  
+  if (form.position_name) {
+    const pos = positionOptions.value.find(p => p.name === form.position_name)
+    if (pos && pos.default_groups) {
+      pos.default_groups.forEach(g => groupsToAdd.add(g))
+    }
+  }
+
+  // 3. 把新算出来的默认组合并到目前的选中列表里
+  const newAutoAdded: string[] = []
+  groupsToAdd.forEach(g => {
+    currentSelections.add(g)
+    newAutoAdded.push(g)
+  })
+  
+  form.groups = Array.from(currentSelections)
+  lastAutoAddedGroups = newAutoAdded
+
+  if (newAutoAdded.length > 0) {
+    ElMessage.success(`已根据系统模板自动为您附加 ${newAutoAdded.length} 个基础安全组`)
+  }
+}
 
 const rules = reactive<FormRules>({
   new_username: [
@@ -180,6 +217,9 @@ const fetchOptions = async () => {
     if (config.DEFAULT_USER_PASSWORD && !form.password) {
       form.password = config.DEFAULT_USER_PASSWORD
     }
+    if (config.OU_GROUP_MAPPING) {
+      ouGroupMapping.value = config.OU_GROUP_MAPPING
+    }
   } catch (err) {
     console.error('拉取全局配置失败', err)
   }
@@ -219,8 +259,17 @@ const submitForm = async () => {
 const resetForm = () => {
   if (formRef.value) {
     formRef.value.resetFields()
+    lastAutoAddedGroups = []
   }
 }
+
+watch(() => form.ou_path, () => {
+  applyDefaultGroups()
+})
+
+watch(() => form.position_name, () => {
+  applyDefaultGroups()
+})
 
 onMounted(() => {
   fetchOptions()

@@ -23,6 +23,8 @@ class SettingsUpdateSchema(BaseModel):
     positions: list[dict] | None = None
     region_options: list[dict] | None = None
     active_region_code: str | None = None
+    ou_group_mapping: Dict[str, list[str]] | None = None
+    ou_prefix_mapping: Dict[str, str] | None = None
 
 def load_config() -> Dict[str, Any]:
     if not os.path.exists(CONFIG_FILE_PATH):
@@ -35,9 +37,11 @@ def load_config() -> Dict[str, Any]:
             "ALLOW_REGISTRATION": True,
             "AUDIT_LOG": True,
             "POSITIONS": [
-                {"name": "Developer", "suffix": "dev"},
-                {"name": "Manager", "suffix": "mgr"}
+                {"name": "Developer", "suffix": "dev", "default_groups": []},
+                {"name": "Manager", "suffix": "mgr", "default_groups": []}
             ],
+            "OU_GROUP_MAPPING": {},
+            "OU_PREFIX_MAPPING": {},
             "REGION_OPTIONS": [],
             "ACTIVE_REGION_CODE": "all"
         }
@@ -104,6 +108,10 @@ def update_settings(
         config_data["REGION_OPTIONS"] = settings.region_options
     if settings.active_region_code is not None:
         config_data["ACTIVE_REGION_CODE"] = settings.active_region_code
+    if settings.ou_group_mapping is not None:
+        config_data["OU_GROUP_MAPPING"] = settings.ou_group_mapping
+    if settings.ou_prefix_mapping is not None:
+        config_data["OU_PREFIX_MAPPING"] = settings.ou_prefix_mapping
         
     save_config(config_data)
     

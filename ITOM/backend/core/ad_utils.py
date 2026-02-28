@@ -70,40 +70,39 @@ def create_ad_user(domain_controller_ip, bind_username, bind_password, username,
         if conn.search(search_base=ou_path, search_filter=f'(cn={display_name})', search_scope=LEVEL):
             return False, f"错误: 用户姓名 '{display_name}' 已存在于此组织单元中。"
 
-        # --- 规则应用逻辑 ---
-        rules_data = load_rules()
-        battalion_rules = rules_data.get('battalion_rules', {})
-        position_rules = rules_data.get('position_rules', {})
-        department_rules = rules_data.get('department_rules', {})
-        ou_group_rules = rules_data.get('ou_group_rules', {})
+        # --- 规则应用逻辑 (自动生成 Description) ---
+        config = load_config()
+        ou_prefix_mapping = config.get("OU_PREFIX_MAPPING", {})
+        positions = config.get("POSITIONS", [])
 
-        description = ""
-        is_battalion = False
+        # 1. 解析 AA (部门标识)
+        # 如果配了这个 ou_path 的 mapping，则直接使用；否则从 ou_path(比如 'OU=Dev,DC=example,DC=com') 提取最左侧的名称
+        aa_code = ou_prefix_mapping.get(ou_path)
+        if not aa_code:
+             try:
+                 # 'OU=Dev,OU=Tech,DC=example,DC=com' -> 'Dev'
+                 first_part = ou_path.split(',')[0]
+                 if first_part.startswith('OU='):
+                     aa_code = first_part[3:]
+                 else:
+                     aa_code = "NA"
+             except:
+                 aa_code = "NA"
+                 
+        # 2. 解析 BB (职位后缀)
+        bb_code = "NA"
+        if position_name:
+             for pos in positions:
+                 if pos.get("name") == position_name:
+                     bb_code = pos.get("suffix", "NA")
+                     break
 
-        # 1. 优先应用单位规则
-        for ou_keyword, ou_code in battalion_rules.items():
-            if ou_keyword in ou_path:
-                current_position_name = position_name if position_name else ""
-                position_code = position_rules.get(current_position_name, "NA")
-                description = f"{ou_code}-{position_code}-{display_name}"
-                is_battalion = True
-                break
+        # 3. 拼装 description (AA-BB-CC)
+        description = f"{aa_code}-{bb_code}-{display_name}"
 
-        # 2. 如果单位规则未匹配，再应用部门规则
-        if not is_battalion:
-            for ou_keyword, dept_prefix in department_rules.items():
-                if ou_keyword in ou_path:
-                    description = f"{dept_prefix}-{display_name}"
-                    break
-
-        # 3. 应用自动加组规则
+        # 4. 加组逻辑 (沿用之前的自动勾选和接口传值)
         if groups_to_add is None:
             groups_to_add = []
-        for ou_keyword, group_dn in ou_group_rules.items():
-            if ou_keyword in ou_path:
-                groups_to_add.append(group_dn)
-                break
-
         # --- 规则应用结束 ---
 
         user_dn = f"CN={display_name},{ou_path}"
