@@ -153,7 +153,7 @@ const applyDefaultGroups = () => {
   const groupsToAdd = new Set<string>()
   
   if (form.ou_path && ouGroupMapping.value[form.ou_path]) {
-    ouGroupMapping.value[form.ou_path].forEach(g => groupsToAdd.add(g))
+    (ouGroupMapping.value[form.ou_path] || []).forEach((g: string) => groupsToAdd.add(g))
   }
   
   if (form.position_name) {

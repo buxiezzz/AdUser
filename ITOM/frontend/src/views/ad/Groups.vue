@@ -146,7 +146,7 @@ const fetchAllUsers = async () => {
 const extractCN = (dn: string) => {
   if (!dn) return ''
   const parts = dn.split(',')
-  if (parts.length > 0 && parts[0].startsWith('CN=')) {
+  if (parts.length > 0 && typeof parts[0] === 'string' && parts[0].startsWith('CN=')) {
     return parts[0].substring(3)
   }
   return dn
@@ -196,10 +196,12 @@ const openGroupDetail = async (groupDn: string) => {
         lowerMembers.forEach((m: string) => {
             const exists = allUserOptions.value.some((o: UserOption) => o && o.key === m)
             if (!exists) {
+                const cnName = m.split(',')[0]
+                const safeCnName = cnName ? cnName.replace('CN=', '').replace('cn=', '') : m
                 allUserOptions.value.push({
                      key: m,
                      label: m,
-                     displayName: m.split(',')[0].replace('CN=', '').replace('cn=', ''),
+                     displayName: safeCnName,
                      username: '系统内建/不可见对象',
                      disabled: false
                 })

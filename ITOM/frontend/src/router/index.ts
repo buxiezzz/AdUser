@@ -21,6 +21,18 @@ const routes: Array<RouteRecordRaw> = [
                 meta: { title: '控制台概览' }
             },
             {
+                path: 'assets/list',
+                name: 'AssetList',
+                component: () => import('../views/asset/List.vue'),
+                meta: { title: '资产台账总览' }
+            },
+            {
+                path: 'assets/categories',
+                name: 'AssetCategories',
+                component: () => import('../views/asset/Categories.vue'),
+                meta: { title: '资产分类字典' }
+            },
+            {
                 path: 'ad/provision',
                 name: 'ADProvision',
                 component: () => import('../views/ad/Provision.vue'),

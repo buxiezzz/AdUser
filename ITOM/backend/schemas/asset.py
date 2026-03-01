@@ -26,6 +26,10 @@ class CategoryBase(BaseModel):
 class CategoryCreate(CategoryBase):
     pass
 
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    default_attributes: Optional[Dict[str, Any]] = None
+
 class CategoryResponse(CategoryBase):
     id: int
     class Config:
@@ -72,6 +76,9 @@ class AssetLogCreate(BaseModel):
 class AssetLogResponse(AssetLogCreate):
     id: int
     operated_by: int
+    operator_name: Optional[str] = None
+    previous_owner_name: Optional[str] = None
+    new_owner_name: Optional[str] = None
     created_at: datetime
 
     class Config:
