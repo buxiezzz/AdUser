@@ -42,6 +42,16 @@ def update_category(db: Session, category_id: int, category_in: CategoryUpdate):
     db.refresh(db_cat)
     return db_cat
 
+def delete_category(db: Session, category_id: int):
+    db_cat = db.query(Category).filter(Category.id == category_id).first()
+    if not db_cat:
+        return False
+    # Only allow deletion if no assets are linked to it (optional, but good practice).
+    # Since sqlite/foreign keys handle this, we just try to delete.
+    db.delete(db_cat)
+    db.commit()
+    return True
+
 # ====== Asset CRUD ======
 def get_assets(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Asset).offset(skip).limit(limit).all()
@@ -140,6 +150,17 @@ def delete_asset(db: Session, asset_id: UUID, current_user_id: int):
     db.commit()
     db.refresh(db_asset)
     return db_asset
+
+def hard_delete_asset(db: Session, asset_id: UUID):
+    db_asset = get_asset(db, asset_id)
+    if not db_asset:
+        return False
+        
+    # Cascade logs deletion manually if needed, or rely on cascading in models
+    db.query(AssetLog).filter(AssetLog.asset_id == asset_id).delete()
+    db.delete(db_asset)
+    db.commit()
+    return True
 
 def get_asset_logs(db: Session, asset_id: UUID):
     logs = db.query(AssetLog).filter(AssetLog.asset_id == asset_id).order_by(AssetLog.created_at.desc()).all()

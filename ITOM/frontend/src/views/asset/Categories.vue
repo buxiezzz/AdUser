@@ -16,10 +16,13 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleEdit(row)">
               编辑修改
+            </el-button>
+            <el-button link type="danger" size="small" @click="handleDelete(row)">
+              删除
             </el-button>
           </template>
         </el-table-column>
@@ -49,7 +52,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
 const categories = ref<any[]>([])
@@ -127,6 +130,26 @@ const submitSave = async () => {
         ElMessage.error(err.response?.data?.detail || '保存分类失败')
     } finally {
         submitLoading.value = false
+    }
+}
+const handleDelete = async (row: any) => {
+    try {
+        await ElMessageBox.confirm(`确定要删除资产类别 "${row.name}" 吗？如果有资产正属于此分类，将无法删除。`, '删除提示', {
+            type: 'warning',
+            confirmButtonText: '确定删除',
+            cancelButtonText: '取消'
+        })
+    } catch { return }
+
+    loading.value = true
+    try {
+        await axios.delete(`/api/assets/categories/${row.id}`)
+        ElMessage.success('资产分类已删除')
+        fetchCategories()
+    } catch (err: any) {
+        ElMessage.error(err.response?.data?.detail || '删除失败，该分类下可能还有资产数据')
+    } finally {
+        loading.value = false
     }
 }
 </script>
