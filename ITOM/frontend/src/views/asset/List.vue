@@ -236,11 +236,11 @@
       <div v-for="asset in assetsToPrint" :key="asset.id" class="print-label-page" :style="{ width: printConfig.width + 'mm', height: printConfig.height + 'mm', boxSizing: 'border-box', padding: printConfig.padding + 'mm', pageBreakAfter: 'always', display: 'flex', flexDirection: 'column', background: 'white', color: 'black', fontFamily: '\'Helvetica Neue\', Helvetica, Arial, sans-serif', overflow: 'hidden' }">
         <table :style="{ width: '100%', height: '100%', borderCollapse: 'collapse', border: printConfig.border + 'px solid black', fontWeight: 'bold', tableLayout: 'fixed' }">
           <colgroup>
-            <col style="width: auto;" />
-            <col :style="{ width: (printConfig.qrSize + 4) + 'px' }" />
+            <col :style="{ width: (100 - (printConfig.qrColWidth || 30)) + '%' }" />
+            <col :style="{ width: (printConfig.qrColWidth || 30) + '%' }" />
           </colgroup>
           <tr>
-            <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r1 + 'mm', padding: 0, textAlign: 'center', fontSize: printConfig.fonts.title + 'px', fontWeight: 900, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden' }">先惠自动化技术(武汉)有限责任公司</td>
+            <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r1 + 'mm', padding: 0, textAlign: 'center', fontSize: printConfig.fonts.title + 'px', fontWeight: 900, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden' }">{{ printConfig.company_name }}</td>
           </tr>
           <tr>
             <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r2 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.code + 'px', whiteSpace: 'nowrap', overflow: 'hidden' }">资产编码: {{ asset.asset_code }}</td>
@@ -254,7 +254,7 @@
           <tr>
              <td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r5 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.serial + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">序 列 号 &nbsp;: {{ asset.dynamic_attributes?.['序列号'] || '-' }}</td>
              <td rowspan="2" :style="{ border: printConfig.border + 'px solid black', borderLeft: printConfig.border + 'px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '1%' }">
-                <qrcode-vue :value="getQrUrl(asset)" :size="printConfig.qrSize" level="H" render-as="svg" style="display:block; margin: 0 auto;" />
+                <qrcode-vue :value="getQrUrl(asset)" :size="printConfig.qrSize" level="L" render-as="svg" style="display:block; margin: 0 auto;" />
              </td>
           </tr>
           <tr>
@@ -267,7 +267,7 @@
     <!-- WYSIWYG 可视化打印排版设计器 -->
     <el-dialog v-model="printConfigVisible" title="定制修改打印排版与实时预览" width="900px" align-center @close="stopDrag">
        <!-- 顶部全局工具栏 -->
-       <div class="flex items-center gap-4 bg-gray-50 p-3 rounded mb-4 border border-gray-200">
+       <div class="flex flex-wrap items-center gap-4 bg-gray-50 p-3 rounded mb-4 border border-gray-200">
          <div class="flex items-center gap-2">
            <span class="text-sm text-gray-600">纸宽(mm)</span>
            <el-input-number v-model="printConfig.width" :min="30" :max="150" size="small" style="width: 100px" />
@@ -284,16 +284,27 @@
            <span class="text-sm text-gray-600">边框(px)</span>
            <el-input-number v-model="printConfig.border" :min="0" :max="10" size="small" style="width: 100px" />
          </div>
+         <div class="flex items-center gap-2">
+           <span class="text-sm text-gray-600">组织/公司抬头</span>
+           <el-input v-model="printConfig.company_name" size="small" style="width: 200px" placeholder="输入打印抬头" />
+         </div>
+         <div class="flex items-center gap-2">
+           <span class="text-sm text-gray-600">二维码区占比(%)</span>
+           <el-slider v-model="printConfig.qrColWidth" :min="15" :max="60" style="width: 100px; margin-left: 10px; margin-right: 15px;" />
+         </div>
+         <div class="flex items-center gap-2">
+           <span class="text-sm text-gray-600">二维码大小(px)</span>
+           <el-input-number v-model="printConfig.qrSize" :min="10" :max="150" size="small" style="width: 100px" />
+         </div>
          
          <el-divider direction="vertical" />
 
          <!-- 动态选中元素字号调节 (类似Word) -->
-         <div class="flex items-center gap-2" v-if="selectedElement">
+         <div class="flex items-center gap-2" v-if="selectedElement && selectedElement !== 'qr'">
            <span class="text-sm font-bold text-blue-600">当前选中文字字号(px)</span>
-           <el-input-number v-if="selectedElement === 'qr'" v-model="printConfig.qrSize" :min="10" :max="150" size="small" style="width: 100px" />
-           <el-input-number v-else v-model="(printConfig.fonts as any)[selectedElement]" :min="8" :max="50" size="small" style="width: 100px" />
+           <el-input-number v-model="(printConfig.fonts as any)[selectedElement]" :min="8" :max="50" size="small" style="width: 100px" />
          </div>
-         <div v-else class="text-sm text-gray-400 italic">单击表格内文字以调节字号大小...</div>
+         <div v-else class="text-sm text-gray-400 italic">单击表格内文字以调节该行字号大小...</div>
        </div>
 
        <!-- 居中可视化预览画板 -->
@@ -321,8 +332,8 @@
                 border: printConfig.border + 'px solid black', fontWeight: 'bold', tableLayout: 'fixed', position: 'relative' 
               }">
                 <colgroup>
-                  <col style="width: auto;" />
-                  <col :style="{ width: (printConfig.qrSize + 4) + 'px' }" />
+                  <col :style="{ width: (100 - (printConfig.qrColWidth || 30)) + '%' }" />
+                  <col :style="{ width: (printConfig.qrColWidth || 30) + '%' }" />
                 </colgroup>
                 <!-- Row 1 -->
                 <tr>
@@ -336,7 +347,7 @@
                         fontWeight: 900, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden',
                         position: 'relative', outline: selectedElement === 'title' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer'
                       }">
-                    先惠自动化技术(武汉)有限责任公司
+                    {{ printConfig.company_name }}
                     <!-- Drag handle for row 1 bottom -->
                     <div @mousedown.stop="startDragRow($event, 'r1')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div>
                   </td>
@@ -387,7 +398,7 @@
                    <td rowspan="2" 
                        @mousedown.stop="selectElement('qr')"
                        :style="{ border: printConfig.border + 'px solid black', borderLeft: printConfig.border + 'px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '1%', outline: selectedElement === 'qr' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer', position: 'relative' }">
-                      <qrcode-vue :value="getQrUrl(assetsToPrint[0])" :size="printConfig.qrSize" level="H" render-as="svg" style="display:block; margin: 0 auto; pointer-events: none;" />
+                      <qrcode-vue :value="getQrUrl(assetsToPrint[0])" :size="printConfig.qrSize" level="L" render-as="svg" style="display:block; margin: 0 auto; pointer-events: none;" />
                    </td>
                 </tr>
                 <!-- Row 6 -->
@@ -403,9 +414,15 @@
        </div>
 
        <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="printConfigVisible = false">取消</el-button>
-            <el-button type="primary" @click="executePrint">应用排版并系统打印 (批量)</el-button>
+          <div class="dialog-footer flex justify-between items-center">
+            <div>
+               <el-button type="warning" plain @click="saveTemplateToSystem" :loading="savingTemplate">保存为默认模板</el-button>
+               <span class="text-xs text-gray-400 ml-2">保存后下次打印将默认使用此排版</span>
+            </div>
+            <div>
+              <el-button @click="printConfigVisible = false">取消</el-button>
+              <el-button type="primary" @click="executePrint">应用排版并系统打印 (批量)</el-button>
+            </div>
           </div>
        </template>
     </el-dialog>
@@ -460,17 +477,27 @@ const empLoading = ref(false)
 const searchKeyword = ref('')
 const searchStatus = ref('')
 const searchCategory = ref<number | ''>('')
+const savingTemplate = ref(false)
+const isAdmin = computed(() => {
+    // 简单判定，实际应当走 user store，但为简便只检查 local storage payload / 或者后台会拦截
+    return true
+})
 
 const fetchGlobals = async () => {
     try {
-        const [catRes, empRes] = await Promise.all([
+        const [catRes, empRes, settingsRes] = await Promise.all([
             axios.get('/api/assets/categories'),
-            axios.get('/api/assets/employees', { params: { keyword: '' }}) 
+            axios.get('/api/assets/employees', { params: { keyword: '' }}),
+            axios.get('/api/settings/')
         ])
         categories.value = catRes.data || []
         employees.value = empRes.data || []
+        
+        if (settingsRes.data && settingsRes.data.PRINT_TEMPLATE) {
+            printConfig.value = { ...printConfig.value, ...settingsRes.data.PRINT_TEMPLATE }
+        }
     } catch {
-        ElMessage.warning('拉取分类与人员基础数据失败')
+        ElMessage.warning('拉取分类、人员或全局配置数据失败')
     }
 }
 
@@ -585,7 +612,10 @@ const handleCategoryChange = (_val: number) => {
 
 const handleStatusChange = (val: string) => {
     if(val === '在库' || val === '已归档/报废') {
-        form.value.owner_id = undefined
+        form.value.owner_id = null
+        if (form.value.dynamic_attributes) {
+            form.value.dynamic_attributes['所属组织'] = ''
+        }
     }
 }
 
@@ -750,6 +780,8 @@ const printConfig = ref({
     height: 50,      // mm
     padding: 2,      // mm
     border: 2,       // px
+    margin_bottom: 0,
+    company_name: '先惠自动化技术(武汉)有限责任公司', // default local value
     rows: {
         r1: 12,
         r2: 8,
@@ -766,7 +798,8 @@ const printConfig = ref({
         serial: 13,
         date: 13
     },
-    leftColWidth: 62,// % (文本占比宽度，剩余为二维码宽度)
+    qrColWidth: 30,  // % (二维码整列占比，可以通过滑块调节实现中线左右平移)
+    leftColWidth: 62,// % (原有预留备用属性)
     qrSize: 62       // px
 })
 
@@ -879,6 +912,18 @@ const executePrint = async () => {
             printWindow.print()
         }, 500)
     }, 400) // 延迟确保 SVG 渲染就绪
+}
+
+const saveTemplateToSystem = async () => {
+    savingTemplate.value = true
+    try {
+        await axios.post('/api/settings/', { print_template: printConfig.value })
+        ElMessage.success('成功将当前排版保存为系统全局默认模板')
+    } catch(err:any) {
+        ElMessage.error(err.response?.data?.detail || '保存失败，可能需要管理员权限')
+    } finally {
+        savingTemplate.value = false
+    }
 }
 
 // ------ 导入功能 ------

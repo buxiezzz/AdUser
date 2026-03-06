@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import io
 import openpyxl
+from uuid import UUID
 
 from database import get_db
 from crud import asset as crud_asset
@@ -15,6 +16,50 @@ from core.ad_utils import search_ad_users
 from api.routers.settings import load_config
 
 router = APIRouter()
+
+@router.get("/mobile/{qr_code_token}", response_model=AssetResponse)
+def read_asset_by_qr(qr_code_token: str, db: Session = Depends(get_db)):
+    """
+    移动端专用：免密通过扫码Token获取资产详细档案
+    """
+    asset = crud_asset.get_asset_by_qr_token(db, qr_code_token)
+    if not asset:
+        raise HTTPException(status_code=404, detail="无法找到该资产或二维码已失效")
+    return asset
+
+class StatusUpdateRequest(schemas.asset.BaseModel):
+    status: str
+
+@router.post("/{asset_id}/inventory", response_model=dict)
+def quick_inventory_check(asset_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    """
+    移动端专用：免密扫码快速生成一条“盘点核对”日志
+    """
+    log_entry = crud_asset.record_inventory_check(db, asset_id, current_user.id)
+    return {"message": "盘点记录已入账", "log_id": log_entry.id}
+
+@router.patch("/{asset_id}/status", response_model=AssetResponse)
+def quick_update_status(asset_id: UUID, request: StatusUpdateRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    """
+    移动端专用：快速变更设备周转状态
+    """
+    db_asset = crud_asset.update_asset_status(db, asset_id, request.status, current_user.id)
+    if not db_asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return db_asset
+
+class ReassignRequest(schemas.asset.BaseModel):
+    owner_id: int
+
+@router.patch("/{asset_id}/reassign", response_model=AssetResponse)
+def reassign_asset_owner(asset_id: UUID, request: ReassignRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    """
+    移动端专用：快速调拨/更改资产归属人
+    """
+    db_asset = crud_asset.reassign_asset(db, asset_id, request.owner_id, current_user.id)
+    if not db_asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return db_asset
 
 # --- Categories ---
 @router.get("/categories", response_model=List[CategoryResponse])

@@ -4,6 +4,18 @@ import axios from 'axios'
 
 const routes: Array<RouteRecordRaw> = [
     {
+        path: '/mobile/asset/create',
+        name: 'mobile-asset-create',
+        component: () => import('../views/mobile/AssetCreate.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/mobile/asset/:token',
+        name: 'mobile-asset-view',
+        component: () => import('../views/mobile/AssetView.vue'),
+        meta: { title: '移动资产卡片视图', requiresAuth: false }
+    },
+    {
         path: '/login',
         name: 'Login',
         component: () => import('../views/auth/Login.vue'),
@@ -90,8 +102,11 @@ router.beforeEach((to, _from, next) => {
 
     const token = localStorage.getItem('itom_token')
 
-    if (to.path !== '/login' && !token) {
-        // Redirect to login if not authenticated
+    // 允许免登录直接访问的路由 (通过 meta.requiresAuth = false 或是特定的路径前缀)
+    const isPublicRoute = to.meta.requiresAuth === false || to.path.startsWith('/mobile/asset/')
+
+    if (to.path !== '/login' && !token && !isPublicRoute) {
+        // Redirect to login if not authenticated and not a public route
         next('/login')
     } else if (to.path === '/login' && token) {
         // Redirect to dashboard if already logged in and trying to access login

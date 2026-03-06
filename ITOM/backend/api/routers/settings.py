@@ -25,6 +25,7 @@ class SettingsUpdateSchema(BaseModel):
     active_region_code: str | None = None
     ou_group_mapping: Dict[str, list[str]] | None = None
     ou_prefix_mapping: Dict[str, str] | None = None
+    print_template: dict | None = None
 
 def load_config() -> Dict[str, Any]:
     if not os.path.exists(CONFIG_FILE_PATH):
@@ -43,7 +44,22 @@ def load_config() -> Dict[str, Any]:
             "OU_GROUP_MAPPING": {},
             "OU_PREFIX_MAPPING": {},
             "REGION_OPTIONS": [],
-            "ACTIVE_REGION_CODE": "all"
+            "ACTIVE_REGION_CODE": "all",
+            "PRINT_TEMPLATE": {
+                "width": 70,
+                "height": 50,
+                "padding": 2,
+                "border": 2,
+                "company_name": "先惠自动化技术(武汉)有限责任公司",
+                "rows": {
+                    "r1": 12, "r2": 8, "r3": 8, "r4": 8, "r5": 6, "r6": 6
+                },
+                "fonts": {
+                    "title": 15, "code": 13, "name": 13, "spec": 13, "serial": 13, "date": 13
+                },
+                "leftColWidth": 62,
+                "qrSize": 62
+            }
         }
     with open(CONFIG_FILE_PATH, 'r', encoding='utf-8') as f:
         return json.load(f)
@@ -112,6 +128,8 @@ def update_settings(
         config_data["OU_GROUP_MAPPING"] = settings.ou_group_mapping
     if settings.ou_prefix_mapping is not None:
         config_data["OU_PREFIX_MAPPING"] = settings.ou_prefix_mapping
+    if settings.print_template is not None:
+        config_data["PRINT_TEMPLATE"] = settings.print_template
         
     save_config(config_data)
     

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from uuid import UUID
 import uuid
 
@@ -7,7 +7,88 @@ from models.user import User
 from schemas.asset import AssetCreate, AssetUpdate, CategoryCreate, CategoryUpdate, EmployeeCreate
 
 # ====== Employee CRUD ======
-def get_employees(db: Session, skip: int = 0, limit: int = 100):
+def get_asset_by_qr_token(db: Session, token: str):
+    return db.query(Asset).options(
+        joinedload(Asset.category),
+        joinedload(Asset.owner)
+    ).filter(Asset.qr_code_token == token).first()
+
+def record_inventory_check(db: Session, asset_id: UUID, user_id: int):
+    # 创建一条盘点日志
+    log_entry = AssetLog(
+        asset_id=asset_id,
+        operated_by=user_id,
+        action="Inventory",
+        memo="通过移动端免密扫码完成实地盘点核对"
+    )
+    db.add(log_entry)
+    db.commit()
+    return log_entry
+
+def update_asset_status(db: Session, asset_id: UUID, status: str, user_id: int):
+    db_asset = db.query(Asset).filter(Asset.id == asset_id).first()
+    if not db_asset:
+        return None
+    old_status = db_asset.status
+    old_owner_id = db_asset.owner_id
+    
+    db_asset.status = status
+    
+    action = "Status Change"
+    memo = f"通过移动端快速变更状态: [ {old_status} ] -> [ {status} ]"
+    
+    # 如果强制退库，一并清空名下人员与组织
+    if status in ["在库", "已归档/报废"]:
+        db_asset.owner_id = None
+        if db_asset.dynamic_attributes and "所属组织" in db_asset.dynamic_attributes:
+            new_attrs = dict(db_asset.dynamic_attributes)
+            new_attrs["所属组织"] = ""
+            db_asset.dynamic_attributes = new_attrs
+        action = "资产回收 (快捷状态修改)"
+        memo = f"通过移动端强制退库，清空借用状态。"
+    
+    # 记录状态变更日志
+    log_entry = AssetLog(
+        asset_id=asset_id,
+        operated_by=user_id,
+        action=action,
+        previous_owner_id=old_owner_id,
+        new_owner_id=db_asset.owner_id,
+        memo=memo
+    )
+    db.add(log_entry)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset
+
+def reassign_asset(db: Session, asset_id: UUID, new_owner_id: int, user_id: int):
+    db_asset = db.query(Asset).filter(Asset.id == asset_id).first()
+    if not db_asset:
+        return None
+    
+    old_owner_name = db_asset.owner.name if db_asset.owner else "无"
+    old_owner_id = db_asset.owner_id
+    
+    # fetch new owner name for log
+    new_owner = db.query(Employee).filter(Employee.id == new_owner_id).first()
+    new_owner_name = new_owner.name if new_owner else "无"
+    
+    db_asset.owner_id = new_owner_id
+    
+    log_entry = AssetLog(
+        asset_id=asset_id,
+        operated_by=user_id,
+        action="Reassign",
+        previous_owner_id=old_owner_id,
+        new_owner_id=new_owner_id,
+        memo=f"通过移动端快速调拨: [ {old_owner_name} ] -> [ {new_owner_name} ]"
+    )
+    db.add(log_entry)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset
+
+def get_employees(db: Session, skip: int = 0, limit: int = 100, keyword: str = ""):
     return db.query(Employee).offset(skip).limit(limit).all()
 
 def create_employee(db: Session, employee: EmployeeCreate):
@@ -93,9 +174,16 @@ def update_asset(db: Session, asset_id: UUID, asset_in: AssetUpdate, current_use
     
     # 检测拥有者变更或状态变更记录志
     old_owner_id = db_asset.owner_id
-    new_owner_id = update_data.get("owner_id", old_owner_id)
     old_status = db_asset.status
+    
+    # 强制归还逻辑：如果状态变更为在库或已归档/报废，清空使用人和部门
     new_status = update_data.get("status", old_status)
+    if new_status in ["在库", "已归档/报废"]:
+        update_data["owner_id"] = None
+        if "dynamic_attributes" in update_data and "所属组织" in update_data["dynamic_attributes"]:
+            update_data["dynamic_attributes"]["所属组织"] = ""
+            
+    new_owner_id = update_data.get("owner_id", old_owner_id)
     
     action = "信息更新"
     if old_owner_id != new_owner_id:
@@ -109,6 +197,7 @@ def update_asset(db: Session, asset_id: UUID, asset_in: AssetUpdate, current_use
         action = f"状态变更 ({old_status} -> {new_status})"
         
     for field, value in update_data.items():
+        # Specifically allow None for owner_id to clear it
         setattr(db_asset, field, value)
         
     db.add(db_asset)

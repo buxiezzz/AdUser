@@ -35,14 +35,53 @@
   "BIND_USERNAME": "s12101018@sk1.net.cn",
   "BIND_PASSWORD": "ysyyrps@778",
   "ACTIVE_REGION_CODE": "wuhan",
-  "OU_GROUP_MAPPING": {
-    "OU=武汉1营队,OU=武汉,DC=long,DC=cn": [
-      "CN=wh-联队1营-users-Group,CN=Users,DC=long,DC=cn"
-    ]
-  },
+  "OU_GROUP_MAPPING": {},
   "OU_PREFIX_MAPPING": {
-    "OU=武汉,DC=long,DC=cn": "WH",
-    "OU=武汉1营队,OU=武汉,DC=long,DC=cn": "WH1",
-    "OU=武汉2营队,OU=武汉,DC=long,DC=cn": "WH2"
+    "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营1连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营1连1排,OU=武汉1营1连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营1连2排,OU=武汉1营1连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营2连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营2连1排,OU=武汉1营2连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营2连2排,OU=武汉1营2连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营3连1排,OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营3连2排,OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉1营3连3排,OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
+    "OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉2营1连1排,OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉2营1连2排,OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉2营1连3排,OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉2营2连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉2营2连1排,OU=武汉2营2连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
+    "OU=武汉2营2连2排,OU=武汉2营2连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2"
+  },
+  "PRINT_TEMPLATE": {
+    "width": 70,
+    "height": 50,
+    "padding": 2,
+    "border": 2,
+    "margin_bottom": 0,
+    "company_name": "先惠自动化技术(武汉)有限责任公司",
+    "rows": {
+      "r1": 8,
+      "r2": 7.3,
+      "r3": 7.3,
+      "r4": 7.1,
+      "r5": 3,
+      "r6": 6
+    },
+    "fonts": {
+      "title": 15,
+      "code": 13,
+      "name": 13,
+      "spec": 13,
+      "serial": 13,
+      "date": 13
+    },
+    "qrColWidth": 21,
+    "leftColWidth": 62,
+    "qrSize": 44
   }
 }
