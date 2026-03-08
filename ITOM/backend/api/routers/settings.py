@@ -150,13 +150,28 @@ def test_ad_connection_live(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权进行AD测试")
     
     try:
-        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
-        server = Server(req.dc_ip, port=636, use_ssl=True, tls=tls_config)
+        # 1. 优先尝试 LDAPS (636)
+        print(f"尝试连接 {req.dc_ip}:636 (SSL)...")
+        try:
+            tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+            server = Server(req.dc_ip, port=636, use_ssl=True, tls=tls_config, connect_timeout=5)
+            conn = Connection(server, user=req.username, password=req.password, auto_bind=True)
+            if conn.bound:
+                conn.unbind()
+                return {"success": True, "message": "成功通过 LDAPS (636) 连接到域控！"}
+        except Exception as ssl_err:
+            print(f"LDAPS 尝试失败: {ssl_err}")
+            
+        # 2. 回退尝试 LDAP (389)
+        print(f"尝试连接 {req.dc_ip}:389 (非 SSL)...")
+        server = Server(req.dc_ip, port=389, use_ssl=False, connect_timeout=5)
         conn = Connection(server, user=req.username, password=req.password, auto_bind=True)
         if conn.bound:
             conn.unbind()
-            return {"success": True, "message": "成功探测到 AD 域控并完成身份验证！"}
+            return {"success": True, "message": "成功通过 LDAP (389) 连接到域控！但建议开启 SSL 以保证密码安全。"}
         else:
-            raise HTTPException(status_code=400, detail=f"AD 返回拒绝: {conn.result}")
+            raise Exception(f"AD 返回拒绝: {conn.result}")
+            
     except Exception as e:
+        print(f"AD Test Final Error: {e}")
         raise HTTPException(status_code=400, detail=f"AD 连接或验证失败: {str(e)}")

@@ -478,10 +478,7 @@ const searchKeyword = ref('')
 const searchStatus = ref('')
 const searchCategory = ref<number | ''>('')
 const savingTemplate = ref(false)
-const isAdmin = computed(() => {
-    // 简单判定，实际应当走 user store，但为简便只检查 local storage payload / 或者后台会拦截
-    return true
-})
+
 
 const fetchGlobals = async () => {
     try {

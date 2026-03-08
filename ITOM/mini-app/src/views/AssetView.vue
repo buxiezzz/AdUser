@@ -15,7 +15,7 @@
         <div @click="openReassignDialog" class="bg-yellow-600/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
           <el-icon><User /></el-icon> <span>修改归属</span>
         </div>
-        <div @click="$router.push('/mobile/asset/create')" class="bg-blue-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
+        <div @click="$router.push('/asset/create')" class="bg-blue-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
           <el-icon><Plus /></el-icon> <span>录入</span>
         </div>
         <div @click="logout" class="bg-red-500/80 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
@@ -274,7 +274,7 @@ const getCategoryName = () => {
 
 const getQrUrl = (a: any) => {
     if (!a) return window.location.origin
-    return a.qr_code_token ? `${window.location.origin}/mobile/asset/${a.qr_code_token}` : window.location.origin
+    return a.qr_code_token ? `${window.location.origin}/asset/${a.qr_code_token}` : window.location.origin
 }
 
 const dynamicExtAttrs = computed(() => {

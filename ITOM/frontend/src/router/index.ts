@@ -16,6 +16,18 @@ const routes: Array<RouteRecordRaw> = [
         meta: { title: '移动资产卡片视图', requiresAuth: false }
     },
     {
+        path: '/mobile/scan',
+        name: 'mobile-asset-scan',
+        component: () => import('../views/mobile/Scan.vue'),
+        meta: { title: '扫一扫', requiresAuth: false }
+    },
+    {
+        path: '/mobile/home',
+        name: 'mobile-home',
+        component: () => import('../views/mobile/Home.vue'),
+        meta: { title: 'ITOM 移动端', requiresAuth: false }
+    },
+    {
         path: '/login',
         name: 'Login',
         component: () => import('../views/auth/Login.vue'),
@@ -101,9 +113,17 @@ router.beforeEach((to, _from, next) => {
     }
 
     const token = localStorage.getItem('itom_token')
+    const forcePc = sessionStorage.getItem('itom_force_pc') === '1'
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-    // 允许免登录直接访问的路由 (通过 meta.requiresAuth = false 或是特定的路径前缀)
-    const isPublicRoute = to.meta.requiresAuth === false || to.path.startsWith('/mobile/asset/')
+    // 允许免登录直接访问的路由
+    const isPublicRoute = to.meta.requiresAuth === false || to.path.startsWith('/mobile/asset/') || to.path === '/mobile/home'
+
+    // Device specific routing for root or login
+    if (isMobile && !forcePc && (to.path === '/login' || to.path === '/')) {
+        window.location.href = window.location.origin.replace(':5173', ':5174') + '/'
+        return
+    }
 
     if (to.path !== '/login' && !token && !isPublicRoute) {
         // Redirect to login if not authenticated and not a public route

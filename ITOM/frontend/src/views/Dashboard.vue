@@ -52,7 +52,6 @@
         </div>
       </el-card>
     </div>
-
     <!-- 骨架屏占位：近期活动与趋势图 -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <el-card shadow="never" class="lg:col-span-2 border-0 ring-1 ring-gray-100 rounded-xl">
