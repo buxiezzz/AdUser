@@ -1,0 +1,73 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": { "navigationBarTitleText": "工作台" }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    {
+      "path": "pages/login/login",
+      "style": { "navigationBarTitleText": "管理员登录", "navigationBarBackgroundColor": "#f7f9fb" }
+    },
+    {
+      "path": "pages/asset/list",
+      "style": { "navigationBarTitleText": "资产台账" }
+    },
+    {
+      "path": "pages/asset/detail",
+      "style": { "navigationBarTitleText": "资产卡片" }
+    },
+    {
+      "path": "pages/asset/categories",
+      "style": { "navigationBarTitleText": "资产分类字典" }
+    },
+    {
+      "path": "pages/ad/users",
+      "style": { "navigationBarTitleText": "域用户检索" }
+    },
+    {
+      "path": "pages/ad/provision",
+      "style": { "navigationBarTitleText": "自动开通向导" }
+    },
+    {
+      "path": "pages/ad/groups",
+      "style": { "navigationBarTitleText": "安全组策略" }
+    },
+    {
+      "path": "pages/settings/system",
+      "style": { "navigationBarTitleText": "系统全局配置" }
+    },
+    {
+      "path": "pages/settings/rules",
+      "style": { "navigationBarTitleText": "命名规范中心" }
+    },
+    {
+      "path": "pages/settings/templates",
+      "style": { "navigationBarTitleText": "权限模板配置" }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "ITOM",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f7f9fb"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#007aff",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "工作台"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  }
+}

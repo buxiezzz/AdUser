@@ -2,6 +2,66 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import MainLayout from '../layouts/MainLayout.vue'
 import axios from 'axios'
 
+import MobileLayout from '../layouts/MobileLayout.vue'
+
+// 1. 抽取通用的后台路由模块，双端可 100% 自动同步扩展
+const adminRoutes: Array<any> = [
+    {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('../views/Dashboard.vue'),
+        meta: { title: '控制台概览' }
+    },
+    {
+        path: 'assets/list',
+        name: 'AssetList',
+        component: () => import('../views/asset/List.vue'),
+        meta: { title: '资产台账总览' }
+    },
+    {
+        path: 'assets/categories',
+        name: 'AssetCategories',
+        component: () => import('../views/asset/Categories.vue'),
+        meta: { title: '资产分类字典' }
+    },
+    {
+        path: 'ad/provision',
+        name: 'ADProvision',
+        component: () => import('../views/ad/Provision.vue'),
+        meta: { title: '域用户开通向导' }
+    },
+    {
+        path: 'ad/users',
+        name: 'ADUsers',
+        component: () => import('../views/ad/Users.vue'),
+        meta: { title: '域用户检索' }
+    },
+    {
+        path: 'ad/groups',
+        name: 'ADGroups',
+        component: () => import('../views/ad/Groups.vue'),
+        meta: { title: '安全组策略' }
+    },
+    {
+        path: 'settings/system',
+        name: 'SystemSettings',
+        component: () => import('../views/settings/System.vue'),
+        meta: { title: '系统底座配置' }
+    },
+    {
+        path: 'settings/rules',
+        name: 'SystemRules',
+        component: () => import('../views/settings/Rules.vue'),
+        meta: { title: '命名规范中心' }
+    },
+    {
+        path: 'settings/templates',
+        name: 'SystemTemplates',
+        component: () => import('../views/settings/Templates.vue'),
+        meta: { title: '权限模板配置' }
+    }
+]
+
 const routes: Array<RouteRecordRaw> = [
     {
         path: '/mobile/asset/create',
@@ -21,66 +81,27 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../views/auth/Login.vue'),
         meta: { title: 'ITOM - 管理员登录' }
     },
+    // 2. 注入移动端自适应应用中心
+    {
+        path: '/mobile',
+        component: MobileLayout,
+        redirect: '/mobile/index',
+        children: [
+            {
+                path: 'index',
+                name: 'MobileIndex',
+                component: () => import('../views/mobile/Index.vue'),
+                meta: { title: '移动端应用中心', requiresAuth: true }
+            },
+            ...adminRoutes // 动态展开所有路由组件
+        ]
+    },
+    // 3. 桌面端模板
     {
         path: '/',
         component: MainLayout,
         redirect: '/dashboard',
-        children: [
-            {
-                path: 'dashboard',
-                name: 'Dashboard',
-                component: () => import('../views/Dashboard.vue'),
-                meta: { title: '控制台概览' }
-            },
-            {
-                path: 'assets/list',
-                name: 'AssetList',
-                component: () => import('../views/asset/List.vue'),
-                meta: { title: '资产台账总览' }
-            },
-            {
-                path: 'assets/categories',
-                name: 'AssetCategories',
-                component: () => import('../views/asset/Categories.vue'),
-                meta: { title: '资产分类字典' }
-            },
-            {
-                path: 'ad/provision',
-                name: 'ADProvision',
-                component: () => import('../views/ad/Provision.vue'),
-                meta: { title: '域用户开通向导' }
-            },
-            {
-                path: 'ad/users',
-                name: 'ADUsers',
-                component: () => import('../views/ad/Users.vue'),
-                meta: { title: '域用户检索' }
-            },
-            {
-                path: 'ad/groups',
-                name: 'ADGroups',
-                component: () => import('../views/ad/Groups.vue'),
-                meta: { title: '安全组策略' }
-            },
-            {
-                path: 'settings/system',
-                name: 'SystemSettings',
-                component: () => import('../views/settings/System.vue'),
-                meta: { title: '系统底座配置' }
-            },
-            {
-                path: 'settings/rules',
-                name: 'SystemRules',
-                component: () => import('../views/settings/Rules.vue'),
-                meta: { title: '命名规范中心' }
-            },
-            {
-                path: 'settings/templates',
-                name: 'SystemTemplates',
-                component: () => import('../views/settings/Templates.vue'),
-                meta: { title: '权限模板配置' }
-            }
-        ]
+        children: adminRoutes as any
     },
     {
         path: '/:pathMatch(.*)*',

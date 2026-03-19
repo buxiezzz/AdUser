@@ -35,27 +35,50 @@
   "BIND_USERNAME": "s12101018@sk1.net.cn",
   "BIND_PASSWORD": "ysyyrps@778",
   "ACTIVE_REGION_CODE": "wuhan",
-  "OU_GROUP_MAPPING": {},
+  "OU_GROUP_MAPPING": {
+    "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": [
+      "CN=WH-联队1营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+    ],
+    "OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": [
+      "CN=WH-联队2营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+    ],
+    "OU=武汉3营,OU=武汉,DC=sk1,DC=net,DC=cn": [
+      "CN=WH-联队3营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+    ],
+    "OU=武汉EHS部,OU=武汉,DC=sk1,DC=net,DC=cn": [
+      "CN=WH-EHS-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+    ],
+    "OU=武汉IT部,OU=武汉,DC=sk1,DC=net,DC=cn": [
+      "CN=WH-IT-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+    ],
+    "OU=武汉人事部,OU=武汉,DC=sk1,DC=net,DC=cn": [
+      "CN=WH-HR-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+    ]
+  },
   "OU_PREFIX_MAPPING": {
     "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营1连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营1连1排,OU=武汉1营1连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营1连2排,OU=武汉1营1连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营2连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营2连1排,OU=武汉1营2连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营2连2排,OU=武汉1营2连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营3连1排,OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营3连2排,OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉1营3连3排,OU=武汉1营3连,OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
     "OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉2营1连1排,OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉2营1连2排,OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉2营1连3排,OU=武汉2营1连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉2营2连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉2营2连1排,OU=武汉2营2连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉2营2连2排,OU=武汉2营2连,OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2"
+    "OU=武汉3营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH3",
+    "OU=武汉EHS部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉IT部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉人事部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉仿真部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉前期研发二部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉前期研发电气部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉外协部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉工程部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉总经办,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉机械研发部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉物流部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉生产部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉行政部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉设施部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉财务部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉质量部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=武汉采购部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=离职人员,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=质量公用,OU=武汉质量部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
+    "OU=采购组,OU=武汉采购部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH"
   },
   "PRINT_TEMPLATE": {
     "width": 70,

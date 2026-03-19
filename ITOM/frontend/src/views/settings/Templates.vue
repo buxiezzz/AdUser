@@ -11,8 +11,13 @@
     <el-tabs v-model="activeTab" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
       <!-- OU 关联默认安全组 -->
       <el-tab-pane label="OU 默认安全组映射" name="ou_groups">
-        <div class="mb-4 text-sm text-gray-500">
-          当管理员通过向导开通特定 OU 下的用户时，系统将自动带入并勾选在此处配置的安全组。
+        <div class="mb-4 flex justify-between items-center">
+          <div class="text-sm text-gray-500">
+            当管理员通过向导开通特定 OU 下的用户时，系统将自动带入并勾选在此处配置的安全组。
+          </div>
+          <el-button size="small" type="primary" plain @click="openAddOUDialog">
+            + 添加 OU 映射
+          </el-button>
         </div>
         
         <el-table :data="ouTableData" style="width: 100%" v-loading="loading" border stripe>
@@ -45,6 +50,13 @@
                   :value="group"
                 />
               </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="100" align="center">
+            <template #default="{ $index }">
+              <el-button type="danger" circle size="small" @click="removeOUMapping($index)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -100,6 +112,31 @@
         </el-table>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- 添加 OU 映射弹窗 -->
+    <el-dialog v-model="addOUDialogVisible" title="添加 OU 映射" width="500px">
+      <el-form label-width="120px">
+        <el-form-item label="选择组织单元 (OU)">
+          <el-select v-model="selectedOU" placeholder="请选择 OU" style="width: 100%" filterable>
+            <el-option
+              v-for="ou in availableOUs"
+              :key="ou.dn"
+              :label="ou.name"
+              :value="ou.dn"
+            >
+              <span style="float: left">{{ ou.name }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{ simplifyOU(ou.dn) }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="addOUDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmAddOU" :disabled="!selectedOU">确认添加</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -121,6 +158,15 @@ const ouList = ref<{dn: string, name: string}[]>([])
 // ouTableData will wrap the AD OU options with their current mapped default_groups & prefix
 const ouTableData = ref<Array<{dn: string, name: string, default_groups: string[], prefix: string}>>([])
 const positionList = ref<Array<{name: string, suffix: string, default_groups: string[]}>>([])
+
+// 对话框控制
+const addOUDialogVisible = ref(false)
+const selectedOU = ref('')
+const availableOUs = ref<{dn: string, name: string}[]>([])
+
+const simplifyOU = (dn: string) => {
+  return dn.split(',').find(item => item.startsWith('OU='))?.replace('OU=', '') || dn
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -146,21 +192,56 @@ const fetchData = async () => {
     const { data: ous } = await axios.get('/api/ad/ous')
     ouList.value = ous
     
-    // Mix current OUs with saved mappings
-    ouTableData.value = ouList.value.map(ou => {
-      return {
-        dn: ou.dn,
-        name: ou.name,
-        default_groups: ouMapping[ou.dn] || [],
-        prefix: ouPrefixMapping[ou.dn] || ''
-      }
+    // 仅显示已配置的 OU mappings (根据 ouMapping 或 ouPrefixMapping 的 dn 提取)
+    const configuredDNs = new Set([
+      ...Object.keys(ouMapping),
+      ...Object.keys(ouPrefixMapping)
+    ])
+
+    const formattedData: Array<{dn: string, name: string, default_groups: string[], prefix: string}> = []
+    
+    configuredDNs.forEach(dn => {
+      const ouInfo = ouList.value.find(item => item.dn === dn)
+      formattedData.push({
+        dn: dn,
+        name: ouInfo ? ouInfo.name : simplifyOU(dn), // 尽量使用拉取的 name，找不到则根据 dn 猜测
+        default_groups: ouMapping[dn] || [],
+        prefix: ouPrefixMapping[dn] || ''
+      })
     })
+
+    ouTableData.value = formattedData
 
   } catch (err: any) {
     ElMessage.error('获取配置或AD数据失败: ' + (err.response?.data?.detail || err.message))
   } finally {
     loading.value = false
   }
+}
+
+const openAddOUDialog = () => {
+  // 找出那些还没有被加入表格的 OU
+  const addedDNs = ouTableData.value.map(item => item.dn)
+  availableOUs.value = ouList.value.filter(ou => !addedDNs.includes(ou.dn))
+  selectedOU.value = ''
+  addOUDialogVisible.value = true
+}
+
+const confirmAddOU = () => {
+  const ouInfo = ouList.value.find(o => o.dn === selectedOU.value)
+  if (ouInfo) {
+    ouTableData.value.push({
+      dn: ouInfo.dn,
+      name: ouInfo.name,
+      default_groups: [],
+      prefix: ''
+    })
+  }
+  addOUDialogVisible.value = false
+}
+
+const removeOUMapping = (index: number) => {
+  ouTableData.value.splice(index, 1)
 }
 
 const addPosition = () => {

@@ -239,6 +239,7 @@
             <col :style="{ width: (100 - (printConfig.qrColWidth || 30)) + '%' }" />
             <col :style="{ width: (printConfig.qrColWidth || 30) + '%' }" />
           </colgroup>
+          <tbody>
           <tr>
             <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r1 + 'mm', padding: 0, textAlign: 'center', fontSize: printConfig.fonts.title + 'px', fontWeight: 900, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden' }">{{ printConfig.company_name }}</td>
           </tr>
@@ -260,6 +261,7 @@
           <tr>
              <td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">使用日期: {{ new Date(asset.created_at).toISOString().split('T')[0] }}</td>
           </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -335,6 +337,7 @@
                   <col :style="{ width: (100 - (printConfig.qrColWidth || 30)) + '%' }" />
                   <col :style="{ width: (printConfig.qrColWidth || 30) + '%' }" />
                 </colgroup>
+                <tbody>
                 <!-- Row 1 -->
                 <tr>
                   <td colspan="2" 
@@ -408,6 +411,7 @@
                       使用日期: {{ new Date(assetsToPrint[0].created_at).toISOString().split('T')[0] }}
                    </td>
                 </tr>
+                </tbody>
               </table>
               <div v-if="isDragging" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:999; cursor: crosshair;"></div>
             </div>

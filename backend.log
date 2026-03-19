@@ -1,0 +1,35 @@
+INFO:     Will watch for changes in these directories: ['/Users/long/Desktop/1230/AdUser/ITOM/backend']
+INFO:     Uvicorn running on http://0.0.0.0:18000 (Press CTRL+C to quit)
+INFO:     Started reloader process [24046] using StatReload
+/Users/long/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/pydantic/_internal/_config.py:383: UserWarning: Valid config keys have changed in V2:
+* 'orm_mode' has been renamed to 'from_attributes'
+  warnings.warn(message, UserWarning)
+/Users/long/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/pydantic/_internal/_config.py:383: UserWarning: Valid config keys have changed in V2:
+* 'orm_mode' has been renamed to 'from_attributes'
+  warnings.warn(message, UserWarning)
+INFO:     Started server process [24051]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:53060 - "OPTIONS /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53060 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53094 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53094 - "OPTIONS /api/assets/9037631a-ec54-45d1-a78d-cd3f6c8a3c0d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53094 - "GET /api/assets/9037631a-ec54-45d1-a78d-cd3f6c8a3c0d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53123 - "OPTIONS /api/ad/users?keyword=%E8%AE%A1%E9%BE%99 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53123 - "GET /api/ad/users?keyword=%E8%AE%A1%E9%BE%99 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53153 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53162 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53307 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53635 - "OPTIONS /api/assets/categories?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53635 - "GET /api/assets/categories?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53635 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53635 - "OPTIONS /api/ad/ous HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53635 - "GET /api/ad/ous HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53663 - "OPTIONS /api/ad/groups HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53663 - "GET /api/ad/groups HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53706 - "OPTIONS /api/settings/config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53706 - "GET /api/settings/config HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53710 - "GET /api/ad/ous HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53752 - "OPTIONS /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53752 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53756 - "GET /api/assets/?skip=0&limit=20 HTTP/1.1" 200 OK
