@@ -59,6 +59,12 @@ const adminRoutes: Array<any> = [
         name: 'SystemTemplates',
         component: () => import('../views/settings/Templates.vue'),
         meta: { title: '权限模板配置' }
+    },
+    {
+        path: 'settings/printer',
+        name: 'PrinterTemplate',
+        component: () => import('../views/settings/PrinterTemplate.vue'),
+        meta: { title: '打印模板设置' }
     }
 ]
 

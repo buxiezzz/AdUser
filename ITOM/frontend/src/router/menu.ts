@@ -42,7 +42,8 @@ export const menuConfig: MenuItem[] = [
         children: [
             { title: '系统底座配置', icon: 'Cpu', path: '/settings/system', showInMobile: true },
             { title: '命名规范中心', icon: 'Collection', path: '/settings/rules', showInMobile: true },
-            { title: '权限模板配置', icon: 'List', path: '/settings/templates', showInMobile: true }
+            { title: '权限模板配置', icon: 'List', path: '/settings/templates', showInMobile: true },
+            { title: '标签打印模板', icon: 'Printer', path: '/settings/printer', showInMobile: false }
         ]
     }
 ]

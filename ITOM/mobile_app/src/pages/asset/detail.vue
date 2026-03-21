@@ -37,7 +37,48 @@
     
     <view class="action-footer">
       <button class="btn primary" @click="handleInventory">快速盘核</button>
+      <button class="btn warning" @click="openPrint">打印标签</button>
       <button class="btn default" @click="changeStatus">流转变更</button>
+    </view>
+
+    <!-- 打印预览浮层 -->
+    <view class="print-mask" v-if="printVisible" @click="printVisible = false">
+      <view class="print-dialog" @click.stop>
+        <view class="dialog-header">
+          <text class="title">标签预览</text>
+          <text class="close" @click="printVisible = false">✕</text>
+        </view>
+        <view class="dialog-body">
+          <view class="print-label-page" id="print-area">
+            <table class="print-table">
+              <tr>
+                <td colspan="2" class="print-title">先惠自动化技术(武汉)有限责任公司</td>
+              </tr>
+              <tr>
+                <td colspan="2" class="print-row">资产编码: {{ detail.asset_code }}</td>
+              </tr>
+              <tr>
+                <td colspan="2" class="print-row">资产名称: {{ detail.category?.name || '未分类' }}</td>
+              </tr>
+              <tr>
+                <td colspan="2" class="print-row">资产型号: {{ detail.dynamic_attributes?.['规格型号'] || '-' }}</td>
+              </tr>
+              <tr>
+                 <td class="print-row">序 列 号 : {{ detail.dynamic_attributes?.['序列号'] || '-' }}</td>
+                 <td rowspan="2" class="print-qr-column">
+                    <image class="qr-img" :src="getQrUrl(detail)" mode="aspectFit"></image>
+                 </td>
+              </tr>
+              <tr>
+                 <td class="print-row">使用日期: {{ detail.created_at ? detail.created_at.split('T')[0] : '-' }}</td>
+              </tr>
+            </table>
+          </view>
+        </view>
+        <view class="dialog-footer">
+          <button class="print-btn" @click="executePrint">呼起系统打印 / 生成 PDF</button>
+        </view>
+      </view>
     </view>
   </view>
   <view class="loading-wrap" v-else>
@@ -49,6 +90,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import request from '@/utils/request'
+import { printAssetLabel } from '@/utils/printer'
 
 const detail = ref<any>(null)
 const assetId = ref('')
@@ -97,6 +139,28 @@ const statusClass = (status: string) => {
   if (status === '在库') return 'status-idle'
   if (status === '归档' || status === '报废') return 'status-offline'
   return 'status-default'
+}
+
+// ---- 标签打印功能 ----
+const printVisible = ref(false)
+
+const openPrint = () => {
+  printVisible.value = true
+}
+
+const getQrUrl = (item: any) => {
+  // #ifdef H5
+  const origin = `${window.location.protocol}//${window.location.host}`
+  const token = item.qr_code_token || ''
+  const url = token ? `${origin}/mobile/asset/${token}` : origin
+  return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`
+  // #endif
+  
+  return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('http://10.20.133.62:5173')}`
+}
+
+const executePrint = () => {
+  printAssetLabel(detail.value)
 }
 
 onLoad((options: any) => {
@@ -237,6 +301,164 @@ onLoad((options: any) => {
       background: #f0f0f0;
       color: #333;
     }
+    
+    &.warning {
+      background: #ff9900;
+      color: #fff;
+    }
+  }
+}
+
+/* 打印预览浮层 */
+.print-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.print-dialog {
+  background: #fff;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 360px;
+  
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    
+    .title { font-size: 16px; font-weight: bold; color: #333; }
+    .close { font-size: 18px; color: #999; }
+  }
+  
+  .dialog-body {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    background: #f5f5f5;
+  }
+  
+  .dialog-footer {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    
+    .print-btn {
+      background: #007aff;
+      color: #fff;
+      border-radius: 20px;
+      height: 40px;
+      line-height: 40px;
+      font-size: 15px;
+      &::after { border: none; }
+    }
+  }
+}
+
+/* 标签实体排版 */
+.print-label-page {
+  width: 70mm;
+  height: 50mm;
+  background: #fff;
+  border: 1.5px solid #000;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #000;
+  box-sizing: border-box;
+  padding: 1.5mm;
+  overflow: hidden;
+  
+  .print-table {
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: 0.8px solid #000;
+  }
+  
+  td {
+    border: 0.8px solid #000;
+    font-weight: bold;
+    font-size: 9px;
+    padding: 2px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .print-title {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 900;
+    height: 9mm;
+    letter-spacing: -0.5px;
+  }
+  
+  .print-row {
+    height: 6.5mm;
+  }
+  
+  .print-qr-column {
+    width: 20mm;
+    text-align: center;
+    vertical-align: middle;
+    padding: 1px;
+    
+    .qr-img {
+      width: 18mm;
+      height: 18mm;
+      display: block;
+      margin: 0 auto;
+    }
+  }
+}
+
+/* 打印指令 */
+@media print {
+  /* 隐藏非打印区域 */
+  body *, .container, .print-mask *, .dialog-header, .dialog-footer {
+    display: none !important;
+  }
+  
+  .print-mask {
+    background: none !important;
+    position: static !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+  
+  .print-dialog {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: none !important;
+    background: none !important;
+    display: block !important;
+  }
+  
+  .dialog-body {
+    background: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  
+  #print-area {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    border: 1.5px solid #000 !important;
+    page-break-after: always;
+  }
+  
+  @page {
+    margin: 0;
+    size: 70mm 50mm;
   }
 }
 </style>

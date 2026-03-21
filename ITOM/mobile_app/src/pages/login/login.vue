@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import request from '@/utils/request'
+import { config } from '@/config'
 
 const form = reactive({
   username: '',
@@ -41,7 +42,7 @@ const handleLogin = async () => {
   loading.value = true
   try {
     const res = await uni.request({
-      url: 'http://127.0.0.1:18000/api/auth/login', // 后续将整合 config
+      url: config.baseUrl + '/auth/login', // 后续将整合 config
       method: 'POST',
       header: {
         'Content-Type': 'application/x-www-form-urlencoded'

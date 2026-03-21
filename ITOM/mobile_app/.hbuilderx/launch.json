@@ -1,0 +1,12 @@
+{
+    "version" : "1.0",
+    "configurations" : [
+        {
+            "customPlaygroundType" : "local",
+            "localRepoPath" : "/Users/long/Desktop/1230/AdUser/ITOM/mobile_app",
+            "packageName" : "uni.app.UNIA24D3A0",
+            "playground" : "custom",
+            "type" : "uni-app:app-android"
+        }
+    ]
+}

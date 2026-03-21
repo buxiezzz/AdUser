@@ -81,30 +81,137 @@
     "OU=采购组,OU=武汉采购部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH"
   },
   "PRINT_TEMPLATE": {
-    "width": 70,
-    "height": 50,
-    "padding": 2,
-    "border": 2,
-    "margin_bottom": 0,
-    "company_name": "先惠自动化技术(武汉)有限责任公司",
-    "rows": {
-      "r1": 8,
-      "r2": 7.3,
-      "r3": 7.3,
-      "r4": 7.1,
-      "r5": 3,
-      "r6": 6
+    "paper": {
+      "width": 70,
+      "height": 50,
+      "orientation": 0,
+      "gapType": 2,
+      "darkness": 8,
+      "speed": 2
     },
-    "fonts": {
-      "title": 15,
-      "code": 13,
-      "name": 13,
-      "spec": 13,
-      "serial": 13,
-      "date": 13
-    },
-    "qrColWidth": 21,
-    "leftColWidth": 62,
-    "qrSize": 44
+    "elements": [
+      {
+        "type": "rect",
+        "x": 2,
+        "y": 2,
+        "width": 66,
+        "height": 46,
+        "lineWidth": 0.5
+      },
+      {
+        "type": "line",
+        "x": 2,
+        "y": 10,
+        "width": 66,
+        "height": 0,
+        "lineWidth": 0.5
+      },
+      {
+        "type": "line",
+        "x": 2,
+        "y": 18,
+        "width": 66,
+        "height": 0,
+        "lineWidth": 0.5
+      },
+      {
+        "type": "line",
+        "x": 2,
+        "y": 26,
+        "width": 66,
+        "height": 0,
+        "lineWidth": 0.5
+      },
+      {
+        "type": "line",
+        "x": 2,
+        "y": 34,
+        "width": 66,
+        "height": 0,
+        "lineWidth": 0.5
+      },
+      {
+        "type": "line",
+        "x": 2,
+        "y": 41,
+        "width": 50,
+        "height": 0,
+        "lineWidth": 0.5
+      },
+      {
+        "type": "text",
+        "value": "先惠自动化技术(武汉)有限责任公司",
+        "x": 4,
+        "y": 4,
+        "fontHeight": 4,
+        "width": 62,
+        "height": 6
+      },
+      {
+        "type": "text",
+        "field": "asset_code",
+        "prefix": "资产编码: ",
+        "x": 4,
+        "y": 12,
+        "fontHeight": 3.5,
+        "width": 62,
+        "height": 6
+      },
+      {
+        "type": "text",
+        "field": "category.name",
+        "prefix": "资产名称: ",
+        "x": 4,
+        "y": 20,
+        "fontHeight": 3.5,
+        "width": 62,
+        "height": 6
+      },
+      {
+        "type": "text",
+        "field": "dynamic_attributes.规格型号",
+        "prefix": "资产型号: ",
+        "x": 4,
+        "y": 28,
+        "fontHeight": 3.5,
+        "width": 62,
+        "height": 6
+      },
+      {
+        "type": "text",
+        "field": "dynamic_attributes.序列号",
+        "prefix": "序 列 号 : ",
+        "x": 4,
+        "y": 36,
+        "fontHeight": 3,
+        "width": 46,
+        "height": 5
+      },
+      {
+        "type": "text",
+        "field": "dynamic_attributes.使用日期",
+        "prefix": "使用日期: ",
+        "x": 4,
+        "y": 43,
+        "fontHeight": 3,
+        "width": 48,
+        "height": 5
+      },
+      {
+        "type": "qrcode",
+        "field": "qr_code_token",
+        "x": 53,
+        "y": 35,
+        "width": 13
+      },
+      {
+        "type": "line",
+        "x": 52,
+        "y": 34,
+        "width": 0,
+        "height": 14,
+        "lineWidth": 0.5
+      }
+    ]
   }
 }

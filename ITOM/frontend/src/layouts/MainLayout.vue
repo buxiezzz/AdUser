@@ -45,6 +45,7 @@
           <el-menu-item index="/settings/rules">命名规范中心</el-menu-item>
           <el-menu-item index="/settings/system">全局配置</el-menu-item>
           <el-menu-item index="/settings/templates">权限模板配置</el-menu-item>
+          <el-menu-item index="/settings/printer">标签打印模板</el-menu-item>
         </el-sub-menu>
       </el-menu>
       
