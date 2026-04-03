@@ -7,17 +7,9 @@
 
     <!-- 顶层汇总状态卡片 / 过滤器 -->
     <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl">
-      <div class="flex flex-wrap gap-4 mb-6">
-        <el-input v-model="searchKeyword" placeholder="检索资产编号、品牌、或使用者姓名..." prefix-icon="Search" class="w-80" clearable />
-        <el-select v-model="searchStatus" placeholder="按资产状态筛选" clearable class="w-40" >
-          <el-option label="在库" value="在库" />
-          <el-option label="借用中" value="借用中" />
-          <el-option label="维修中" value="维修中" />
-          <el-option label="已报废" value="已归档/报废" />
-        </el-select>
-        <el-select v-model="searchCategory" placeholder="按设备分类筛选" clearable class="w-40" >
-          <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
-        </el-select>
+      <!-- 第一行：搜索栏 + 操作按鈕 -->
+      <div class="flex flex-wrap gap-3 mb-3">
+        <el-input v-model="searchKeyword" placeholder="检索资产编号、初始关键词..." prefix-icon="Search" class="w-72" clearable />
         <el-button @click="fetchAssets" :icon="Refresh">刷新台账</el-button>
         <el-button @click="downloadTemplate" :icon="Download" plain>下载导入模板</el-button>
         <el-upload
@@ -33,22 +25,73 @@
           <el-button type="success" plain :loading="uploading">一键导入资产</el-button>
         </el-upload>
         <el-button type="success" :icon="Download" @click="exportExcel">导出台账(Excel)</el-button>
-        <el-button type="primary" plain :icon="Printer" :disabled="selectedAssets.length === 0" @click="printBatchLabels()">批量打印标签 ({{ selectedAssets.length }})</el-button>
       </div>
 
-      <el-table :data="filteredAssets" style="width: 100%" v-loading="loading" border stripe @selection-change="handleSelectionChange">
+      <!-- 第二行：多维度筛选条 -->
+      <div class="flex flex-wrap gap-3 items-center pb-4 border-b border-gray-100 mb-4">
+        <el-select v-model="searchStatus" placeholder="资产状态" clearable class="w-32">
+          <el-option label="闲置" value="闲置" />
+          <el-option label="在用" value="在用" />
+          <el-option label="维修" value="维修" />
+          <el-option label="报废" value="报废" />
+        </el-select>
+
+        <el-select v-model="searchCategory" placeholder="设备类型" clearable class="w-36">
+          <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
+        </el-select>
+
+        <el-input v-model="searchOwner" placeholder="使用人姓名" clearable class="w-36" />
+
+        <el-select v-model="searchDept" placeholder="所属组织" clearable class="w-44" filterable>
+          <el-option v-for="d in uniqueDepts" :key="d" :label="d" :value="d" />
+        </el-select>
+
+        <el-date-picker
+          v-model="searchDateRange"
+          type="daterange"
+          start-placeholder="入库开始日"
+          end-placeholder="入库结束日"
+          value-format="YYYY-MM-DD"
+          class="w-64"
+          clearable
+        />
+
+        <el-button
+          v-if="searchStatus || searchCategory || searchOwner || searchDept || searchDateRange"
+          type="warning" plain size="small"
+          @click="resetFilters"
+        >重置全部筛选</el-button>
+
+        <span class="text-xs text-gray-400 ml-auto">{{ filteredAssets.length }} / {{ rawAssets.length }} 条匹配</span>
+      </div>
+
+      <!-- 批量操作浮动栏（勾选>0时展示） -->
+      <transition name="el-fade-in-linear">
+        <div v-if="selectedAssets.length > 0" class="flex items-center gap-3 px-4 py-3 mb-3 bg-blue-50 rounded-xl border border-blue-200">
+          <el-icon class="text-blue-600"><Select /></el-icon>
+          <span class="text-sm text-blue-700 font-semibold">已选 {{ selectedAssets.length }} 项资产</span>
+          <el-divider direction="vertical" />
+          <el-button size="small" type="primary" plain @click="printBatchLabels()">批量打印</el-button>
+          <el-button size="small" type="danger" plain @click="doBatchDelete">批量删除</el-button>
+          <el-button size="small" plain @click="doClearSelection">取消选择</el-button>
+        </div>
+      </transition>
+
+      <el-table ref="tableRef" :data="pagedAssets" style="width: 100%" v-loading="loading" border stripe @selection-change="handleSelectionChange" @sort-change="handleSortChange" @row-click="handleRowClick" row-class-name="cursor-pointer">
          <el-table-column type="selection" width="55" fixed="left" />
-         <el-table-column label="资产状态" width="100">
+         <el-table-column prop="status" label="资产状态" width="110" sortable="custom">
            <template #default="{ row }">
              <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
            </template>
          </el-table-column>
-         <el-table-column prop="asset_code" label="资产编码" width="160">
+         <el-table-column prop="asset_code" label="资产编码" width="180" sortable="custom">
             <template #default="{ row }">
-              <span class="font-mono font-medium text-indigo-700">{{ row.asset_code || '未分配编号' }}</span>
+              <span class="font-mono font-medium text-indigo-600">
+                {{ row.asset_code || '未分配编号' }}
+              </span>
             </template>
          </el-table-column>
-         <el-table-column label="资产名称" width="120">
+         <el-table-column prop="category_name" label="资产名称" width="120" sortable="custom">
            <template #default="{ row }">
              <el-tag size="small" type="info">{{ getCategoryName(row.category_id) }}</el-tag>
            </template>
@@ -63,17 +106,17 @@
               <span class="text-gray-600">{{ row.dynamic_attributes && row.dynamic_attributes['计量单位'] ? row.dynamic_attributes['计量单位'] : '台/件' }}</span>
             </template>
          </el-table-column>
-         <el-table-column label="入库日期" width="160">
+         <el-table-column prop="created_at" label="入库日期" width="160" sortable="custom">
             <template #default="{ row }">
               <span class="text-gray-600 text-sm">{{ new Date(row.created_at).toLocaleDateString() }}</span>
             </template>
          </el-table-column>
-         <el-table-column label="所属组织" min-width="120" show-overflow-tooltip>
+         <el-table-column prop="department" label="所属组织" min-width="120" show-overflow-tooltip sortable="custom">
             <template #default="{ row }">
               <span class="text-gray-600">{{ row.owner ? row.owner.department : (row.dynamic_attributes ? row.dynamic_attributes['所属组织'] : '-') }}</span>
             </template>
          </el-table-column>
-         <el-table-column label="使用人" width="150" show-overflow-tooltip>
+         <el-table-column prop="owner_name" label="使用人" width="150" show-overflow-tooltip sortable="custom">
            <template #default="{ row }">
              <div v-if="row.owner" class="flex items-center space-x-2">
                 <el-avatar size="small" class="bg-indigo-100 text-indigo-800">{{ row.owner.name.charAt(0) }}</el-avatar>
@@ -105,20 +148,21 @@
                <span class="text-gray-600">{{ row.dynamic_attributes ? row.dynamic_attributes[key] : '' }}</span>
             </template>
          </el-table-column>
-         <el-table-column label="操作管控" width="200" fixed="right">
-           <template #default="{ row }">
-             <el-button link type="primary" size="small" @click="openManageDrawer(row)">
-               管理/调拨
-             </el-button>
-             <el-button link type="success" size="small" @click="printBatchLabels([row])">
-               打印标签
-             </el-button>
-             <el-button link type="info" size="small" @click="openLogs(row)">
-               追溯日志
-             </el-button>
-           </template>
-         </el-table-column>
       </el-table>
+
+      <!-- 分页控制条 -->
+      <div class="flex items-center justify-between mt-4 px-1">
+        <span class="text-sm text-gray-500">共 <b>{{ filteredAssets.length }}</b> 条资产，当前第 {{ currentPage }} / {{ Math.ceil(filteredAssets.length / pageSize) || 1 }} 页</span>
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[20, 50, 100, 200]"
+          layout="sizes, prev, pager, next, jumper"
+          :total="filteredAssets.length"
+          background
+          @size-change="currentPage = 1"
+        />
+      </div>
     </el-card>
 
     <!-- 侧边栏资产抽屉(新建/维护) -->
@@ -135,10 +179,10 @@
           <div class="grid grid-cols-2 gap-4">
             <el-form-item label="资产状态" required>
               <el-select v-model="form.status" placeholder="流转状态" @change="handleStatusChange">
-                <el-option label="在库" value="在库" />
-                <el-option label="借用中" value="借用中" />
-                <el-option label="维修中" value="维修中" />
-                <el-option label="已归档/报废" value="已归档/报废" />
+                <el-option label="闲置" value="闲置" />
+                <el-option label="在用" value="在用" />
+                <el-option label="维修" value="维修" />
+                <el-option label="报废" value="报废" />
               </el-select>
             </el-form-item>
             <el-form-item label="资产编码" required>
@@ -152,14 +196,26 @@
                 <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
               </el-select>
             </el-form-item>
-            <el-form-item label="规格型号">
-               <el-input v-model="form.dynamic_attributes['规格型号']" placeholder="如: ThinkPad T14" />
-            </el-form-item>
+             <el-form-item label="规格型号">
+               <el-autocomplete
+                 v-model="form.dynamic_attributes['规格型号']"
+                 :fetch-suggestions="querySpecs"
+                 placeholder="如: ThinkPad T14"
+                 clearable
+                 class="w-full"
+               />
+             </el-form-item>
           </div>
 
           <div class="grid grid-cols-2 gap-4 mt-2">
             <el-form-item label="计量单位">
-               <el-input v-model="form.dynamic_attributes['计量单位']" placeholder="如: 台/件" />
+               <el-autocomplete
+                 v-model="form.dynamic_attributes['计量单位']"
+                 :fetch-suggestions="queryUnits"
+                 placeholder="台/件/套"
+                 clearable
+                 class="w-full"
+               />
             </el-form-item>
             <el-form-item label="入库日期">
                <el-date-picker v-if="!isNew" v-model="form.created_at" type="datetime" disabled class="w-full" />
@@ -169,7 +225,12 @@
 
           <div class="grid grid-cols-2 gap-4 mt-2">
             <el-form-item label="所属组织">
-               <el-input v-model="form.dynamic_attributes['所属组织']" placeholder="如未使用人绑定，可手动指定" />
+               <el-input
+                 v-model="form.dynamic_attributes['所属组织']"
+                 :placeholder="form.owner_id ? '' : '选择使用人后自动带入'"
+                 :disabled="!!form.owner_id"
+               />
+               <div v-if="form.owner_id" class="text-xs text-blue-400 mt-1">归属组织由使用人信息自动带入，不可手动修改。</div>
             </el-form-item>
             <el-form-item label="使用人" class="flex-1">
               <el-select
@@ -177,10 +238,11 @@
                 filterable
                 remote
                 clearable
-                placeholder="键入检索 AD/本地员工"
+                placeholder="键入检索 AD 域用户"
                 :remote-method="searchEmployees"
                 :loading="empLoading"
-                :disabled="form.status === '在库' || form.status === '已归档/报废'"
+                :disabled="form.status === '闲置' || form.status === '报废'"
+                @change="handleOwnerChange"
               >
                 <el-option
                   v-for="emp in employees"
@@ -192,7 +254,7 @@
                   <span style="float: right; color: var(--el-text-color-secondary); font-size: 13px">{{ emp.department }}</span>
                 </el-option>
               </el-select>
-              <div v-if="form.status === '在库' || form.status === '已归档/报废'" class="text-xs text-gray-400 mt-1">在库或报废状态下不可绑定人。</div>
+              <div v-if="form.status === '闲置' || form.status === '报废'" class="text-xs text-gray-400 mt-1">闲置或报废状态下不可绑定人。</div>
             </el-form-item>
           </div>
 
@@ -221,11 +283,18 @@
             暂无需要填写的其他附加模板属性。
           </div>
 
-          <div class="mt-8 flex justify-end space-x-3">
-            <el-button @click="drawerVisible = false">取消放弃</el-button>
-            <el-button type="danger" plain v-if="!isNew && form.status !== '已归档/报废'" @click="doArchive">报废与归档</el-button>
-            <el-button type="danger" v-if="!isNew" @click="doHardDelete">彻底删除台账</el-button>
-            <el-button type="primary" @click="submitSave">保存提交台账</el-button>
+          <div class="mt-8 flex flex-wrap gap-4 justify-between items-center border-t border-gray-100 pt-5">
+            <div class="flex gap-2">
+                <el-button type="info" plain size="small" v-if="!isNew" @click="openLogs(currentAsset)">追溯流转日志</el-button>
+                <el-button type="success" plain size="small" v-if="!isNew" @click="printBatchLabels([currentAsset])">打印资产标签</el-button>
+                <el-button type="warning" plain size="small" v-if="!isNew" @click="doCopyAsset(currentAsset)">借此复制新建</el-button>
+            </div>
+            <div class="flex gap-2 items-center">
+                <el-button @click="drawerVisible = false">取消</el-button>
+                <el-button type="danger" plain v-if="!isNew && form.status !== '报废'" @click="doArchive">报废与归档</el-button>
+                <el-button type="danger" v-if="!isNew" @click="doHardDelete">彻底删除台账</el-button>
+                <el-button type="primary" @click="submitSave">保存提交档案</el-button>
+            </div>
           </div>
         </el-form>
       </div>
@@ -460,8 +529,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
-import { Plus, Refresh, Download, User, Right, Printer } from '@element-plus/icons-vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { Plus, Refresh, Download, User, Right, Select } from '@element-plus/icons-vue'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as XLSX from 'xlsx'
@@ -478,14 +547,32 @@ const categories = ref<any[]>([])
 const employees = ref<any[]>([])
 const empLoading = ref(false)
 
+
 const searchKeyword = ref('')
 const searchStatus = ref('')
 const searchCategory = ref<number | ''>('')
+const searchOwner = ref('')
+const searchDept = ref('')
+const searchDateRange = ref<string[] | null>(null)
 const savingTemplate = ref(false)
-const isAdmin = computed(() => {
-    // 简单判定，实际应当走 user store，但为简便只检查 local storage payload / 或者后台会拦截
-    return true
+
+// 从当前数据中提炼唯一的部门列表供下拉选择
+const uniqueDepts = computed(() => {
+    const depts = new Set<string>()
+    rawAssets.value.forEach(a => {
+        const dept = a.owner ? a.owner.department : (a.dynamic_attributes?.['所属组织'] || '')
+        if (dept) depts.add(dept)
+    })
+    return Array.from(depts).sort((a, b) => a.localeCompare(b, 'zh-CN'))
 })
+
+const resetFilters = () => {
+    searchStatus.value = ''
+    searchCategory.value = ''
+    searchOwner.value = ''
+    searchDept.value = ''
+    searchDateRange.value = null
+}
 
 const fetchGlobals = async () => {
     try {
@@ -524,24 +611,83 @@ onMounted(() => {
 
 const filteredAssets = computed(() => {
     return rawAssets.value.filter(a => {
-        let matchKw = true
-        let matchSt = true
-        let matchCat = true
-        
+        // 关键词（资产编号 + 使用人名字）
         if (searchKeyword.value) {
             const kw = searchKeyword.value.toLowerCase()
             const code = (a.asset_code || '').toLowerCase()
             const ownerName = a.owner ? a.owner.name.toLowerCase() : ''
-            matchKw = code.includes(kw) || ownerName.includes(kw)
+            if (!code.includes(kw) && !ownerName.includes(kw)) return false
         }
-        if (searchStatus.value) {
-            matchSt = a.status === searchStatus.value
+        // 资产状态
+        if (searchStatus.value && a.status !== searchStatus.value) return false
+        // 设备分类
+        if (searchCategory.value !== '' && a.category_id !== searchCategory.value) return false
+        // 使用人名字
+        if (searchOwner.value) {
+            const ownerName = a.owner ? a.owner.name.toLowerCase() : ''
+            if (!ownerName.includes(searchOwner.value.toLowerCase())) return false
         }
-        if (searchCategory.value !== '') {
-            matchCat = a.category_id === searchCategory.value
+        // 所属组织/部门
+        if (searchDept.value) {
+            const dept = a.owner ? a.owner.department : (a.dynamic_attributes?.['所属组织'] || '')
+            if (dept !== searchDept.value) return false
         }
-        return matchKw && matchSt && matchCat
+        // 入库日期范围（用本地时区日期比较，避免 UTC 换算偏差）
+        if (searchDateRange.value && searchDateRange.value.length === 2) {
+            const d = new Date(a.created_at)
+            const assetDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+            const [startDate, endDate] = searchDateRange.value as [string, string]
+            if (assetDate < startDate || assetDate > endDate) return false
+        }
+        return true
     })
+})
+
+// ------- 分页与排序 -------
+const currentPage = ref(1)
+const pageSize = ref(50)
+const sortProp = ref('')
+const sortOrder = ref('')
+
+// 过滤条件变化时重置到第一页
+watch(filteredAssets, () => { currentPage.value = 1 })
+
+const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
+    sortProp.value = prop || ''
+    sortOrder.value = order || ''
+}
+
+// 排序后的数据
+const sortedAssets = computed(() => {
+    if (!sortProp.value || !sortOrder.value) return filteredAssets.value
+    return [...filteredAssets.value].sort((a, b) => {
+        let aVal: any = ''
+        let bVal: any = ''
+        switch (sortProp.value) {
+            case 'status':        aVal = a.status || '';        bVal = b.status || '';        break
+            case 'asset_code':    aVal = a.asset_code || '';    bVal = b.asset_code || '';    break
+            case 'category_name': aVal = getCategoryName(a.category_id); bVal = getCategoryName(b.category_id); break
+            case 'created_at':    aVal = new Date(a.created_at).getTime(); bVal = new Date(b.created_at).getTime(); break
+            case 'department':
+                aVal = a.owner ? a.owner.department : (a.dynamic_attributes?.['所属组织'] || '')
+                bVal = b.owner ? b.owner.department : (b.dynamic_attributes?.['所属组织'] || '')
+                break
+            case 'owner_name': aVal = a.owner ? a.owner.name : ''; bVal = b.owner ? b.owner.name : ''; break
+            default: return 0
+        }
+        if (typeof aVal === 'number') {
+            return sortOrder.value === 'ascending' ? aVal - bVal : bVal - aVal
+        }
+        return sortOrder.value === 'ascending'
+            ? String(aVal).localeCompare(String(bVal), 'zh-CN')
+            : String(bVal).localeCompare(String(aVal), 'zh-CN')
+    })
+})
+
+// 分页后的数据（表格实际显示）
+const pagedAssets = computed(() => {
+    const start = (currentPage.value - 1) * pageSize.value
+    return sortedAssets.value.slice(start, start + pageSize.value)
 })
 
 const dynamicHeaders = computed(() => {
@@ -565,9 +711,9 @@ const getCategoryName = (id: number) => {
 }
 
 const getStatusType = (status: string) => {
-    if(status === '在库') return 'success'
-    if(status === '借用中') return 'primary'
-    if(status === '维修中') return 'warning'
+    if(status === '闲置') return 'success'
+    if(status === '在用') return 'primary'
+    if(status === '维修') return 'warning'
     return 'danger' // 报废
 }
 
@@ -583,11 +729,51 @@ const searchEmployees = async (query: string) => {
     if (!query) return;
     empLoading.value = true
     try {
-       const { data } = await axios.get('/api/assets/employees', { params: { keyword: query } }) 
-       employees.value = data || []
+       const { data } = await axios.get('/api/assets/employees', { params: { keyword: query } })
+       // 仅保留真实 AD 域用户，过滤掉批量导入时创建的本地迁移账户
+       employees.value = (data || []).filter((e: any) => !e.ad_account?.startsWith('local_'))
     } finally {
        empLoading.value = false
     }
+}
+
+// 选中使用人时自动带入归属组织；清空时同步清空组织
+const handleOwnerChange = (ownerId: number | undefined) => {
+    if (!ownerId) {
+        if (form.value.dynamic_attributes) {
+            form.value.dynamic_attributes['所属组织'] = ''
+        }
+        return
+    }
+    const emp = employees.value.find((e: any) => e.id === ownerId)
+    if (emp && form.value.dynamic_attributes) {
+        form.value.dynamic_attributes['所属组织'] = emp.department || ''
+    }
+}
+
+// ---- 联想输入：规格型号 ----
+const querySpecs = (query: string, cb: (results: { value: string }[]) => void) => {
+    const all = new Set<string>()
+    rawAssets.value.forEach(a => {
+        const v = a.dynamic_attributes?.['规格型号']
+        if (v) all.add(String(v))
+    })
+    const items = Array.from(all)
+        .filter(v => !query || v.toLowerCase().includes(query.toLowerCase()))
+        .map(v => ({ value: v }))
+    cb(items)
+}
+
+// ---- 联想输入：计量单位 ----
+const UNIT_PRESETS = ['台', '件', '套', '个', '块', '条', '本', '张']
+const queryUnits = (query: string, cb: (results: { value: string }[]) => void) => {
+    const fromData = new Set<string>()
+    rawAssets.value.forEach(a => {
+        const v = a.dynamic_attributes?.['计量单位']
+        if (v) fromData.add(String(v))
+    })
+    const all = Array.from(new Set([...UNIT_PRESETS, ...fromData]))
+    cb(all.filter(v => !query || v.includes(query)).map(v => ({ value: v })))
 }
 
 const form = ref<any>({
@@ -615,7 +801,7 @@ const handleCategoryChange = (_val: number) => {
 }
 
 const handleStatusChange = (val: string) => {
-    if(val === '在库' || val === '已归档/报废') {
+    if(val === '闲置' || val === '报废') {
         form.value.owner_id = null
         if (form.value.dynamic_attributes) {
             form.value.dynamic_attributes['所属组织'] = ''
@@ -630,10 +816,10 @@ const openCreateDrawer = () => {
     form.value = {
         asset_code: '',
         category_id: undefined,
-        status: '在库',
+        status: '闲置',
         owner_id: undefined,
         created_at: undefined,
-        dynamic_attributes: {}
+        dynamic_attributes: { '计量单位': '台' }  // 默认单位为台
     }
     drawerVisible.value = true
 }
@@ -647,6 +833,39 @@ const openManageDrawer = async (row: any) => {
         status: row.status,
         owner_id: row.owner_id,
         created_at: row.created_at,
+        dynamic_attributes: { ...row.dynamic_attributes }
+    }
+    
+    // 关键修正：确保当前的使用人数据在 employees 下拉列表中，避免 el-select 因找不到 option 直接显示 id 数值
+    if (row.owner) {
+        if (!employees.value.find((e: any) => e.id === row.owner.id)) {
+            employees.value.push(row.owner)
+        }
+    }
+    
+    // 补齐缺失的字段模板
+    const tplKeys = Object.keys(currentCatTpl.value)
+    tplKeys.forEach(k => {
+        if(form.value.dynamic_attributes[k] === undefined) {
+            form.value.dynamic_attributes[k] = ''
+        }
+    })
+    
+    drawerVisible.value = true
+}
+
+const doCopyAsset = (row: any) => {
+    isNew.value = true
+    currentAsset.value = null
+    logs.value = []
+    
+    // 生成复制品默认数据（状态为闲置，无使用人）
+    form.value = {
+        asset_code: `${row.asset_code}-COPY`, // 提示用户修改
+        category_id: row.category_id,
+        status: '闲置',
+        owner_id: undefined,
+        created_at: undefined,
         dynamic_attributes: { ...row.dynamic_attributes }
     }
     
@@ -771,9 +990,47 @@ const exportExcel = () => {
 }
 
 // ------ 批量打印核心逻辑 ------
+const tableRef = ref<any>(null)
 const selectedAssets = ref<any[]>([])
 const handleSelectionChange = (val: any[]) => {
     selectedAssets.value = val
+}
+
+const handleRowClick = (row: any, column: any) => {
+    if (!column) return;
+    // 如果点击的是复选框列、或者点击了资产编码呼出气泡，都不触发抽屉弹出
+    if (column.type === 'selection' || column.property === 'asset_code') {
+        return;
+    }
+    openManageDrawer(row);
+}
+
+// ------ 批量操作 ------
+const batchLoading = ref(false)
+
+const doClearSelection = () => {
+    tableRef.value?.clearSelection()
+}
+
+const doBatchDelete = async () => {
+    try {
+        await ElMessageBox.confirm(
+            `确定要将选中的 ${selectedAssets.value.length} 台设备彻底删除吗？（不可恢复）`,
+            '批量彻底删除确认', { type: 'warning' }
+        )
+    } catch { return }
+    batchLoading.value = true
+    try {
+        const ids = selectedAssets.value.map((a: any) => a.id)
+        const { data } = await axios.post('/api/assets/batch-delete', { asset_ids: ids })
+        ElMessage.success(`成功彻底删除 ${data.deleted} 台设备`)
+        doClearSelection()
+        fetchAssets()
+    } catch (err: any) {
+        ElMessage.error(err.response?.data?.detail || '批量删除失败')
+    } finally {
+        batchLoading.value = false
+    }
 }
 
 const assetsToPrint = ref<any[]>([])

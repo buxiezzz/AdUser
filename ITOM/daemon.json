@@ -1,0 +1,8 @@
+{
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://docker.awsl9527.cn",
+    "https://docker.xiaoca.cc",
+    "https://do.nark.eu.org"
+  ]
+}

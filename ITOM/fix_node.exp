@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set password "Zmkhjjg@123"
+set timeout -1
+
+spawn ssh -o StrictHostKeyChecking=no root@10.20.108.159 "cd /opt/itom && sed -i 's/node:18-alpine/node:20-alpine/g' frontend/Dockerfile && docker compose up -d"
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

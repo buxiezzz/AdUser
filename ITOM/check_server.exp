@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set password "Zmkhjjg@123"
+spawn ssh -o StrictHostKeyChecking=no root@10.20.108.159 "uname -a && command -v docker && docker compose version || docker-compose version"
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

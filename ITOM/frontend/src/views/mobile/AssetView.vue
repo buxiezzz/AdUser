@@ -6,7 +6,7 @@
         <el-icon><Avatar /></el-icon> <span>管理入口</span>
       </div>
       <template v-else>
-        <div v-if="asset && asset.status !== '在库'" @click="returnAsset" class="bg-emerald-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
+        <div v-if="asset && asset.status !== '闲置'" @click="returnAsset" class="bg-emerald-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
           <el-icon><RefreshLeft /></el-icon> <span>退库</span>
         </div>
         <div @click="triggerMobilePrint" class="bg-indigo-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
@@ -257,8 +257,8 @@ const dynamicExtAttrs = computed(() => {
 const statusClass = (status: string) => {
     if (status === '在用') return 'bg-green-500/20 text-green-100 border-green-400/30'
     if (status === '闲置') return 'bg-yellow-500/20 text-yellow-100 border-yellow-400/30'
-    if (status === '维修中') return 'bg-red-500/20 text-red-100 border-red-400/30'
-    return 'bg-gray-500/20 text-gray-100 border-gray-400/30'
+    if (status === '维修') return 'bg-orange-500/20 text-orange-100 border-orange-400/30'
+    return 'bg-gray-500/20 text-gray-100 border-gray-400/30' // 报废
 }
 
 onMounted(() => {
@@ -339,7 +339,7 @@ const returnAsset = async () => {
 
     try {
        const res = await axios.patch(`/api/assets/${asset.value.id}/status`, {
-           status: '在库'
+           status: '闲置'
        })
        asset.value = res.data
        loading.close()

@@ -2,7 +2,37 @@
   "pages": [
     {
       "path": "pages/index/index",
-      "style": { "navigationBarTitleText": "工作台" }
+      "style": {
+        "navigationBarTitleText": "首页",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "pages/asset/list",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "资产列表"
+      }
+    },
+    {
+      "path": "pages/scan/index",
+      "style": {
+        "navigationBarTitleText": "扫描资产",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/inventory/index",
+      "style": {
+        "navigationBarTitleText": "盘点"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
     },
     {
       "path": "pages/profile/profile",
@@ -13,12 +43,16 @@
       "style": { "navigationBarTitleText": "管理员登录", "navigationBarBackgroundColor": "#f7f9fb" }
     },
     {
-      "path": "pages/asset/list",
-      "style": { "navigationBarTitleText": "资产台账" }
-    },
-    {
       "path": "pages/asset/detail",
       "style": { "navigationBarTitleText": "资产卡片" }
+    },
+    {
+      "path": "pages/asset/create",
+      "style": { "navigationBarTitleText": "新增资产" }
+    },
+    {
+      "path": "pages/employee/select",
+      "style": { "navigationBarTitleText": "选择使用人 (自动联想域控)" }
     },
     {
       "path": "pages/asset/categories",
@@ -57,27 +91,40 @@
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#007aff",
+    "selectedColor": "#1677ff",
     "backgroundColor": "#ffffff",
+    "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "工作台"
+        "text": "首页",
+        "iconPath": "static/tab/home.png",
+        "selectedIconPath": "static/tab/home_active.png"
       },
       {
-        "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "pagePath": "pages/asset/list",
+        "text": "资产",
+        "iconPath": "static/tab/asset.png",
+        "selectedIconPath": "static/tab/asset_active.png"
+      },
+      {
+        "pagePath": "pages/scan/index",
+        "text": "扫描资产",
+        "iconPath": "static/tab/scan.png",
+        "selectedIconPath": "static/tab/scan_active.png"
+      },
+      {
+        "pagePath": "pages/inventory/index",
+        "text": "盘点",
+        "iconPath": "static/tab/inventory.png",
+        "selectedIconPath": "static/tab/inventory_active.png"
+      },
+      {
+        "pagePath": "pages/settings/index",
+        "text": "设置",
+        "iconPath": "static/tab/settings.png",
+        "selectedIconPath": "static/tab/settings_active.png"
       }
     ]
-  },
-	"condition" : { //模式配置，仅开发期间生效
-		"current": 0, //当前激活的模式(list 的索引项)
-		"list": [
-			{
-				"name": "", //模式名称
-				"path": "", //启动页面，必选
-				"query": "" //启动参数，在页面的onLoad函数里面得到
-			}
-		]
-	}
+  }
 }

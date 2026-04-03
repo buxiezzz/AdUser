@@ -76,11 +76,24 @@ def create_ad_user(domain_controller_ip, bind_username, bind_password, username,
         positions = config.get("POSITIONS", [])
 
         # 1. 解析 AA (部门标识)
-        # 如果配了这个 ou_path 的 mapping，则直接使用；否则从 ou_path(比如 'OU=Dev,DC=example,DC=com') 提取最左侧的名称
-        aa_code = ou_prefix_mapping.get(ou_path)
+        # 增加继承逻辑：如果当前 OU 没配，则向上一级查找
+        aa_code = None
+        current_check_ou = ou_path
+        while "," in current_check_ou:
+            aa_code = ou_prefix_mapping.get(current_check_ou)
+            if aa_code:
+                break
+            # 向上移动一级
+            parts = current_check_ou.split(',')
+            parts.pop(0)
+            current_check_ou = ",".join(parts)
+            # 停止条件：如果不再包含 OU=，说明到了域根部
+            if "OU=" not in current_check_ou:
+                break
+        
         if not aa_code:
              try:
-                 # 'OU=Dev,OU=Tech,DC=example,DC=com' -> 'Dev'
+                 # 回退逻辑：'OU=Dev,OU=Tech,DC=example,DC=com' -> 'Dev'
                  first_part = ou_path.split(',')[0]
                  if first_part.startswith('OU='):
                      aa_code = first_part[3:]

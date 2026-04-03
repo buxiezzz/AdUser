@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set password "Zmkhjjg@123"
+set timeout -1
+
+spawn rsync -avz --exclude="node_modules" --exclude="dist" --exclude="__pycache__" --exclude=".git" -e "ssh -o StrictHostKeyChecking=no" ./ root@10.20.108.159:/opt/itom/
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

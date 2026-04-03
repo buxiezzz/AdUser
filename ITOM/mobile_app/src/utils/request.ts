@@ -2,9 +2,11 @@ import { config } from '../config'
 
 interface RequestOptions extends UniApp.RequestOptions {
   customHeader?: any
+  noToast?: boolean
 }
 
 export const request = <T = any>(options: RequestOptions): Promise<T> => {
+  const { noToast = false } = options;
   return new Promise((resolve, reject) => {
     // 获取 token
     const token = uni.getStorageSync('itom_token')
@@ -32,29 +34,35 @@ export const request = <T = any>(options: RequestOptions): Promise<T> => {
           resolve(res.data as T)
         } else if (res.statusCode === 401) {
           // Token 过期或无效
-          uni.showToast({
-            title: '登录已过期，请重新登录',
-            icon: 'none'
-          })
+          if (!noToast) {
+            uni.showToast({
+              title: '登录已过期，请重新登录',
+              icon: 'none'
+            })
+          }
           uni.removeStorageSync('itom_token')
           uni.reLaunch({
             url: '/pages/login/login'
           })
           reject(res)
         } else {
-          uni.showToast({
-            title: (res.data as any)?.detail || '请求失败',
-            icon: 'none'
-          })
+          if (!noToast) {
+             uni.showToast({
+               title: (res.data as any)?.detail || '请求失败',
+               icon: 'none'
+             })
+          }
           reject(res)
         }
       },
       fail: (err) => {
-        uni.showToast({
-          title: '网络异常，请检查网络设置或配置的服务器IP',
-          icon: 'none',
-          duration: 3000
-        })
+        if (!noToast) {
+          uni.showToast({
+            title: '网络异常，请检查网络设置或配置的服务器IP',
+            icon: 'none',
+            duration: 3000
+          })
+        }
         reject(err)
       }
     })
@@ -74,5 +82,8 @@ export default {
   },
   delete: <T = any>(url: string, data?: any, options?: Omit<RequestOptions, 'url' | 'method'>) => {
     return request<T>({ url, method: 'DELETE', data, ...options })
+  },
+  patch: <T = any>(url: string, data?: any, options?: Omit<RequestOptions, 'url' | 'method'>) => {
+    return request<T>({ url, method: ('PATCH' as any), data, ...options })
   }
 }

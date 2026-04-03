@@ -145,16 +145,37 @@ const form = reactive({
 let lastAutoAddedGroups: string[] = []
 
 const applyDefaultGroups = () => {
-  // 1. 先把上次自动添加的缺省组从选中列表中剔除（如果用户没删的话），避免切换时残留上一个选择的映射
+  // 1. 先把上次自动添加的缺省组从选中列表中剔除
   const currentSelections = new Set(form.groups)
   lastAutoAddedGroups.forEach(g => currentSelections.delete(g))
   
   // 2. 收集当前勾选 OU 和 Position 对应的最新默认组
   const groupsToAdd = new Set<string>()
   
-  if (form.ou_path && ouGroupMapping.value[form.ou_path]) {
-    (ouGroupMapping.value[form.ou_path] || []).forEach((g: string) => groupsToAdd.add(g))
+  // --- OU 继承逻辑开始 ---
+  if (form.ou_path) {
+    let currentPath = form.ou_path
+    // 向上递归查找 OU 映射 (例如：OU=Sub,OU=Parent,DC=... -> OU=Parent,DC=...)
+    while (currentPath.includes(',')) {
+      const mappedGroups = ouGroupMapping.value[currentPath]
+      if (mappedGroups && mappedGroups.length > 0) {
+        mappedGroups.forEach(g => groupsToAdd.add(g))
+        // 如果找到了，通常我们遵循继承原则，找到最接近的一级就停止，
+        // 或者也可以累加所有父级的。这里根据用户需求“继承父ou”，
+        // 我们采用“查找到最近的有配置的父级即停止”的逻辑，或者也可以累加。
+        // 用户说“同样继承”，暗示了父级的应该也带上。我们采用累加模式。
+      }
+      
+      // 准备查找上一级
+      const parts = currentPath.split(',')
+      parts.shift()
+      currentPath = parts.join(',')
+      
+      // 如果剩下的部分不再包含 OU=，说明到了 DC 层级，停止查找
+      if (!currentPath.includes('OU=')) break
+    }
   }
+  // --- OU 继承逻辑结束 ---
   
   if (form.position_name) {
     const pos = positionOptions.value.find(p => p.name === form.position_name)
@@ -174,7 +195,7 @@ const applyDefaultGroups = () => {
   lastAutoAddedGroups = newAutoAdded
 
   if (newAutoAdded.length > 0) {
-    ElMessage.success(`已根据系统模板自动为您附加 ${newAutoAdded.length} 个基础安全组`)
+    ElMessage.success(`已根据系统模板（含父级继承）自动为您附加 ${newAutoAdded.length} 个基础安全组`)
   }
 }
 

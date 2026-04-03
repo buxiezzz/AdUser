@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+set password "Zmkhjjg@123"
+set timeout -1
+
+spawn scp -o StrictHostKeyChecking=no daemon.json root@10.20.108.159:/etc/docker/daemon.json
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@10.20.108.159 "systemctl restart docker && cd /opt/itom && docker compose up -d"
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

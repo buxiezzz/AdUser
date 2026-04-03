@@ -22,16 +22,29 @@ function doPrint(lpapi: any, asset: any, templateConfig: any) {
 
         lpapi.startJob({ width: paper.width, height: paper.height, orientation: paper.orientation });
 
-        // APP-PLUS 环境下没有 window.location，从 appConfig.baseUrl 提取服务器根地址
-        const serverRoot = appConfig.baseUrl.replace(/\/api\/?$/, '');
-        const qrUrl = asset.qr_code_token ? `${serverRoot}/mobile/asset/${asset.qr_code_token}` : serverRoot;
+        // 由于客户真实场景诉求，摒弃复杂的 web_url 并放弃扫码无需登录的功能。
+        // 为了降低二维码复杂度（使其像素疏松更易扫描）并无缝兼容旧有标签逻辑，这里全量采用明文 `asset_code`。
+        const qrUrl = asset.asset_code || '';
 
         for (const item of elements) {
             if (item.type === 'text') {
                 // 读取动态字段值或固定文字
                 let textValue = item.value || '';
                 if (item.field) {
-                    textValue = item.field.split('.').reduce((o: any, i: string) => (o ? o[i] : ''), asset) || '-';
+                    let val = item.field.split('.').reduce((o: any, i: string) => (o ? o[i] : ''), asset);
+                    
+                    // 特殊兼容：如果用户模板指定了“使用日期”但资产没单独记录这个动态属性，自动兜底使用系统创建日期
+                    if (!val && item.field.includes('使用日期')) {
+                        val = asset.created_at;
+                    }
+                    
+                    // 智能识别时间并格式化，切除 T 之后的时分秒以节省标签纸空间
+                    if (val && typeof val === 'string' && val.includes('T')) {
+                        const dateMatch = val.match(/^(\d{4}-\d{2}-\d{2})/);
+                        if (dateMatch) val = dateMatch[1];
+                    }
+                    
+                    textValue = val || '-';
                 }
                 const finalStr = `${item.prefix || ''}${textValue}`;
                 lpapi.drawText({

@@ -76,15 +76,13 @@
     "OU=武汉财务部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
     "OU=武汉质量部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
     "OU=武汉采购部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=离职人员,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=质量公用,OU=武汉质量部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=采购组,OU=武汉采购部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH"
+    "OU=离职人员,OU=武汉,DC=sk1,DC=net,DC=cn": "WH"
   },
   "PRINT_TEMPLATE": {
     "paper": {
       "width": 70,
       "height": 50,
-      "orientation": 0,
+      "orientation": 90,
       "gapType": 2,
       "darkness": 8,
       "speed": 2
@@ -93,40 +91,40 @@
       {
         "type": "rect",
         "x": 2,
-        "y": 2,
-        "width": 66,
-        "height": 46,
-        "lineWidth": 0.5
+        "y": 1,
+        "width": 67,
+        "height": 48,
+        "lineWidth": 0.6
       },
       {
         "type": "line",
         "x": 2,
-        "y": 10,
-        "width": 66,
+        "y": 9,
+        "width": 67,
         "height": 0,
         "lineWidth": 0.5
       },
       {
         "type": "line",
         "x": 2,
-        "y": 18,
-        "width": 66,
+        "y": 17,
+        "width": 67,
         "height": 0,
         "lineWidth": 0.5
       },
       {
         "type": "line",
         "x": 2,
-        "y": 26,
-        "width": 66,
+        "y": 25,
+        "width": 67,
         "height": 0,
         "lineWidth": 0.5
       },
       {
         "type": "line",
         "x": 2,
-        "y": 34,
-        "width": 66,
+        "y": 33,
+        "width": 67,
         "height": 0,
         "lineWidth": 0.5
       },
@@ -141,8 +139,8 @@
       {
         "type": "text",
         "value": "先惠自动化技术(武汉)有限责任公司",
-        "x": 4,
-        "y": 4,
+        "x": 3,
+        "y": 2,
         "fontHeight": 4,
         "width": 62,
         "height": 6
@@ -183,33 +181,33 @@
         "prefix": "序 列 号 : ",
         "x": 4,
         "y": 36,
-        "fontHeight": 3,
+        "fontHeight": 3.5,
         "width": 46,
-        "height": 5
+        "height": 6
       },
       {
         "type": "text",
         "field": "dynamic_attributes.使用日期",
         "prefix": "使用日期: ",
         "x": 4,
-        "y": 43,
-        "fontHeight": 3,
+        "y": 44,
+        "fontHeight": 3.5,
         "width": 48,
-        "height": 5
+        "height": 6
       },
       {
         "type": "qrcode",
         "field": "qr_code_token",
         "x": 53,
-        "y": 35,
+        "y": 34,
         "width": 13
       },
       {
         "type": "line",
         "x": 52,
-        "y": 34,
+        "y": 33,
         "width": 0,
-        "height": 14,
+        "height": 16,
         "lineWidth": 0.5
       }
     ]

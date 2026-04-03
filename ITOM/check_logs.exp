@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set password "Zmkhjjg@123"
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no root@10.20.108.159 "docker logs itom_backend --tail=20"
+expect {
+    "*assword:*" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}

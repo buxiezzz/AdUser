@@ -4,6 +4,7 @@ from typing import List
 import io
 import openpyxl
 from uuid import UUID
+from datetime import datetime, date
 
 from database import get_db
 from crud import asset as crud_asset
@@ -63,7 +64,7 @@ def reassign_asset_owner(asset_id: UUID, request: ReassignRequest, db: Session =
 
 # --- Categories ---
 @router.get("/categories", response_model=List[CategoryResponse])
-def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def read_categories(skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     return crud_asset.get_categories(db, skip=skip, limit=limit)
 
 @router.post("/categories", response_model=CategoryResponse)
@@ -91,7 +92,7 @@ def delete_category(category_id: int, db: Session = Depends(get_db), current_use
 
 # --- Employees ---
 @router.get("/employees", response_model=List[EmployeeResponse])
-def read_employees(keyword: str = "", skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def read_employees(keyword: str = "", skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     # 优先从 AD 拉取名单包装成假 Employee 结构供前端下拉使用
     config = load_config()
     sys_bind_user = config.get('BIND_USERNAME', '')
@@ -180,21 +181,28 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
     sys_bind_user = config.get('BIND_USERNAME', '')
     sys_bind_pass = config.get('BIND_PASSWORD', '')
 
+    def parse_excel_val(val):
+        if val is None:
+            return ""
+        if isinstance(val, float) and val.is_integer():
+            return str(int(val))
+        return str(val).strip()
+
     for row_num, row in enumerate(rows[1:], start=2):
         try:
             asset_code_original = row[core_idx["资产编号"]]
             if not asset_code_original:
                 continue
             
-            asset_code = str(asset_code_original).strip()
+            asset_code = parse_excel_val(asset_code_original)
             status_val = row[core_idx["当前状态"]] if "当前状态" in core_idx else None
-            status = str(status_val).strip() if status_val else "在库"
+            status = parse_excel_val(status_val) if status_val else "闲置"
             
             cat_val = row[core_idx["设备分类"]] if "设备分类" in core_idx else None
-            category_name = str(cat_val).strip() if cat_val else "未知分类"
+            category_name = parse_excel_val(cat_val) if cat_val else "未知分类"
             
             owner_val = row[core_idx["使用者"]] if "使用者" in core_idx else None
-            owner_name = str(owner_val).strip() if owner_val else ""
+            owner_name = parse_excel_val(owner_val)
 
             # 1. Process Category
             category = db.query(Category).filter(Category.name == category_name).first()
@@ -205,38 +213,45 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
 
             # 2. Process Employee
             owner_id = None
-            if owner_name and status not in ["在库", "已归档/报废"]:
+            if owner_name and status not in ["闲置", "报废"]:
                 employee = db.query(Employee).filter(Employee.ad_account == owner_name).first()
                 if not employee:
                     employee = db.query(Employee).filter(Employee.name == owner_name).first()
                 
                 if not employee:
-                    # Try to fetch from AD
+                    # 从 AD 查询员工
                     try:
                         ad_users = search_ad_users(sys_bind_user, sys_bind_pass, owner_name)
                         if ad_users:
                             au = ad_users[0]
-                            name = au.get('display_name') or owner_name
-                            department = getattr(au, 'department', '') or au.get('dn', '').split(',')[1].replace('OU=', '')
-                            email = f"{au['username']}@{config.get('DOMAIN_NAME', 'stom.local')}"
-                            employee = Employee(name=name, department=department, email=email, ad_account=au['username'])
-                            db.add(employee)
-                            db.flush()
+                            ad_account = au['username']
+                            # 关键修复：先按 ad_account 检查 DB，避免重复 INSERT
+                            employee = db.query(Employee).filter(Employee.ad_account == ad_account).first()
+                            if not employee:
+                                name = au.get('display_name') or owner_name
+                                department = getattr(au, 'department', '') or au.get('dn', '').split(',')[1].replace('OU=', '')
+                                email = f"{ad_account}@{config.get('DOMAIN_NAME', 'stom.local')}"
+                                employee = Employee(name=name, department=department, email=email, ad_account=ad_account)
+                                db.add(employee)
+                                db.flush()
                     except Exception as e:
                         print(f"Failed to lookup AD for {owner_name}: {e}")
                 
                 if not employee:
-                    # 如果 AD 中没找到，建立本地账户关联以防丢弃数据
+                    # AD 中没找到，建立本地账户（按名字查重避免重复）
                     dept_col_idx = header_idx.get("所属组织") or header_idx.get("使用部门") or header_idx.get("部门")
-                    dept_name = str(row[dept_col_idx]).strip() if dept_col_idx is not None and row[dept_col_idx] else "迁移产生部门"
-                    employee = Employee(
-                        name=owner_name, 
-                        department=dept_name, 
-                        email=f"local_{owner_name}@migration.local", 
-                        ad_account=f"local_{row_num}_{owner_name}"
-                    )
-                    db.add(employee)
-                    db.flush()
+                    dept_name = parse_excel_val(row[dept_col_idx]) if dept_col_idx is not None and row[dept_col_idx] else "迁移产生部门"
+                    local_ad = f"local_{owner_name}"
+                    employee = db.query(Employee).filter(Employee.ad_account == local_ad).first()
+                    if not employee:
+                        employee = Employee(
+                            name=owner_name,
+                            department=dept_name,
+                            email=f"local_{owner_name}@migration.local",
+                            ad_account=local_ad
+                        )
+                        db.add(employee)
+                        db.flush()
                 
                 if employee:
                     owner_id = employee.id
@@ -252,9 +267,9 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
             dynamic_attributes = {}
             for col_name, col_idx in header_idx.items():
                 if col_name not in used_headers:
-                    val = row[col_idx]
-                    if val is not None:
-                        dynamic_attributes[col_name] = str(val).strip()
+                    k = parse_excel_val(headers[col_idx])
+                    v = parse_excel_val(row[col_idx])
+                    dynamic_attributes[k] = v
 
             # 4. Check if asset exists, if not create, if yes update
             asset = db.query(Asset).filter(Asset.asset_code == asset_code).first()
@@ -276,6 +291,28 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
                 asset.dynamic_attributes = dynamic_attributes
 
             db.flush()
+
+            # 4.5 如果 Excel 表格内有“入库日期”列，解析后覆盖 created_at
+            date_col_idx = core_idx.get("入库日期") or header_idx.get("入库日期") or header_idx.get("入库日期") or header_idx.get("购入日期")
+            if date_col_idx is not None:
+                date_val = row[date_col_idx]
+                parsed_date = None
+                if isinstance(date_val, (datetime, date)):
+                    parsed_date = datetime(date_val.year, date_val.month, date_val.day, 0, 0, 0) if isinstance(date_val, date) else date_val
+                elif date_val:
+                    try:
+                        s = str(date_val).strip()
+                        for fmt in ["%Y-%m-%d", "%Y/%m/%d", "%Y年%m月%d日", "%m/%d/%Y"]:
+                            try:
+                                parsed_date = datetime.strptime(s[:10], fmt)
+                                break
+                            except ValueError:
+                                continue
+                    except Exception:
+                        pass
+                if parsed_date:
+                    asset.created_at = parsed_date
+                    db.flush()
             
             # 5. Log Action
             action_desc = "系统批量导入-新增" if is_new else "系统批量导入-更新"
@@ -289,22 +326,110 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
             )
             db.add(log)
             success_count += 1
+            db.commit()  # 每行成功后立即提交，防止后续行回滚影响已成功的行
 
         except Exception as row_error:
+            db.rollback()  # 回滚本行，清除 Session 污染状态，不影响下一行
             errors.append(f"Row {row_num}: {str(row_error)}")
             continue
 
-    db.commit()
     return {
         "message": f"Import completed. Success: {success_count}, Errors: {len(errors)}",
         "success": success_count,
         "errors": errors
     }
 
+# --- Batch Operations ---
+from pydantic import BaseModel as PydanticBase
+from typing import Optional as Opt
+
+class BatchDeleteBody(PydanticBase):
+    asset_ids: List[str]
+
+class BatchUpdateBody(PydanticBase):
+    asset_ids: List[str]
+    status: Opt[str] = None
+    owner_id: Opt[int] = None
+
+class BatchCopyBody(PydanticBase):
+    asset_ids: List[str]
+
+@router.post("/batch-delete")
+def batch_delete_assets(body: BatchDeleteBody, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    """彻底删除（硬删除）选中的多个资产"""
+    results = []
+    for id_str in body.asset_ids:
+        try:
+            success = crud_asset.hard_delete_asset(db, asset_id=id_str)
+            if success:
+                results.append(id_str)
+        except Exception as e:
+            pass
+    return {"deleted": len(results), "ids": results}
+
+@router.put("/batch-update")
+def batch_update_assets(body: BatchUpdateBody, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    """批量修改状态 / 使用人"""
+    import schemas.asset as sa
+    updated = 0
+    for id_str in body.asset_ids:
+        try:
+            update_data: dict = {}
+            if body.status is not None:
+                update_data["status"] = body.status
+            if body.owner_id is not None:
+                update_data["owner_id"] = body.owner_id
+            if not update_data:
+                continue
+            asset_in = sa.AssetUpdate(**update_data)
+            result = crud_asset.update_asset(db, asset_id=_UUID(id_str), asset_in=asset_in, current_user_id=current_user.id)
+            if result:
+                updated += 1
+        except Exception:
+            pass
+    return {"updated": updated}
+
+@router.post("/batch-copy")
+def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    """复制选中资产，生成新的资产编码（原编码 + -COPY-N）"""
+    import uuid as _uuid
+    created = 0
+    for id_str in body.asset_ids:
+        try:
+            from uuid import UUID as _UUID
+            src = crud_asset.get_asset(db, asset_id=_UUID(id_str))
+            if not src:
+                continue
+            # 生成不重复的新编码
+            suffix = 1
+            while True:
+                new_code = f"{src.asset_code}-COPY-{suffix}"
+                exists = db.query(Asset).filter(Asset.asset_code == new_code).first()
+                if not exists:
+                    break
+                suffix += 1
+            new_asset = Asset(
+                asset_code=new_code,
+                category_id=src.category_id,
+                status="闲置",
+                owner_id=None,
+                dynamic_attributes=dict(src.dynamic_attributes or {}),
+                qr_code_token=_uuid.uuid4().hex
+            )
+            db.add(new_asset)
+            db.flush()
+            log = AssetLog(asset_id=new_asset.id, operated_by=current_user.id, action="批量复制", memo=f"复制自 {src.asset_code}")
+            db.add(log)
+            db.commit()
+            created += 1
+        except Exception as e:
+            db.rollback()
+    return {"created": created}
+
 # --- Assets ---
 @router.get("/", response_model=List[AssetResponse])
-def read_assets(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    return crud_asset.get_assets(db, skip=skip, limit=limit)
+def read_assets(keyword: str = "", status: str = "", skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    return crud_asset.get_assets(db, skip=skip, limit=limit, keyword=keyword, status=status)
 
 @router.post("/", response_model=AssetResponse)
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
@@ -312,37 +437,32 @@ def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user
 
 @router.get("/{asset_id}", response_model=AssetResponse)
 def read_asset(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    from uuid import UUID
-    db_asset = crud_asset.get_asset(db, asset_id=UUID(asset_id))
+    db_asset = crud_asset.get_asset(db, asset_id=asset_id)
     if db_asset is None:
         raise HTTPException(status_code=404, detail="Asset not found")
     return db_asset
 
 @router.put("/{asset_id}", response_model=AssetResponse)
 def update_asset(asset_id: str, asset_in: schemas.asset.AssetUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    from uuid import UUID
-    db_asset = crud_asset.update_asset(db, asset_id=UUID(asset_id), asset_in=asset_in, current_user_id=current_user.id)
+    db_asset = crud_asset.update_asset(db, asset_id=asset_id, asset_in=asset_in, current_user_id=current_user.id)
     if not db_asset:
         raise HTTPException(status_code=404, detail="Asset not found")
     return db_asset
 
 @router.delete("/{asset_id}", response_model=AssetResponse)
 def delete_asset(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    from uuid import UUID
-    db_asset = crud_asset.delete_asset(db, asset_id=UUID(asset_id), current_user_id=current_user.id)
+    db_asset = crud_asset.delete_asset(db, asset_id=asset_id, current_user_id=current_user.id)
     if not db_asset:
         raise HTTPException(status_code=404, detail="Asset not found")
     return db_asset
 
 @router.delete("/hard/{asset_id}")
 def hard_delete_asset(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    from uuid import UUID
-    success = crud_asset.hard_delete_asset(db, asset_id=UUID(asset_id))
+    success = crud_asset.hard_delete_asset(db, asset_id=asset_id)
     if not success:
         raise HTTPException(status_code=404, detail="Asset not found")
     return {"message": "Asset completely deleted"}
 
 @router.get("/{asset_id}/logs", response_model=List[schemas.asset.AssetLogResponse])
-def read_asset_logs(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    from uuid import UUID
-    return crud_asset.get_asset_logs(db, asset_id=UUID(asset_id))
+def get_asset_logs(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    return crud_asset.get_asset_logs(db, asset_id=asset_id)

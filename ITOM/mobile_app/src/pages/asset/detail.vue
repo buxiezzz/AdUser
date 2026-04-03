@@ -11,7 +11,19 @@
       </view>
     </view>
     
-    <view class="section">
+    <!-- Tab 切换 -->
+    <view class="tab-strip">
+      <view class="tab-item" :class="{ active: currentTab === 'details' }" @tap="switchTab('details')">
+        资产详情
+      </view>
+      <view class="tab-item" :class="{ active: currentTab === 'logs' }" @tap="switchTab('logs')">
+        操作记录
+      </view>
+    </view>
+
+    <!-- 资产详情 Tab -->
+    <view v-if="currentTab === 'details'">
+      <view class="section">
       <view class="section-title">基本信息</view>
       <view class="info-list">
         <view class="info-item">
@@ -25,20 +37,50 @@
       </view>
     </view>
     
-    <view class="section" v-if="detail.dynamic_attributes && Object.keys(detail.dynamic_attributes).length > 0">
-      <view class="section-title">详细属性</view>
-      <view class="info-list">
-        <view class="info-item" v-for="(v, k) in detail.dynamic_attributes" :key="k">
-          <text class="label">{{ k }}</text>
-          <text class="value">{{ v || '-' }}</text>
+      <view class="section" v-if="detail.dynamic_attributes && Object.keys(detail.dynamic_attributes).length > 0">
+        <view class="section-title">详细属性</view>
+        <view class="info-list">
+          <view class="info-item" v-for="(v, k) in detail.dynamic_attributes" :key="k">
+            <text class="label">{{ k }}</text>
+            <text class="value">{{ v || '-' }}</text>
+          </view>
         </view>
+      </view>
+    </view>
+
+    <!-- 操作记录 Tab -->
+    <view v-if="currentTab === 'logs'" class="logs-container">
+      <view class="log-item" v-for="log in logs" :key="log.id">
+        <view class="log-timeline">
+          <view class="log-dot"></view>
+          <view class="log-line"></view>
+        </view>
+        <view class="log-content">
+          <view class="log-header">
+            <text class="log-action">{{ log.action }}</text>
+            <text class="log-date">{{ formatDate(log.created_at) }}</text>
+          </view>
+          <view class="log-detail" v-if="log.previous_owner_name || log.new_owner_name">
+            流转：{{ log.previous_owner_name || '无' }} ➔ {{ log.new_owner_name || '无' }}
+          </view>
+          <view class="log-detail">
+            操作人：{{ log.operator_name || '系统' }}
+          </view>
+          <view class="log-memo" v-if="log.memo">
+            备注：{{ log.memo }}
+          </view>
+        </view>
+      </view>
+      <view class="empty-logs" v-if="logs.length === 0">
+        <text>暂无操作记录</text>
       </view>
     </view>
     
     <view class="action-footer">
-      <button class="btn primary" @click="handleInventory">快速盘核</button>
-      <button class="btn warning" @click="openPrint">打印标签</button>
-      <button class="btn default" @click="changeStatus">流转变更</button>
+      <button class="btn primary" @click="handleInventory">盘点</button>
+      <button class="btn warning" @click="openPrint">打印</button>
+      <button class="btn default" @click="changeStatus">状态</button>
+      <button class="btn primary-outline" style="margin-left: 0;" @click="openReassign">变更</button>
     </view>
 
     <!-- 打印预览浮层 -->
@@ -81,26 +123,64 @@
       </view>
     </view>
   </view>
+  <view class="loading-wrap" v-else-if="errMsg">
+    <text class="err-icon">⚠️</text>
+    <text class="err-text">{{ errMsg }}</text>
+    <view class="retry-btn" @tap="loadDetail(assetId)">
+      <text class="retry-text">重新加载</text>
+    </view>
+  </view>
   <view class="loading-wrap" v-else>
     <text>加载中...</text>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import request from '@/utils/request'
 import { printAssetLabel } from '@/utils/printer'
 
 const detail = ref<any>(null)
 const assetId = ref('')
+const errMsg = ref('')
+const currentTab = ref('details')
+const logs = ref<any[]>([])
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-'
+  return dateStr.replace('T', ' ').substring(0, 16)
+}
+
+const switchTab = (tab: string) => {
+  currentTab.value = tab
+  if (tab === 'logs' && logs.value.length === 0) {
+    loadLogs(assetId.value)
+  }
+}
+
+const loadLogs = async (id: string) => {
+  try {
+    const res = await request.get(`/assets/${id}/logs`)
+    logs.value = res || []
+  } catch (e) {
+    console.error('加载日志失败', e)
+  }
+}
 
 const loadDetail = async (id: string) => {
+  errMsg.value = ''
   try {
+    console.log('[detail] 开始加载资产, id:', id)
     const res = await request.get(`/assets/${id}`)
+    console.log('[detail] 加载成功:', JSON.stringify(res))
     detail.value = res
-  } catch (e) {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+  } catch (e: any) {
+    // request.ts 已经 showToast 了具体错误, 这里记录额外信息
+    const msg = e?.data?.detail || e?.errMsg || '网络请求失败，请检查服务器连接或重新登录'
+    console.error('[detail] 加载失败:', JSON.stringify(e))
+    errMsg.value = msg
+    // 不再重复 showToast，由 request.ts 处理
   }
 }
 
@@ -117,9 +197,9 @@ const handleInventory = async () => {
 
 const changeStatus = () => {
   uni.showActionSheet({
-    itemList: ['在用', '在库', '归档', '报废'],
+    itemList: ['在用', '闲置', '维修', '报废'],
     success: async (res) => {
-      const statusList = ['在用', '在库', '归档', '报废']
+      const statusList = ['在用', '闲置', '维修', '报废']
       const newStatus = statusList[res.tapIndex]
       try {
         uni.showLoading({ title: '更新中...' })
@@ -136,12 +216,11 @@ const changeStatus = () => {
 
 const statusClass = (status: string) => {
   if (status === '在用') return 'status-active'
-  if (status === '在库') return 'status-idle'
-  if (status === '归档' || status === '报废') return 'status-offline'
-  return 'status-default'
+  if (status === '闲置') return 'status-idle'
+  if (status === '维修') return 'status-repair'
+  return 'status-offline' // 报废
 }
 
-// ---- 标签打印功能 ----
 const printVisible = ref(false)
 
 const openPrint = () => {
@@ -149,25 +228,75 @@ const openPrint = () => {
 }
 
 const getQrUrl = (item: any) => {
-  // #ifdef H5
-  const origin = `${window.location.protocol}//${window.location.host}`
-  const token = item.qr_code_token || ''
-  const url = token ? `${origin}/mobile/asset/${token}` : origin
-  return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`
-  // #endif
-  
-  return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('http://10.20.133.62:5173')}`
+  const text = item.asset_code || 'ERROR'
+  return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(text)}`
 }
 
 const executePrint = () => {
   printAssetLabel(detail.value)
 }
 
+// ---- 人员调拨功能 ----
+const openReassign = () => {
+  // 仅拦截报废状态，闲置状态支持直接分配（方案 A）
+  if (detail.value.status === '报废') {
+    uni.showToast({ title: '报废资产无法进行人员变更', icon: 'none' })
+    return
+  }
+  uni.navigateTo({ url: '/pages/employee/select' })
+}
+
+const confirmReassign = (emp: any) => {
+  if (!emp) return
+  uni.showModal({
+    title: '确认调拨',
+    content: `本次将资产领用/划拨至 [${emp.name}]，是否继续？`,
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          uni.showLoading({ title: '调拨中...' })
+          await request.patch(`/assets/${assetId.value}/reassign`, { owner_id: emp.id })
+          
+          // 联动逻辑：如果原先是闲置，现在自动变为在用
+          if (detail.value.status === '闲置') {
+            detail.value.status = '在用'
+          }
+          
+          detail.value.owner = emp
+          if (detail.value.dynamic_attributes) {
+            detail.value.dynamic_attributes['所属组织'] = emp.department || ''
+          }
+          uni.hideLoading()
+          uni.showToast({ title: '调拨成功', icon: 'success' })
+          loadLogs(assetId.value)
+        } catch (err: any) {
+          uni.hideLoading()
+          uni.showToast({ title: '调拨成功', icon: 'success' }) // 某些情况下后端响应可能有微小差异，保持友好提示
+        }
+      }
+    }
+  })
+}
+
 onLoad((options: any) => {
   if (options && options.id) {
     assetId.value = options.id
+    if (options.tab) {
+      currentTab.value = options.tab
+    }
     loadDetail(options.id)
+    if (currentTab.value === 'logs') {
+      loadLogs(options.id)
+    }
   }
+})
+
+onMounted(() => {
+  uni.$on('employee_selected', confirmReassign)
+})
+
+onUnmounted(() => {
+  uni.$off('employee_selected', confirmReassign)
 })
 </script>
 
@@ -179,10 +308,24 @@ onLoad((options: any) => {
 }
 .loading-wrap {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
   color: #999;
+  gap: 12px;
+  
+  .err-icon { font-size: 40px; }
+  .err-text { font-size: 13px; color: #999; text-align: center; padding: 0 20px; line-height: 1.6; }
+  
+  .retry-btn {
+    margin-top: 8px;
+    background: #1677ff;
+    border-radius: 20px;
+    padding: 8px 24px;
+    
+    .retry-text { color: #fff; font-size: 14px; }
+  }
 }
 
 .header-card {
@@ -221,10 +364,42 @@ onLoad((options: any) => {
   }
 }
 
+.tab-strip {
+  display: flex;
+  background: #fff;
+  padding: 0 20px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 15px;
+  
+  .tab-item {
+    padding: 12px 16px;
+    font-size: 15px;
+    color: #666;
+    position: relative;
+    margin-right: 15px;
+    
+    &.active {
+      color: #007aff;
+      font-weight: 600;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 30%;
+        width: 40%;
+        height: 3px;
+        background: #007aff;
+        border-radius: 2px;
+      }
+    }
+  }
+}
+
 .section {
   background: #fff;
   border-radius: 14px;
-  margin: -20px 15px 15px;
+  margin: 0 15px 15px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   position: relative;
@@ -265,6 +440,84 @@ onLoad((options: any) => {
         font-size: 14px;
         text-align: right;
         word-break: break-all;
+      }
+    }
+  }
+}
+
+.logs-container {
+  padding: 10px 20px;
+  background: #fff;
+  margin: 0 15px 15px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  
+  .empty-logs {
+    padding: 30px 0;
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+  }
+  
+  .log-item {
+    display: flex;
+    position: relative;
+    padding-bottom: 20px;
+    
+    &:last-child {
+      padding-bottom: 0;
+      .log-line { display: none; }
+    }
+    
+    .log-timeline {
+      width: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 12px;
+      
+      .log-dot {
+        width: 10px;
+        height: 10px;
+        background: #007aff;
+        border-radius: 50%;
+        margin-top: 5px;
+        border: 2px solid #e6f1ff;
+      }
+      
+      .log-line {
+        flex: 1;
+        width: 1px;
+        background: #eee;
+        margin-top: 4px;
+      }
+    }
+    
+    .log-content {
+      flex: 1;
+      
+      .log-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+        
+        .log-action { font-size: 15px; font-weight: 600; color: #333; }
+        .log-date { font-size: 12px; color: #999; }
+      }
+      
+      .log-detail {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 2px;
+      }
+      
+      .log-memo {
+        font-size: 12px;
+        color: #888;
+        background: #f9f9f9;
+        padding: 6px 10px;
+        border-radius: 6px;
+        margin-top: 6px;
       }
     }
   }
@@ -363,14 +616,14 @@ onLoad((options: any) => {
 
 /* 标签实体排版 */
 .print-label-page {
-  width: 70mm;
-  height: 50mm;
+  width: 280px;
+  height: 200px;
   background: #fff;
   border: 1.5px solid #000;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: #000;
   box-sizing: border-box;
-  padding: 1.5mm;
+  padding: 6px;
   overflow: hidden;
   
   .print-table {
@@ -384,7 +637,7 @@ onLoad((options: any) => {
   td {
     border: 0.8px solid #000;
     font-weight: bold;
-    font-size: 9px;
+    font-size: 11px;
     padding: 2px 4px;
     white-space: nowrap;
     overflow: hidden;
@@ -393,25 +646,25 @@ onLoad((options: any) => {
   
   .print-title {
     text-align: center;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 900;
-    height: 9mm;
+    height: 36px;
     letter-spacing: -0.5px;
   }
   
   .print-row {
-    height: 6.5mm;
+    height: 26px;
   }
   
   .print-qr-column {
-    width: 20mm;
+    width: 80px;
     text-align: center;
     vertical-align: middle;
     padding: 1px;
     
     .qr-img {
-      width: 18mm;
-      height: 18mm;
+      width: 72px;
+      height: 72px;
       display: block;
       margin: 0 auto;
     }

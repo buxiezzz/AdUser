@@ -11,22 +11,27 @@ def get_asset_by_qr_token(db: Session, token: str):
     return db.query(Asset).options(
         joinedload(Asset.category),
         joinedload(Asset.owner)
-    ).filter(Asset.qr_code_token == token).first()
+    ).filter(
+        (Asset.qr_code_token == token) | (Asset.asset_code == token)
+    ).first()
 
-def record_inventory_check(db: Session, asset_id: UUID, user_id: int):
+def record_inventory_check(db: Session, asset_id: str, user_id: int):
     # 创建一条盘点日志
+    db_asset = get_asset(db, asset_id)
+    if not db_asset:
+        return None
     log_entry = AssetLog(
-        asset_id=asset_id,
+        asset_id=db_asset.id,
         operated_by=user_id,
-        action="Inventory",
-        memo="通过移动端免密扫码完成实地盘点核对"
+        action="Inventory Check",
+        memo="移动端通过扫码盘点快速确认了该资产所在。"
     )
     db.add(log_entry)
     db.commit()
     return log_entry
 
-def update_asset_status(db: Session, asset_id: UUID, status: str, user_id: int):
-    db_asset = db.query(Asset).filter(Asset.id == asset_id).first()
+def update_asset_status(db: Session, asset_id: str, status: str, user_id: int):
+    db_asset = get_asset(db, str(asset_id))
     if not db_asset:
         return None
     old_status = db_asset.status
@@ -38,7 +43,7 @@ def update_asset_status(db: Session, asset_id: UUID, status: str, user_id: int):
     memo = f"通过移动端快速变更状态: [ {old_status} ] -> [ {status} ]"
     
     # 如果强制退库，一并清空名下人员与组织
-    if status in ["在库", "已归档/报废"]:
+    if status in ["闲置", "报废"]:
         db_asset.owner_id = None
         if db_asset.dynamic_attributes and "所属组织" in db_asset.dynamic_attributes:
             new_attrs = dict(db_asset.dynamic_attributes)
@@ -49,7 +54,7 @@ def update_asset_status(db: Session, asset_id: UUID, status: str, user_id: int):
     
     # 记录状态变更日志
     log_entry = AssetLog(
-        asset_id=asset_id,
+        asset_id=db_asset.id,
         operated_by=user_id,
         action=action,
         previous_owner_id=old_owner_id,
@@ -61,8 +66,8 @@ def update_asset_status(db: Session, asset_id: UUID, status: str, user_id: int):
     db.refresh(db_asset)
     return db_asset
 
-def reassign_asset(db: Session, asset_id: UUID, new_owner_id: int, user_id: int):
-    db_asset = db.query(Asset).filter(Asset.id == asset_id).first()
+def reassign_asset(db: Session, asset_id: str, new_owner_id: int, user_id: int):
+    db_asset = get_asset(db, str(asset_id))
     if not db_asset:
         return None
     
@@ -73,10 +78,14 @@ def reassign_asset(db: Session, asset_id: UUID, new_owner_id: int, user_id: int)
     new_owner = db.query(Employee).filter(Employee.id == new_owner_id).first()
     new_owner_name = new_owner.name if new_owner else "无"
     
+    # 方案 A 联动：如果资产是闲置状态，分配人员后自动变为“在用”
+    if db_asset.status == "闲置":
+        db_asset.status = "在用"
+        
     db_asset.owner_id = new_owner_id
     
     log_entry = AssetLog(
-        asset_id=asset_id,
+        asset_id=db_asset.id,
         operated_by=user_id,
         action="Reassign",
         previous_owner_id=old_owner_id,
@@ -88,7 +97,7 @@ def reassign_asset(db: Session, asset_id: UUID, new_owner_id: int, user_id: int)
     db.refresh(db_asset)
     return db_asset
 
-def get_employees(db: Session, skip: int = 0, limit: int = 100, keyword: str = ""):
+def get_employees(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""):
     return db.query(Employee).offset(skip).limit(limit).all()
 
 def create_employee(db: Session, employee: EmployeeCreate):
@@ -99,7 +108,7 @@ def create_employee(db: Session, employee: EmployeeCreate):
     return db_emp
 
 # ====== Category CRUD ======
-def get_categories(db: Session, skip: int = 0, limit: int = 100):
+def get_categories(db: Session, skip: int = 0, limit: int = 10000):
     return db.query(Category).offset(skip).limit(limit).all()
 
 def create_category(db: Session, category: CategoryCreate):
@@ -134,11 +143,32 @@ def delete_category(db: Session, category_id: int):
     return True
 
 # ====== Asset CRUD ======
-def get_assets(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Asset).offset(skip).limit(limit).all()
+def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = ""):
+    query = db.query(Asset).options(
+        joinedload(Asset.category),
+        joinedload(Asset.owner)
+    ).order_by(Asset.created_at.desc())
+    
+    if keyword:
+        search = f"%{keyword}%"
+        # 搜索资产编码、分类名称或员工姓名
+        query = query.join(Category, isouter=True).join(Employee, isouter=True).filter(
+            (Asset.asset_code.ilike(search)) |
+            (Category.name.ilike(search)) |
+            (Employee.name.ilike(search))
+        )
+    
+    if status:
+        query = query.filter(Asset.status == status)
+        
+    return query.offset(skip).limit(limit).all()
 
-def get_asset(db: Session, asset_id: UUID):
-    return db.query(Asset).filter(Asset.id == asset_id).first()
+def get_asset(db: Session, asset_id: str):
+    asset_id_hex = asset_id.replace('-', '')
+    return db.query(Asset).options(
+        joinedload(Asset.category),
+        joinedload(Asset.owner)
+    ).filter((Asset.id == asset_id) | (Asset.id == asset_id_hex)).first()
 
 def create_asset(db: Session, asset: AssetCreate, current_user_id: int):
     # 生成安全的 QR 鉴权 Token
@@ -165,7 +195,7 @@ def create_asset(db: Session, asset: AssetCreate, current_user_id: int):
     
     return db_asset
 
-def update_asset(db: Session, asset_id: UUID, asset_in: AssetUpdate, current_user_id: int):
+def update_asset(db: Session, asset_id: str, asset_in: AssetUpdate, current_user_id: int):
     db_asset = get_asset(db, asset_id)
     if not db_asset:
         return None
@@ -176,9 +206,9 @@ def update_asset(db: Session, asset_id: UUID, asset_in: AssetUpdate, current_use
     old_owner_id = db_asset.owner_id
     old_status = db_asset.status
     
-    # 强制归还逻辑：如果状态变更为在库或已归档/报废，清空使用人和部门
+    # 强制归还逻辑：如果状态变更为闲置或报废，清空使用人和部门
     new_status = update_data.get("status", old_status)
-    if new_status in ["在库", "已归档/报废"]:
+    if new_status in ["闲置", "报废"]:
         update_data["owner_id"] = None
         if "dynamic_attributes" in update_data and "所属组织" in update_data["dynamic_attributes"]:
             update_data["dynamic_attributes"]["所属组织"] = ""
@@ -218,13 +248,13 @@ def update_asset(db: Session, asset_id: UUID, asset_in: AssetUpdate, current_use
         
     return db_asset
 
-def delete_asset(db: Session, asset_id: UUID, current_user_id: int):
+def delete_asset(db: Session, asset_id: str, current_user_id: int):
     db_asset = get_asset(db, asset_id)
     if not db_asset:
         return None
         
-    # 我们此处执行软删除（标记报废归档）以保持日志健全，不真删
-    db_asset.status = "已归档/报废"
+    # 我们此处执行软删除（标记报废）以保持日志健全，不真删
+    db_asset.status = "报废"
     db.add(db_asset)
     
     log = AssetLog(
@@ -240,19 +270,21 @@ def delete_asset(db: Session, asset_id: UUID, current_user_id: int):
     db.refresh(db_asset)
     return db_asset
 
-def hard_delete_asset(db: Session, asset_id: UUID):
+def hard_delete_asset(db: Session, asset_id: str):
     db_asset = get_asset(db, asset_id)
     if not db_asset:
         return False
         
     # Cascade logs deletion manually if needed, or rely on cascading in models
-    db.query(AssetLog).filter(AssetLog.asset_id == asset_id).delete()
+    db.query(AssetLog).filter(AssetLog.asset_id == db_asset.id).delete()
     db.delete(db_asset)
     db.commit()
     return True
 
 def get_asset_logs(db: Session, asset_id: UUID):
-    logs = db.query(AssetLog).filter(AssetLog.asset_id == asset_id).order_by(AssetLog.created_at.desc()).all()
+    str_id = str(asset_id)
+    hex_id = str_id.replace('-', '')
+    logs = db.query(AssetLog).filter((AssetLog.asset_id == str_id) | (AssetLog.asset_id == hex_id)).order_by(AssetLog.created_at.desc()).all()
     
     for log in logs:
         operator = db.query(User).filter(User.id == log.operated_by).first()

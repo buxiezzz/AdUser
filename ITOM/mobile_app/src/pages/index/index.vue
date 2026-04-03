@@ -1,141 +1,261 @@
 <template>
   <view class="container">
+    <!-- 顶部 Banner -->
     <view class="header">
-      <view class="title">ITOM 移动工作台</view>
-    </view>
-    
-    <!-- 资产管理 -->
-    <view class="section-group">
-      <view class="group-title">资产管理</view>
-      <view class="grid">
-        <view class="grid-item" @click="navTo('/pages/asset/list')">
-          <view class="icon bg-blue">💻</view>
-          <text>资产台账</text>
-        </view>
-        <view class="grid-item" @click="navTo('/pages/asset/categories')">
-          <view class="icon bg-blue">📑</view>
-          <text>资产分类</text>
-        </view>
+      <view class="header-text">
+        <text class="hello">ITOM 管理平台</text>
+        <text class="subtitle">IT 资产运营管理系统</text>
       </view>
     </view>
 
-    <!-- 身份凭据域 -->
-    <view class="section-group">
-      <view class="group-title">身份与凭据域 (AD)</view>
-      <view class="grid">
-        <view class="grid-item" @click="navTo('/pages/ad/users')">
-          <view class="icon bg-green">👥</view>
-          <text>域用户查询</text>
-        </view>
-        <view class="grid-item" @click="navTo('/pages/ad/provision')">
-          <view class="icon bg-green">✨</view>
-          <text>自动开通向导</text>
-        </view>
-        <view class="grid-item" @click="navTo('/pages/ad/groups')">
-          <view class="icon bg-green">🛡️</view>
-          <text>安全组策略</text>
-        </view>
+    <!-- 快捷入口 -->
+    <view class="quick-grid">
+      <view class="quick-item" @click="switchToAsset('')">
+        <view class="quick-icon blue">💻</view>
+        <text class="quick-label">资产台账</text>
+      </view>
+      <view class="quick-item" @click="switchToScan">
+        <view class="quick-icon orange">📷</view>
+        <text class="quick-label">扫描资产</text>
+      </view>
+      <view class="quick-item" @click="switchToInventory">
+        <view class="quick-icon green">☑️</view>
+        <text class="quick-label">资产盘点</text>
+      </view>
+      <view class="quick-item" @click="navTo('/pages/ad/users')">
+        <view class="quick-icon purple">👥</view>
+        <text class="quick-label">域用户查询</text>
       </view>
     </view>
 
-    <!-- 系统底座 -->
-    <view class="section-group">
-      <view class="group-title">系统底座</view>
-      <view class="grid">
-        <view class="grid-item" @click="navTo('/pages/settings/system')">
-          <view class="icon bg-purple">⚙️</view>
-          <text>全局配置</text>
-        </view>
-        <view class="grid-item" @click="navTo('/pages/settings/rules')">
-          <view class="icon bg-purple">📝</view>
-          <text>命名规范中心</text>
-        </view>
-        <view class="grid-item" @click="navTo('/pages/settings/templates')">
-          <view class="icon bg-purple">🔑</view>
-          <text>权限模板</text>
-        </view>
+    <!-- 统计卡片 -->
+    <view class="stat-cards">
+      <view class="stat-card blue-card" @click="switchToAsset('在用')">
+        <text class="stat-num">{{ statCounts['在用'] || '...' }}</text>
+        <text class="stat-label">在用设备</text>
+      </view>
+      <view class="stat-card green-card" @click="switchToAsset('闲置')">
+        <text class="stat-num">{{ statCounts['闲置'] || '...' }}</text>
+        <text class="stat-label">闲置设备</text>
+      </view>
+      <view class="stat-card orange-card" @click="switchToAsset('维修')">
+        <text class="stat-num">{{ statCounts['维修'] || '...' }}</text>
+        <text class="stat-label">维修中</text>
+      </view>
+      <view class="stat-card gray-card" @click="switchToAsset('报废')">
+        <text class="stat-num">{{ statCounts['报废'] || '...' }}</text>
+        <text class="stat-label">已报废</text>
       </view>
     </view>
 
+    <!-- 功能分组 -->
+    <view class="section-wrap">
+      <view class="section-title">AD 域管理</view>
+      <view class="section-list">
+        <view class="list-item" @click="navTo('/pages/ad/provision')">
+          <text class="item-icon">✨</text>
+          <text class="item-label">自动开通向导</text>
+          <text class="item-arrow">›</text>
+        </view>
+        <view class="list-item" @click="navTo('/pages/ad/groups')">
+          <text class="item-icon">🛡️</text>
+          <text class="item-label">安全组策略</text>
+          <text class="item-arrow">›</text>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import request from '@/utils/request'
+
+const statCounts = ref<Record<string, number>>({})
+
 const navTo = (url: string) => {
-  uni.navigateTo({ url })
+  const tabPages = [
+    '/pages/index/index', 
+    '/pages/asset/list', 
+    '/pages/scan/index', 
+    '/pages/inventory/index', 
+    '/pages/settings/index'
+  ]
+  
+  if (tabPages.includes(url)) {
+    uni.switchTab({
+      url,
+      fail: (err) => {
+        console.error('switchTab failed', err)
+        // 如果 switchTab 失败（可能还没生效为 Tab），尝试 navigateTo
+        uni.navigateTo({ url })
+      }
+    })
+  } else {
+    uni.navigateTo({ url })
+  }
 }
+
+const switchToAsset = (status: string) => {
+  // 保存状态到本地，供 list 页展示
+  if (status) {
+    uni.setStorageSync('active_asset_status', status)
+  } else {
+    uni.removeStorageSync('active_asset_status')
+  }
+  
+  uni.switchTab({ 
+    url: '/pages/asset/list',
+    success: () => {
+       // 触发事件通知 list 页刷新
+       uni.$emit('refreshAssetList', { status })
+    },
+    fail: (err) => {
+      console.error('switchTab to asset list failed', err)
+      uni.navigateTo({ url: `/pages/asset/list?status=${status}` })
+    }
+  })
+}
+
+const switchToScan = () => {
+  navTo('/pages/scan/index')
+}
+
+const switchToInventory = () => {
+  navTo('/pages/inventory/index')
+}
+
+const loadStats = async () => {
+  try {
+    const statuses = ['在用', '闲置', '维修', '报废']
+    const counts: Record<string, number> = {}
+    for (const s of statuses) {
+      const res = await request.get('/assets/', { status: s, limit: 9999 })
+      counts[s] = res?.length || 0
+    }
+    statCounts.value = counts
+  } catch (e) {}
+}
+
+onMounted(() => loadStats())
 </script>
 
 <style lang="scss" scoped>
 .container {
   min-height: 100vh;
-  background-color: #f7f9fb;
+  background: #f5f7fa;
   padding-bottom: 20px;
 }
 
 .header {
-  background-color: #007aff;
-  padding: 60px 20px 30px;
+  background: linear-gradient(135deg, #1677ff, #4fa3ff);
+  padding: 50px 20px 24px;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
-  margin-bottom: 10px;
   
-  .title {
+  .hello {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
     color: #fff;
-    font-size: 24px;
-    font-weight: bold;
+  }
+  .subtitle {
+    display: block;
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 4px;
   }
 }
 
-.section-group {
-  margin: 15px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 15px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-  
-  .group-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15px;
-    padding-left: 8px;
-    border-left: 3px solid #007aff;
-  }
-}
-
-.grid {
+.quick-grid {
   display: flex;
-  flex-wrap: wrap;
+  padding: 16px 16px 8px;
+  gap: 12px;
   
-  .grid-item {
-    width: 25%;
+  .quick-item {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 15px;
+    gap: 6px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
     
-    .icon {
-      width: 48px;
-      height: 48px;
+    .quick-icon {
+      width: 44px;
+      height: 44px;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      margin-bottom: 8px;
+      font-size: 22px;
+      
+      &.blue   { background: #e8f3ff; }
+      &.orange { background: #fff4e8; }
+      &.green  { background: #e8fff2; }
+      &.purple { background: #f0e8ff; }
     }
     
-    text {
+    .quick-label {
       font-size: 12px;
-      color: #333;
+      color: #555;
       text-align: center;
-      line-height: 1.2;
     }
   }
 }
 
-.bg-blue { background-color: #e5f1ff; }
-.bg-green { background-color: #e6f9ed; }
-.bg-purple { background-color: #f3e5f5; }
+.stat-cards {
+  display: flex;
+  padding: 8px 16px;
+  gap: 10px;
+  
+  .stat-card {
+    flex: 1;
+    border-radius: 12px;
+    padding: 14px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    .stat-num { font-size: 20px; font-weight: 700; color: #fff; }
+    .stat-label { font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 4px; }
+    
+    &.blue-card   { background: #1677ff; }
+    &.green-card  { background: #52c41a; }
+    &.orange-card { background: #fa8c16; }
+    &.gray-card   { background: #8c8c8c; }
+  }
+}
+
+.section-wrap {
+  margin: 12px 16px 0;
+  
+  .section-title {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  
+  .section-list {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    
+    .list-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f8f8f8;
+      
+      &:last-child { border-bottom: none; }
+      
+      .item-icon  { font-size: 18px; width: 28px; }
+      .item-label { flex: 1; font-size: 15px; color: #1a1a1a; }
+      .item-arrow { font-size: 18px; color: #ccc; }
+    }
+  }
+}
 </style>

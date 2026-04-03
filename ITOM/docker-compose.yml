@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: itom_backend
+    restart: always
+    ports:
+      - "9000:8000"
+    volumes:
+      - ./backend/data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: itom_frontend
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      - TZ=Asia/Shanghai
+    depends_on:
+      - backend

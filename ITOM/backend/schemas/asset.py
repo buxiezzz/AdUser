@@ -39,7 +39,7 @@ class CategoryResponse(CategoryBase):
 class AssetBase(BaseModel):
     asset_code: Optional[str] = None
     category_id: int
-    status: Optional[str] = "在库"
+    status: Optional[str] = "闲置"
     owner_id: Optional[int] = None
     dynamic_attributes: Dict[str, Any] = {}
 
