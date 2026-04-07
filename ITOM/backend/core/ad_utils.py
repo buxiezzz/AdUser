@@ -1,6 +1,6 @@
 # /ad_utils.py
 import ssl
-from ldap3 import Server, Connection, Tls, ALL, SUBTREE, LEVEL, BASE, MODIFY_ADD
+from ldap3 import Server, Connection, Tls, ALL, SUBTREE, LEVEL, BASE, MODIFY_ADD, MODIFY_REPLACE
 from .utils import load_rules
 from api.routers.settings import load_config
 
@@ -215,6 +215,15 @@ def get_group_list(bind_username: str, bind_password: str):
         print(f"Error fetching group list: {e}")
     finally:
         if conn and conn.bound: conn.unbind()
+        
+    # 同步增加地区过滤器支持
+    region_filter = config.get('ACTIVE_REGION_CODE', 'all')
+    selected_region_config = next((item for item in config.get('REGION_OPTIONS', []) if item.get("code") == region_filter), None)
+
+    if selected_region_config and selected_region_config.get('keywords'):
+        keywords = selected_region_config['keywords']
+        group_list = [dn for dn in group_list if any(k in dn for k in keywords)]
+
     return sorted(list(set(group_list)))
 
 
@@ -244,15 +253,17 @@ def search_ad_users(bind_username: str, bind_password: str, keyword: str = ""):
         filter_str += ')'
         
         conn.search(search_base, filter_str, SUBTREE, 
-                    attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName'])
+                    attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName', 'userAccountControl'])
         
         for entry in conn.entries:
+            uac = int(entry.userAccountControl.value) if 'userAccountControl' in entry else 512
             user_info = {
                 'dn': str(entry.distinguishedName) if 'distinguishedName' in entry else '',
                 'username': str(entry.sAMAccountName) if 'sAMAccountName' in entry else '',
                 'display_name': str(entry.displayName) if 'displayName' in entry else '',
                 'description': str(entry.description) if 'description' in entry else '',
-                'upn': str(entry.userPrincipalName) if 'userPrincipalName' in entry else ''
+                'upn': str(entry.userPrincipalName) if 'userPrincipalName' in entry else '',
+                'enabled': not (uac & 0x02)
             }
             users.append(user_info)
     except Exception as e:
@@ -278,7 +289,7 @@ def get_ad_user_detail(bind_username: str, bind_password: str, sAMAccountName: s
         
         search_base = get_base_dn(domain_name)
         conn.search(search_base, f'(sAMAccountName={sAMAccountName})', SUBTREE, 
-                    attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName', 'memberOf'])
+                    attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName', 'memberOf', 'userAccountControl'])
         
         if conn.entries:
             entry = conn.entries[0]
@@ -287,13 +298,16 @@ def get_ad_user_detail(bind_username: str, bind_password: str, sAMAccountName: s
             if not isinstance(member_of, list):
                 member_of = [member_of]
                 
+            uac = int(entry.userAccountControl.value) if 'userAccountControl' in entry else 512
+                
             return {
                 'dn': str(entry.distinguishedName),
                 'username': str(entry.sAMAccountName),
                 'display_name': str(entry.displayName) if 'displayName' in entry else '',
                 'description': str(entry.description) if 'description' in entry else '',
                 'upn': str(entry.userPrincipalName) if 'userPrincipalName' in entry else '',
-                'groups': [str(g) for g in member_of]
+                'groups': [str(g) for g in member_of],
+                'enabled': not (uac & 0x02)
             }
         return None
     except Exception as e:
@@ -452,6 +466,46 @@ def update_group_members(bind_username: str, bind_password: str, group_dn: str, 
         if errors:
             return False, "; ".join(errors)
         return True, "群组成员清单更新分布成功"
+    except Exception as e:
+        return False, f"发生异常: {str(e)}"
+    finally:
+        if conn and conn.bound: conn.unbind()
+
+def toggle_ad_user_status(bind_username: str, bind_password: str, user_dn: str, enabled: bool):
+    """启用或禁用 AD 用户"""
+    config = load_config()
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    
+    conn = None
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound: return False, "连接域控失败"
+        
+        # 1. 获取当前的 userAccountControl
+        conn.search(user_dn, '(objectClass=user)', BASE, attributes=['userAccountControl'])
+        if not conn.entries:
+            return False, "未找到目标用户对象"
+            
+        current_uac = int(conn.entries[0].userAccountControl.value)
+        
+        # 2. 位运算修改
+        # 0x02 是 ACCOUNTDISABLE 位
+        if enabled:
+            # 启用: 去掉 0x02 位
+            new_uac = current_uac & ~0x02
+        else:
+            # 禁用: 加上 0x02 位
+            new_uac = current_uac | 0x02
+            
+        conn.modify(user_dn, {'userAccountControl': [(MODIFY_REPLACE, [str(new_uac)])]})
+        
+        if conn.result['result'] == 0:
+            status_text = "启用" if enabled else "禁用"
+            return True, f"用户已成功{status_text}"
+        else:
+            return False, f"操作失败: {conn.result['description']}"
     except Exception as e:
         return False, f"发生异常: {str(e)}"
     finally:

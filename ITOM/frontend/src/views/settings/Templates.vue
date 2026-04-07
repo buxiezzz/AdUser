@@ -111,6 +111,31 @@
           </el-table-column>
         </el-table>
       </el-tab-pane>
+
+      <!-- 全局账号预设 -->
+      <el-tab-pane label="全域默认配置" name="global_config">
+        <div class="p-6 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 mt-4 space-y-6">
+          <div class="flex items-center space-x-3 text-indigo-900 font-bold text-lg">
+            <el-icon :size="24"><Lock /></el-icon>
+            <span>域账号开通预设策略</span>
+          </div>
+          
+          <div class="max-w-md">
+            <el-form-item label="默认初始密码 (AD 密码策略)">
+              <el-input 
+                v-model="defaultPassword" 
+                placeholder="设置全公司通用的初始化密码"
+                show-password
+              >
+                <template #prefix><el-icon><Key /></el-icon></template>
+              </el-input>
+            </el-form-item>
+            <p class="text-xs text-gray-400 mt-2">
+              注意：请确保此密码符合 AD 域控的复杂度要求（长度、数字、特殊字符）。该设置将强制锁定“一键创建”模块的密码输入框。
+            </p>
+          </div>
+        </div>
+      </el-tab-pane>
     </el-tabs>
 
     <!-- 添加 OU 映射弹窗 -->
@@ -142,7 +167,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Check, Delete } from '@element-plus/icons-vue'
+import { Check, Delete, Lock, Key } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
@@ -158,6 +183,7 @@ const ouList = ref<{dn: string, name: string}[]>([])
 // ouTableData will wrap the AD OU options with their current mapped default_groups & prefix
 const ouTableData = ref<Array<{dn: string, name: string, default_groups: string[], prefix: string}>>([])
 const positionList = ref<Array<{name: string, suffix: string, default_groups: string[]}>>([])
+const defaultPassword = ref('')
 
 // 对话框控制
 const addOUDialogVisible = ref(false)
@@ -183,6 +209,7 @@ const fetchData = async () => {
     }
     const ouMapping = config.OU_GROUP_MAPPING || {}
     const ouPrefixMapping = config.OU_PREFIX_MAPPING || {}
+    defaultPassword.value = config.DEFAULT_USER_PASSWORD || ''
 
     // 2. 获取 AD 里最新的 Groups 供选择
     const { data: groupsData } = await axios.get('/api/ad/groups')
@@ -271,7 +298,8 @@ const saveTemplates = async () => {
     const payload = {
       positions: positionList.value,
       ou_group_mapping: mappingToSave,
-      ou_prefix_mapping: prefixToSave
+      ou_prefix_mapping: prefixToSave,
+      default_user_password: defaultPassword.value
     }
 
     const { data } = await axios.post('/api/settings/', payload)

@@ -8,13 +8,15 @@ from fastapi.requests import Request
 from database import engine, SessionLocal
 from models import user as user_model
 from models import asset as asset_model
+from models import audit as audit_model
 from crud.user import get_user_by_username, create_user
 from schemas.user import UserCreate
-from api.routers import auth, asset, ad, settings
+from api.routers import auth, asset, ad, settings, audit
 
 # Create database tables (For production use Alembic migrations instead)
 user_model.Base.metadata.create_all(bind=engine)
 asset_model.Base.metadata.create_all(bind=engine)
+audit_model.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="ITOM Platform API",
@@ -35,6 +37,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(asset.router, prefix="/api/assets", tags=["Assets"])
 app.include_router(ad.router, prefix="/api/ad", tags=["Active Directory"])
 app.include_router(settings.router, prefix="/api/settings", tags=["System Settings"])
+app.include_router(audit.router, prefix="/api/audit", tags=["Audit Logs"])
 
 @app.on_event("startup")
 def create_default_admin():

@@ -79,8 +79,43 @@
     <view class="action-footer">
       <button class="btn primary" @click="handleInventory">盘点</button>
       <button class="btn warning" @click="openPrint">打印</button>
-      <button class="btn default" @click="changeStatus">状态</button>
-      <button class="btn primary-outline" style="margin-left: 0;" @click="openReassign">变更</button>
+      <button class="btn default" style="flex: 1.5;" @click="openUnifiedChange">变更 (状态/人员)</button>
+    </view>
+
+    <!-- 综合变更浮层 -->
+    <view class="print-mask" v-if="changeVisible" @click="closeChange">
+      <view class="print-dialog" @click.stop style="max-height: 70vh;">
+        <view class="dialog-header">
+          <text class="title">资产信息变更</text>
+          <text class="close" @click="closeChange">✕</text>
+        </view>
+        <view class="change-body">
+          <view class="change-item">
+             <text class="c-label">当前状态</text>
+             <picker mode="selector" :range="statusList" :value="statusList.indexOf(pendingStatus)" @change="onPendingStatusChange">
+                <view class="c-val">
+                   {{ pendingStatus }}
+                   <text class="c-arrow">›</text>
+                </view>
+             </picker>
+          </view>
+          
+          <view class="change-item" @click="navToSelect">
+             <text class="c-label">使用人 / 管理人</text>
+             <view class="c-val" :class="{ placeholder: !pendingOwner }">
+                {{ pendingOwner ? pendingOwner.name : '点此指派人员' }}
+                <text class="c-arrow">›</text>
+             </view>
+          </view>
+          
+          <view class="tip-text" v-if="pendingStatus === '闲置' && pendingOwner">
+             注意：设为闲置将自动清空当前使用人
+          </view>
+        </view>
+        <view class="dialog-footer">
+          <button class="submit-btn" :loading="saving" @click="submitChange">确认保存变更</button>
+        </view>
+      </view>
     </view>
 
     <!-- 打印预览浮层 -->
@@ -195,25 +230,6 @@ const handleInventory = async () => {
   }
 }
 
-const changeStatus = () => {
-  uni.showActionSheet({
-    itemList: ['在用', '闲置', '维修', '报废'],
-    success: async (res) => {
-      const statusList = ['在用', '闲置', '维修', '报废']
-      const newStatus = statusList[res.tapIndex]
-      try {
-        uni.showLoading({ title: '更新中...' })
-        await request.put(`/assets/${assetId.value}`, { status: newStatus })
-        detail.value.status = newStatus
-        uni.hideLoading()
-        uni.showToast({ title: '状态已更新', icon: 'success' })
-      } catch (e) {
-        uni.hideLoading()
-      }
-    }
-  })
-}
-
 const statusClass = (status: string) => {
   if (status === '在用') return 'status-active'
   if (status === '闲置') return 'status-idle'
@@ -222,6 +238,83 @@ const statusClass = (status: string) => {
 }
 
 const printVisible = ref(false)
+const changeVisible = ref(false)
+const saving = ref(false)
+const statusList = ['在用', '闲置', '维修', '报废']
+const pendingStatus = ref('')
+const pendingOwner = ref<any>(null)
+
+const openUnifiedChange = () => {
+  pendingStatus.value = detail.value.status
+  pendingOwner.value = detail.value.owner
+  changeVisible.value = true
+}
+
+const closeChange = () => {
+  if (saving.value) return
+  changeVisible.value = false
+}
+
+const onPendingStatusChange = (e: any) => {
+  pendingStatus.value = statusList[e.detail.value]
+}
+
+const navToSelect = () => {
+  if (pendingStatus.value === '报废') {
+    uni.showToast({ title: '报废资产无法变更人员', icon: 'none' })
+    return
+  }
+  uni.navigateTo({ url: '/pages/employee/select' })
+}
+
+const submitChange = async () => {
+  if (saving.value) return
+  
+  // 业务校验：如果设为闲置，强制清空人员
+  let finalOwnerId = pendingOwner.value?.id || null
+  if (pendingStatus.value === '闲置' || pendingStatus.value === '报废') {
+    finalOwnerId = null
+  }
+
+  try {
+    saving.value = true
+    uni.showLoading({ title: '保存中...' })
+
+    const promises = []
+    
+    // 1. 如果状态变了，更新状态
+    if (pendingStatus.value !== detail.value.status) {
+      promises.push(request.put(`/assets/${assetId.value}`, { status: pendingStatus.value }))
+    }
+    
+    // 2. 如果人员变了（或者因为状态联动变了），更新人员
+    const currentOwnerId = detail.value.owner?.id || null
+    if (finalOwnerId !== currentOwnerId) {
+      promises.push(request.patch(`/assets/${assetId.value}/reassign`, { owner_id: finalOwnerId }))
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises)
+      // 更新本地显示
+      detail.value.status = pendingStatus.value
+      detail.value.owner = finalOwnerId ? pendingOwner.value : null
+      if (detail.value.dynamic_attributes && finalOwnerId) {
+         detail.value.dynamic_attributes['所属组织'] = pendingOwner.value.department || ''
+      } else if (detail.value.dynamic_attributes) {
+         detail.value.dynamic_attributes['所属组织'] = ''
+      }
+      loadLogs(assetId.value)
+      uni.showToast({ title: '变更已生效', icon: 'success' })
+    }
+    
+    saving.value = false
+    uni.hideLoading()
+    changeVisible.value = false
+  } catch (e) {
+    saving.value = false
+    uni.hideLoading()
+  }
+}
 
 const openPrint = () => {
   printVisible.value = true
@@ -236,46 +329,19 @@ const executePrint = () => {
   printAssetLabel(detail.value)
 }
 
-// ---- 人员调拨功能 ----
-const openReassign = () => {
-  // 仅拦截报废状态，闲置状态支持直接分配（方案 A）
-  if (detail.value.status === '报废') {
-    uni.showToast({ title: '报废资产无法进行人员变更', icon: 'none' })
-    return
-  }
-  uni.navigateTo({ url: '/pages/employee/select' })
-}
-
+// ---- 人员选择后调用的回调 ----
 const confirmReassign = (emp: any) => {
-  if (!emp) return
-  uni.showModal({
-    title: '确认调拨',
-    content: `本次将资产领用/划拨至 [${emp.name}]，是否继续？`,
-    success: async (res) => {
-      if (res.confirm) {
-        try {
-          uni.showLoading({ title: '调拨中...' })
-          await request.patch(`/assets/${assetId.value}/reassign`, { owner_id: emp.id })
-          
-          // 联动逻辑：如果原先是闲置，现在自动变为在用
-          if (detail.value.status === '闲置') {
-            detail.value.status = '在用'
-          }
-          
-          detail.value.owner = emp
-          if (detail.value.dynamic_attributes) {
-            detail.value.dynamic_attributes['所属组织'] = emp.department || ''
-          }
-          uni.hideLoading()
-          uni.showToast({ title: '调拨成功', icon: 'success' })
-          loadLogs(assetId.value)
-        } catch (err: any) {
-          uni.hideLoading()
-          uni.showToast({ title: '调拨成功', icon: 'success' }) // 某些情况下后端响应可能有微小差异，保持友好提示
-        }
-      }
+  // 如果当前弹窗开着，更新弹窗内的临时人员
+  if (changeVisible.value) {
+    pendingOwner.value = emp
+    // 方案 A 联动：如果选了人，且当前选的是闲置，自动切到“在用”
+    if (pendingStatus.value === '闲置' && emp) {
+      pendingStatus.value = '在用'
     }
-  })
+  } else {
+    // 如果弹窗没开（备选），直接走老逻辑（通常不会发生，除非代码触发）
+    detail.value.owner = emp
+  }
 }
 
 onLoad((options: any) => {
@@ -612,6 +678,46 @@ onUnmounted(() => {
       &::after { border: none; }
     }
   }
+}
+
+/* 综合变更样式 */
+.change-body {
+  padding: 30rpx;
+}
+.change-item {
+  margin-bottom: 30rpx;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #efefef;
+  padding-bottom: 20rpx;
+}
+.c-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+.c-val {
+  font-size: 32rpx;
+  color: #1a73e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50rpx;
+}
+.placeholder {
+  color: #ccc !important;
+}
+.c-arrow {
+  color: #ccc;
+  font-size: 32rpx;
+}
+.tip-text {
+  font-size: 24rpx;
+  color: #ff9800;
+  background: #fff8e1;
+  padding: 10rpx 20rpx;
+  border-radius: 8rpx;
+  margin-top: 10rpx;
 }
 
 /* 标签实体排版 */

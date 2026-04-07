@@ -23,8 +23,8 @@
         <text class="quick-label">资产盘点</text>
       </view>
       <view class="quick-item" @click="navTo('/pages/ad/users')">
-        <view class="quick-icon purple">👥</view>
-        <text class="quick-label">域用户查询</text>
+        <view class="quick-icon purple">🔍</view>
+        <text class="quick-label">域用户检索</text>
       </view>
     </view>
 
@@ -50,11 +50,16 @@
 
     <!-- 功能分组 -->
     <view class="section-wrap">
-      <view class="section-title">AD 域管理</view>
+      <view class="section-title">域账号创建</view>
       <view class="section-list">
         <view class="list-item" @click="navTo('/pages/ad/provision')">
           <text class="item-icon">✨</text>
-          <text class="item-label">自动开通向导</text>
+          <text class="item-label">一键创建域账号</text>
+          <text class="item-arrow">›</text>
+        </view>
+        <view class="list-item" @click="navTo('/pages/ad/logs')">
+          <text class="item-icon">📝</text>
+          <text class="item-label">开通操作日志</text>
           <text class="item-arrow">›</text>
         </view>
         <view class="list-item" @click="navTo('/pages/ad/groups')">

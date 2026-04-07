@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.responses import FileResponse, StreamingResponse
 from typing import Any, Dict
 from pydantic import BaseModel
 import json
 import os
 import ssl
+import zipfile
+import io
 from ldap3 import Server, Connection, Tls
 from api.deps import get_current_active_user
+from database import DATABASE_URL
 
 router = APIRouter()
 # os.path.dirname(__file__) is <backend>/api/routers
@@ -135,6 +139,82 @@ def update_settings(
     
     return {"success": True, "message": "全局配置更新成功", "data": config_data}
 
+@router.get("/export")
+def export_settings(current_user: Any = Depends(get_current_active_user)):
+    """导出系统配置文件与数据库包"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限导出")
+    
+    if not os.path.exists(CONFIG_FILE_PATH):
+        config_data = load_config()
+        save_config(config_data)
+
+    memory_file = io.BytesIO()
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        # 1. 写入配置文件
+        zf.write(CONFIG_FILE_PATH, arcname="config.json")
+        
+        # 2. 写入数据库文件
+        if DATABASE_URL.startswith("sqlite:///"):
+            db_path = DATABASE_URL.replace("sqlite:///", "")
+            if os.path.exists(db_path):
+                zf.write(db_path, arcname="itom.db")
+                
+    memory_file.seek(0)
+    return StreamingResponse(
+        memory_file,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=itom_backup.zip"}
+    )
+
+@router.post("/import")
+def import_settings(
+    file: UploadFile = File(...),
+    current_user: Any = Depends(get_current_active_user)
+):
+    """导入系统配置文件或全量备份包，并立即生效"""
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限导入")
+    
+    if not (file.filename.endswith('.json') or file.filename.endswith('.zip')):
+        raise HTTPException(status_code=400, detail="请上传 .json 或 .zip 格式的备份文件")
+
+    try:
+        content = file.file.read()
+        
+        # 兼容老逻辑：如果只传了 .json
+        if file.filename.endswith('.json'):
+            config_data = json.loads(content.decode('utf-8'))
+            if not isinstance(config_data, dict):
+                raise ValueError("配置文件格式错误：不是一个有效的字典结构")
+            save_config(config_data)
+            return {"success": True, "message": "配置导入成功，已立即生效"}
+            
+        # 全量恢复逻辑：如果传了 .zip
+        if file.filename.endswith('.zip'):
+            with zipfile.ZipFile(io.BytesIO(content), 'r') as zf:
+                # 恢复配置
+                if 'config.json' in zf.namelist():
+                    config_data = json.loads(zf.read('config.json').decode('utf-8'))
+                    if isinstance(config_data, dict):
+                        save_config(config_data)
+                
+                # 恢复数据库
+                if 'itom.db' in zf.namelist():
+                    if DATABASE_URL.startswith("sqlite:///"):
+                        db_path = DATABASE_URL.replace("sqlite:///", "")
+                        with open(db_path, 'wb') as f:
+                            f.write(zf.read('itom.db'))
+                            
+            return {"success": True, "message": "全栈系统备份已成功恢复！应用和数据库已加载至备份节点。"}
+            
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="解析配置文件失败，非标准 JSON 格式")
+    except zipfile.BadZipFile:
+        raise HTTPException(status_code=400, detail="ZIP 数据包已损坏")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"导入恢复失败: {str(e)}")
+
 class ADTestSchema(BaseModel):
     dc_ip: str
     username: str
@@ -160,3 +240,4 @@ def test_ad_connection_live(
             raise HTTPException(status_code=400, detail=f"AD 返回拒绝: {conn.result}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"AD 连接或验证失败: {str(e)}")
+

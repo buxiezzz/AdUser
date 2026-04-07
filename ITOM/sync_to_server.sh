@@ -14,6 +14,9 @@ tar --exclude="node_modules" \
     --exclude="venv" \
     --exclude=".git" \
     --exclude="*.exp" \
+    --exclude="backend/core/config.json" \
+    --exclude="*.db" \
+    --exclude="*.sqlite3" \
     -czvf itom_pack.tar.gz backend frontend docker-compose.yml > /dev/null
 
 echo "[2/3] 正在推送至 10.20.108.159 服务器..."

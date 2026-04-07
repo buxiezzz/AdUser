@@ -25,10 +25,22 @@ const adminRoutes: Array<any> = [
         meta: { title: '资产分类字典' }
     },
     {
+        path: 'assets/logs',
+        name: 'AssetLogs',
+        component: () => import('../views/audit/LogList.vue'),
+        meta: { title: '资产操作日志', module: 'asset' }
+    },
+    {
         path: 'ad/provision',
         name: 'ADProvision',
         component: () => import('../views/ad/Provision.vue'),
-        meta: { title: '域用户开通向导' }
+        meta: { title: '一键创建域账号' }
+    },
+    {
+        path: 'ad/filter',
+        name: 'ADRegionFilter',
+        component: () => import('../views/ad/RegionFilter.vue'),
+        meta: { title: '地区过滤器' }
     },
     {
         path: 'ad/users',
@@ -40,19 +52,25 @@ const adminRoutes: Array<any> = [
         path: 'ad/groups',
         name: 'ADGroups',
         component: () => import('../views/ad/Groups.vue'),
-        meta: { title: '安全组策略' }
+        meta: { title: '安全策略组台账' }
+    },
+    {
+        path: 'ad/logs',
+        name: 'ADLogs',
+        component: () => import('../views/audit/LogList.vue'),
+        meta: { title: '域账号操作日志', module: 'ad' }
     },
     {
         path: 'settings/system',
         name: 'SystemSettings',
         component: () => import('../views/settings/System.vue'),
-        meta: { title: '系统底座配置' }
+        meta: { title: '系统设置' }
     },
     {
-        path: 'settings/rules',
+        path: 'ad/rules',
         name: 'SystemRules',
-        component: () => import('../views/settings/Rules.vue'),
-        meta: { title: '命名规范中心' }
+        component: () => import('../views/ad/Rules.vue'),
+        meta: { title: '命名规范' }
     },
     {
         path: 'settings/templates',

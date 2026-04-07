@@ -31,16 +31,6 @@
             <text class="menu-label">全局配置</text>
             <text class="menu-arrow">›</text>
           </view>
-          <view class="menu-item" @click="navTo('/pages/settings/rules')">
-            <text class="menu-icon">📝</text>
-            <text class="menu-label">命名规范中心</text>
-            <text class="menu-arrow">›</text>
-          </view>
-          <view class="menu-item" @click="navTo('/pages/settings/templates')">
-            <text class="menu-icon">🔑</text>
-            <text class="menu-label">权限模板配置</text>
-            <text class="menu-arrow">›</text>
-          </view>
           <view class="menu-item" @click="navTo('/pages/asset/categories')">
             <text class="menu-icon">📑</text>
             <text class="menu-label">资产分类字典</text>
@@ -49,23 +39,33 @@
         </view>
       </view>
 
-      <!-- AD 域管理 -->
+      <!-- 域账号创建 -->
       <view class="section">
-        <view class="section-title">域管理（AD）</view>
+        <view class="section-title">域账号创建</view>
         <view class="menu-group">
+          <view class="menu-item" @click="navTo('/pages/ad/provision')">
+            <text class="menu-icon">✨</text>
+            <text class="menu-label">一键创建域账号</text>
+            <text class="menu-arrow">›</text>
+          </view>
           <view class="menu-item" @click="navTo('/pages/ad/users')">
             <text class="menu-icon">👥</text>
             <text class="menu-label">域用户检索</text>
             <text class="menu-arrow">›</text>
           </view>
-          <view class="menu-item" @click="navTo('/pages/ad/provision')">
-            <text class="menu-icon">✨</text>
-            <text class="menu-label">自动开通向导</text>
-            <text class="menu-arrow">›</text>
-          </view>
           <view class="menu-item" @click="navTo('/pages/ad/groups')">
             <text class="menu-icon">🛡️</text>
-            <text class="menu-label">安全组策略</text>
+            <text class="menu-label">安全策略组台账</text>
+            <text class="menu-arrow">›</text>
+          </view>
+          <view class="menu-item" @click="navTo('/pages/settings/templates')">
+            <text class="menu-icon">🔑</text>
+            <text class="menu-label">权限模板配置</text>
+            <text class="menu-arrow">›</text>
+          </view>
+          <view class="menu-item" @click="navTo('/pages/ad/filter')">
+            <text class="menu-icon">🗺️</text>
+            <text class="menu-label">地区过滤器</text>
             <text class="menu-arrow">›</text>
           </view>
         </view>

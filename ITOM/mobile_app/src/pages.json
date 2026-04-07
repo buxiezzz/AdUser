@@ -64,11 +64,15 @@
     },
     {
       "path": "pages/ad/provision",
-      "style": { "navigationBarTitleText": "自动开通向导" }
+      "style": { "navigationBarTitleText": "一键创建域账号" }
     },
     {
       "path": "pages/ad/groups",
-      "style": { "navigationBarTitleText": "安全组策略" }
+      "style": { "navigationBarTitleText": "安全策略组台账" }
+    },
+    {
+      "path": "pages/ad/logs",
+      "style": { "navigationBarTitleText": "开通操作日志" }
     },
     {
       "path": "pages/settings/system",
@@ -76,7 +80,7 @@
     },
     {
       "path": "pages/settings/rules",
-      "style": { "navigationBarTitleText": "命名规范中心" }
+      "style": { "navigationBarTitleText": "命名规范" }
     },
     {
       "path": "pages/settings/templates",

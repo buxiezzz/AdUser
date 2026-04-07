@@ -20,7 +20,8 @@ export const menuConfig: MenuItem[] = [
         showInMobile: true,
         children: [
             { title: '资产台账总览', icon: 'Memo', path: '/assets/list', showInMobile: true },
-            { title: '资产分类字典', icon: 'Files', path: '/assets/categories', showInMobile: true }
+            { title: '资产分类字典', icon: 'Files', path: '/assets/categories', showInMobile: true },
+            { title: '资产操作日志', icon: 'DocumentCopy', path: '/assets/logs', showInMobile: false }
         ]
     },
     {
@@ -29,9 +30,12 @@ export const menuConfig: MenuItem[] = [
         path: '/ad',
         showInMobile: true,
         children: [
-            { title: '域用户开通向导', icon: 'Connection', path: '/ad/provision', showInMobile: true },
+            { title: '一键创建域账号', icon: 'Connection', path: '/ad/provision', showInMobile: true },
             { title: '域用户检索', icon: 'Search', path: '/ad/users', showInMobile: true },
-            { title: '安全组策略', icon: 'Lock', path: '/ad/groups', showInMobile: true }
+            { title: '安全策略组台账', icon: 'Lock', path: '/ad/groups', showInMobile: true },
+            { title: '权限模板配置', icon: 'List', path: '/settings/templates', showInMobile: true },
+            { title: '向导操作日志', icon: 'Files', path: '/ad/logs', showInMobile: false },
+            { title: '地区过滤器', icon: 'MapLocation', path: '/ad/filter', showInMobile: true }
         ]
     },
     {
@@ -40,9 +44,7 @@ export const menuConfig: MenuItem[] = [
         path: '/settings',
         showInMobile: true,
         children: [
-            { title: '系统底座配置', icon: 'Cpu', path: '/settings/system', showInMobile: true },
-            { title: '命名规范中心', icon: 'Collection', path: '/settings/rules', showInMobile: true },
-            { title: '权限模板配置', icon: 'List', path: '/settings/templates', showInMobile: true },
+            { title: '系统设置', icon: 'Cpu', path: '/settings/system', showInMobile: true },
             { title: '标签打印模板', icon: 'Printer', path: '/settings/printer', showInMobile: false }
         ]
     }

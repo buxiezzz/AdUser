@@ -6,7 +6,7 @@
       
       <view class="template-item">
         <text class="title">默认管理员模板 (SuperAdmin)</text>
-        <text class="content">包含系统完全控制权限，支持 AD 域管理与资产删除。</text>
+        <text class="content">包含系统完全控制权限，支持域账号创建与资产删除。</text>
       </view>
       
       <view class="template-item">

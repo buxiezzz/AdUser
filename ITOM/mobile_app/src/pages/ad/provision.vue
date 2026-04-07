@@ -4,18 +4,18 @@
       <view class="form-title">开通 AD 域账户向导</view>
       
       <view class="form-item">
-        <text class="label">登陆账号 (英文/拼音)*</text>
-        <input class="input" v-model="form.new_username" placeholder="如 zhangsan" />
+        <text class="label">用户工号*</text>
+        <input class="input" v-model="form.new_username" placeholder="如 1001" />
       </view>
       
       <view class="form-item">
-        <text class="label">显示姓名*</text>
+        <text class="label">姓名*</text>
         <input class="input" v-model="form.new_display_name" placeholder="如 张三" />
       </view>
       
       <view class="form-item">
-        <text class="label">初始密码*</text>
-        <input class="input" password v-model="form.password" placeholder="需符合域密码复杂度要求" />
+        <text class="label">初始密码 (只读)*</text>
+        <input class="input" password disabled v-model="form.password" placeholder="见权限模板配置" />
       </view>
       
       <view class="form-item">

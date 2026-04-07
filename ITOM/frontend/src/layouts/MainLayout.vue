@@ -1,51 +1,48 @@
 <template>
   <el-container class="h-screen bg-gray-50">
     <el-aside width="220px" class="bg-indigo-900 text-white flex flex-col shadow-xl">
-      <div class="h-16 flex items-center justify-center font-bold text-xl tracking-wider border-b border-indigo-800">
-        ITOM 管理域
+      <div class="h-16 flex items-center justify-center font-extrabold text-xl tracking-widest bg-gradient-to-r from-indigo-900 to-indigo-800 text-white border-b border-white/10 shadow-sm">
+        ITOM <span class="text-indigo-300 ml-2">CORE</span>
       </div>
       <el-menu
         :default-active="route.path"
-        active-text-color="#4f46e5"
-        background-color="#312e81"
-        class="border-r-0 flex-1 overflow-y-auto"
-        text-color="#e0e7ff"
+        active-text-color="#ffffff"
+        background-color="transparent"
+        class="border-r-0 flex-1 overflow-y-auto custom-scrollbar"
+        text-color="#c7d2fe"
         router
       >
-        <el-menu-item index="/dashboard">
-          <el-icon><Odometer /></el-icon>
-          <span>控制台概览</span>
+        <!-- 顶级独立菜单 -->
+        <el-menu-item 
+          v-for="item in menuConfig.filter(m => !m.children)" 
+          :key="item.path" 
+          :index="item.path"
+          class="hover:bg-white/5 mx-2 my-1 rounded-xl transition-all duration-300"
+        >
+          <el-icon><component :is="item.icon" /></el-icon>
+          <span>{{ item.title }}</span>
         </el-menu-item>
         
-        <el-sub-menu index="assets">
+        <!-- 带子集的动态菜单 -->
+        <el-sub-menu 
+          v-for="sub in menuConfig.filter(m => m.children)" 
+          :key="sub.path" 
+          :index="sub.path"
+          class="mx-2"
+        >
           <template #title>
-            <el-icon><Monitor /></el-icon>
-            <span>资产管理</span>
+            <el-icon><component :is="sub.icon" /></el-icon>
+            <span>{{ sub.title }}</span>
           </template>
-          <el-menu-item index="/assets/list">资产台账</el-menu-item>
-          <el-menu-item index="/assets/categories">资产分类</el-menu-item>
-          <el-menu-item index="/assets/flow">扫码流转大图</el-menu-item>
-        </el-sub-menu>
-
-        <el-sub-menu index="ad">
-          <template #title>
-            <el-icon><User /></el-icon>
-            <span>身份凭据域</span>
-          </template>
-          <el-menu-item index="/ad/provision">自动开通向导</el-menu-item>
-          <el-menu-item index="/ad/users">域用户检索</el-menu-item>
-          <el-menu-item index="/ad/groups">安全组策略</el-menu-item>
-        </el-sub-menu>
-        
-        <el-sub-menu index="settings">
-          <template #title>
-            <el-icon><Setting /></el-icon>
-            <span>系统底座</span>
-          </template>
-          <el-menu-item index="/settings/rules">命名规范中心</el-menu-item>
-          <el-menu-item index="/settings/system">全局配置</el-menu-item>
-          <el-menu-item index="/settings/templates">权限模板配置</el-menu-item>
-          <el-menu-item index="/settings/printer">标签打印模板</el-menu-item>
+          <el-menu-item 
+            v-for="child in sub.children" 
+            :key="child.path" 
+            :index="child.path"
+            class="hover:bg-white/5 my-1 rounded-xl pl-12 transition-all duration-300"
+          >
+            <el-icon v-if="child.icon" class="scale-90"><component :is="child.icon" /></el-icon>
+            <span class="text-sm">{{ child.title }}</span>
+          </el-menu-item>
         </el-sub-menu>
       </el-menu>
       
@@ -94,13 +91,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { 
-  Odometer, 
-  Monitor, 
-  User, 
-  Setting,
-  ArrowDown
-} from '@element-plus/icons-vue'
+import { menuConfig } from '../router/menu'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -120,6 +111,37 @@ const handleCommand = (command: string | number | object) => {
 </script>
 
 <style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+:deep(.el-menu-item.is-active) {
+  background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-sub-menu__title:hover),
+:deep(.el-menu-item:hover) {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+
+:deep(.el-sub-menu.is-active .el-sub-menu__title) {
+  color: #ffffff !important;
+}
+
 .fade-transform-leave-active,
 .fade-transform-enter-active {
   transition: all 0.3s cubic-bezier(0.55, 0, 0.1, 1);

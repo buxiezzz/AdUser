@@ -1,17 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
-
-from schemas.ad import ADUserCreate, ADUserResponse, OUListResponse, GroupListResponse, UserPasswordUpdate, UserOUUpdate, UserGroupsUpdate, GroupMembersUpdate
-from core.ad_utils import create_ad_user, get_ou_list, get_group_list, get_base_dn, search_ad_users, get_ad_user_detail, change_user_password, move_user_ou, update_user_groups, get_group_members, update_group_members
+from schemas.ad import ADUserCreate, ADUserResponse, OUListResponse, GroupListResponse, UserPasswordUpdate, UserOUUpdate, UserGroupsUpdate, GroupMembersUpdate, UserStatusUpdate
+from core.ad_utils import create_ad_user, get_ou_list, get_group_list, get_base_dn, search_ad_users, get_ad_user_detail, change_user_password, move_user_ou, update_user_groups, get_group_members, update_group_members, toggle_ad_user_status
 from core.utils import simplify_dn
 from api.deps import get_current_active_user
+from database import get_db
+from sqlalchemy.orm import Session
+from crud.audit import log_action
 from models.user import User
 from api.routers.settings import load_config
 
 router = APIRouter()
 
+@router.put("/users/{username}/status")
+def api_update_user_status(username: str, payload: UserStatusUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    config = load_config()
+    sys_bind_user = config.get('BIND_USERNAME', '')
+    sys_bind_pass = config.get('BIND_PASSWORD', '')
+    
+    success, msg = toggle_ad_user_status(sys_bind_user, sys_bind_pass, payload.user_dn, payload.enabled)
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
+    
+    log_action(db, current_user.username, 'ad', 'STATUS_UPDATE', username, {'dn': payload.user_dn, 'enabled': payload.enabled})
+    return {"success": True, "message": msg}
+
 @router.post("/users", response_model=ADUserResponse)
-def api_create_ad_user(payload: ADUserCreate, current_user: User = Depends(get_current_active_user)):
+def api_create_ad_user(payload: ADUserCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     config = load_config()
     sys_domain_name = config.get('DOMAIN_NAME', '')
     sys_dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
@@ -31,8 +46,10 @@ def api_create_ad_user(payload: ADUserCreate, current_user: User = Depends(get_c
         groups_to_add=payload.groups
     )
     if not success:
-        # 这里对于失败我们返回 400 Bad Request
         raise HTTPException(status_code=400, detail=message)
+    
+    log_action(db, current_user.username, 'ad', 'PROVISION', payload.new_username, 
+               {'display_name': payload.new_display_name, 'ou': payload.ou_path, 'position': payload.position_name})
     return {"success": True, "message": message}
 
 @router.get("/users")
@@ -56,7 +73,7 @@ def api_get_ad_user_detail(username: str, current_user: User = Depends(get_curre
     return {"user": detail}
 
 @router.put("/users/{username}/password")
-def api_update_user_password(username: str, payload: UserPasswordUpdate, current_user: User = Depends(get_current_active_user)):
+def api_update_user_password(username: str, payload: UserPasswordUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     config = load_config()
     sys_bind_user = config.get('BIND_USERNAME', '')
     sys_bind_pass = config.get('BIND_PASSWORD', '')
@@ -64,10 +81,12 @@ def api_update_user_password(username: str, payload: UserPasswordUpdate, current
     success, msg = change_user_password(sys_bind_user, sys_bind_pass, payload.user_dn, payload.new_password)
     if not success:
         raise HTTPException(status_code=400, detail=msg)
+    
+    log_action(db, current_user.username, 'ad', 'PASSWORD_RESET', username, {'dn': payload.user_dn})
     return {"success": True, "message": msg}
 
 @router.put("/users/{username}/ou")
-def api_update_user_ou(username: str, payload: UserOUUpdate, current_user: User = Depends(get_current_active_user)):
+def api_update_user_ou(username: str, payload: UserOUUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     config = load_config()
     sys_bind_user = config.get('BIND_USERNAME', '')
     sys_bind_pass = config.get('BIND_PASSWORD', '')
@@ -75,10 +94,12 @@ def api_update_user_ou(username: str, payload: UserOUUpdate, current_user: User 
     success, msg = move_user_ou(sys_bind_user, sys_bind_pass, payload.user_dn, payload.new_ou_dn)
     if not success:
         raise HTTPException(status_code=400, detail=msg)
+    
+    log_action(db, current_user.username, 'ad', 'MOVE_OU', username, {'old_dn': payload.user_dn, 'new_dn': payload.new_ou_dn})
     return {"success": True, "message": msg}
 
 @router.put("/users/{username}/groups")
-def api_update_user_groups(username: str, payload: UserGroupsUpdate, current_user: User = Depends(get_current_active_user)):
+def api_update_user_groups(username: str, payload: UserGroupsUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     config = load_config()
     sys_bind_user = config.get('BIND_USERNAME', '')
     sys_bind_pass = config.get('BIND_PASSWORD', '')
@@ -86,6 +107,8 @@ def api_update_user_groups(username: str, payload: UserGroupsUpdate, current_use
     success, msg = update_user_groups(sys_bind_user, sys_bind_pass, payload.user_dn, payload.old_groups, payload.new_groups)
     if not success:
         raise HTTPException(status_code=400, detail=msg)
+    
+    log_action(db, current_user.username, 'ad', 'GROUP_UPDATE', username, {'old': payload.old_groups, 'new': payload.new_groups})
     return {"success": True, "message": msg}
 
 

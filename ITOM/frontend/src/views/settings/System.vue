@@ -1,8 +1,21 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">系统底座配置</h1>
-      <el-button type="primary" :icon="DocumentChecked" @click="saveConfig">保存全局设定</el-button>
+      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">系统设置</h1>
+      <div class="flex space-x-2">
+        <el-button type="default" @click="exportConfig">导出备份</el-button>
+        <el-button type="default" @click="triggerImport">导入配置</el-button>
+        <el-button type="primary" :icon="DocumentChecked" @click="saveConfig">保存全局设定</el-button>
+        
+        <!-- 隐藏的导入文件域 -->
+        <input 
+          type="file" 
+          ref="fileInput" 
+          accept=".json,.zip" 
+          style="display: none;" 
+          @change="handleImportConfig" 
+        />
+      </div>
     </div>
 
     <!-- 顶部状态提示 -->
@@ -42,29 +55,6 @@
         </el-form>
       </el-card>
 
-      <!-- 预设参数 / 职位 -->
-      <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl">
-        <template #header>
-          <div class="flex items-center text-gray-800 font-semibold">
-            <el-icon class="mr-2 text-emerald-500"><Menu /></el-icon>
-            基础选项数据池 (替代 positions.json)
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <div class="text-sm font-medium text-gray-600">可选职位列表及英文后缀映射</div>
-          
-          <div v-for="(item, index) in settings.positions" :key="index" class="flex items-center space-x-2 mb-2">
-            <el-input v-model="item.name" placeholder="职位名称 (如: 后端开发)" class="flex-1" />
-            <el-input v-model="item.suffix" placeholder="英文后缀 (如: bde)" class="w-1/3" />
-            <el-button type="danger" :icon="Delete" circle plain @click="removePosition(index)" />
-          </div>
-          
-          <el-button type="primary" plain :icon="Plus" class="w-full mt-2" @click="addPosition">
-            新增职位选项
-          </el-button>
-        </div>
-      </el-card>
       
       <!-- 安全性相关卡片 -->
       <el-card shadow="never" class="lg:col-span-2 border-0 ring-1 ring-emerald-50 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50">
@@ -101,7 +91,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { DocumentChecked, Connection, Menu, Refresh, Plus, Delete, Lock } from '@element-plus/icons-vue'
+import { DocumentChecked, Connection, Refresh, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
@@ -112,9 +102,79 @@ const settings = reactive({
   bind_username: '',
   bind_password: '',
   allow_register: true,
-  audit_log: true,
-  positions: [] as any[]
+  audit_log: true
 })
+
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const exportConfig = async () => {
+  try {
+    const token = localStorage.getItem('itom_token')
+    const response = await axios.get('/api/settings/export', {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob'
+    })
+    
+    // Create a download link for the blob
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'itom_backup.zip')
+    document.body.appendChild(link)
+    link.click()
+    link.parentNode?.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+  } catch (err) {
+    ElMessage.error('导出系统配置失败')
+  }
+}
+
+const triggerImport = () => {
+  if (fileInput.value) {
+    fileInput.value.click()
+  }
+}
+
+const handleImportConfig = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+  
+  const file = target.files[0]
+  if (!file) {
+    ElMessage.warning('未能读取到文件')
+    return
+  }
+  
+  if (!file.name.endsWith('.json') && !file.name.endsWith('.zip')) {
+    ElMessage.warning('只能导入 .zip 或 .json 格式的备份文件')
+    target.value = ''
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const token = localStorage.getItem('itom_token')
+    const { data } = await axios.post('/api/settings/import', formData, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    
+    if (data.success) {
+      ElMessage.success(data.message || '配置导入成功')
+      // 重新加载配置并清空文件域
+      await fetchConfig()
+      target.value = ''
+    }
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.detail || '导入配置失败')
+    target.value = ''
+  }
+}
 
 const fetchConfig = async () => {
   try {
@@ -124,19 +184,11 @@ const fetchConfig = async () => {
     settings.bind_password = data.BIND_PASSWORD || ''
     settings.allow_register = data.ALLOW_REGISTRATION !== false // default true
     settings.audit_log = data.AUDIT_LOG !== false
-    settings.positions = data.POSITIONS || []
   } catch(err) {
     ElMessage.error('无法加载系统设置此页面配置')
   }
 }
 
-const addPosition = () => {
-  settings.positions.push({ name: '', suffix: '' })
-}
-
-const removePosition = (index: number) => {
-  settings.positions.splice(index, 1)
-}
 
 const testAdConnection = async () => {
   if (!settings.dc_ip || !settings.bind_username || !settings.bind_password) {
@@ -173,8 +225,7 @@ const saveConfig = async () => {
       bind_username: settings.bind_username,
       bind_password: settings.bind_password,
       allow_registration: settings.allow_register,
-      audit_log: settings.audit_log,
-      positions: settings.positions
+      audit_log: settings.audit_log
     }
     const token = localStorage.getItem('itom_token')
     const { data } = await axios.post('/api/settings/', payload, {

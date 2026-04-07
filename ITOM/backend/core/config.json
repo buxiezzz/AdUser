@@ -4,19 +4,11 @@
   "DEFAULT_USER_PASSWORD": "Aa111111#",
   "REGION_OPTIONS": [
     {
-      "code": "wuhan",
-      "name": "武汉 (Wuhan)",
+      "name": "武汉",
+      "code": "WH",
       "keywords": [
-        "武汉",
-        "Wuhan"
-      ]
-    },
-    {
-      "code": "上海",
-      "name": "上海",
-      "keywords": [
-        "上海",
-        "ShangHai"
+        "WH",
+        "武汉"
       ]
     }
   ],
@@ -27,14 +19,29 @@
       "name": "机械工程师",
       "suffix": "MD",
       "default_groups": [
-        "CN=wh1,CN=Users,DC=long,DC=cn",
-        "CN=wh2,CN=Users,DC=long,DC=cn"
+        "CN=Proj-机械部项目资料-RO,OU=Projects-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
+        "CN=WH-MD-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+      ]
+    },
+    {
+      "name": "电气工程师",
+      "suffix": "ED",
+      "default_groups": [
+        "CN=WH-ED-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
+        "CN=ALL-ED-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+      ]
+    },
+    {
+      "name": "钳工/电工",
+      "suffix": "ME",
+      "default_groups": [
+        "CN=WH-ME-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
       ]
     }
   ],
   "BIND_USERNAME": "s12101018@sk1.net.cn",
   "BIND_PASSWORD": "ysyyrps@778",
-  "ACTIVE_REGION_CODE": "wuhan",
+  "ACTIVE_REGION_CODE": "all",
   "OU_GROUP_MAPPING": {
     "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": [
       "CN=WH-联队1营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"

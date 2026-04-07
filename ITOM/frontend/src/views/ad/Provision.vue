@@ -13,16 +13,16 @@
         class="max-w-2xl"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <el-form-item label="登录账号 (拼音)" prop="new_username">
+          <el-form-item label="用户工号" prop="new_username">
             <el-input 
               v-model="form.new_username" 
-              placeholder="例如: zhangsan"
+              placeholder="例如: 1001"
               :prefix-icon="User"
             />
             <div class="text-xs text-gray-400 mt-1">系统会自动为您拼接 @domain</div>
           </el-form-item>
 
-          <el-form-item label="显示名称 (中文)" prop="new_display_name">
+          <el-form-item label="姓名" prop="new_display_name">
             <el-input 
               v-model="form.new_display_name" 
               placeholder="例如: 张三" 
@@ -30,14 +30,19 @@
             />
           </el-form-item>
 
-          <el-form-item label="初始密码" prop="password" class="md:col-span-2">
+          <el-form-item label="初始密码 (只读)" prop="password" class="md:col-span-2">
             <el-input 
               v-model="form.password" 
               type="password" 
               show-password
-              placeholder="必须符合域控密码复杂度要求"
+              disabled
+              placeholder="请在权限模板中维护默认密码"
               :prefix-icon="Lock"
             />
+            <div class="text-xs text-orange-500 mt-1 flex items-center">
+              <el-icon class="mr-1"><InfoFilled /></el-icon>
+              当前为系统默认强密码，如需调整请联系管理员前往“权限模板配置”修改。
+            </div>
           </el-form-item>
 
           <el-form-item label="所属组织单元 (OU)" prop="ou_path" class="md:col-span-2">
@@ -201,11 +206,11 @@ const applyDefaultGroups = () => {
 
 const rules = reactive<FormRules>({
   new_username: [
-    { required: true, message: '请输入账户名拼音', trigger: 'blur' },
+    { required: true, message: '请输入用户工号', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
   new_display_name: [
-    { required: true, message: '请输入中文显示名称', trigger: 'blur' }
+    { required: true, message: '请输入姓名', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入初始密码', trigger: 'blur' }

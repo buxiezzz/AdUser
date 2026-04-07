@@ -16,7 +16,7 @@ class EmployeeResponse(EmployeeBase):
     id: int
     created_at: datetime
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Category Schemas
 class CategoryBase(BaseModel):
@@ -33,7 +33,7 @@ class CategoryUpdate(BaseModel):
 class CategoryResponse(CategoryBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Asset Schemas
 class AssetBase(BaseModel):
@@ -63,7 +63,7 @@ class AssetResponse(AssetBase):
     category: Optional[CategoryResponse] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Asset Log Schemas
 class AssetLogCreate(BaseModel):
@@ -82,4 +82,4 @@ class AssetLogResponse(AssetLogCreate):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

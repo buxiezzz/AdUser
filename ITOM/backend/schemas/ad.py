@@ -45,3 +45,8 @@ class OUListResponse(BaseModel):
 
 class GroupListResponse(BaseModel):
     groups: List[str]
+
+class UserStatusUpdate(BaseModel):
+    user_dn: str
+    enabled: bool
+

@@ -15,6 +15,7 @@ from models.user import User
 from models.asset import Employee, Category, Asset, AssetLog
 from core.ad_utils import search_ad_users
 from api.routers.settings import load_config
+from crud.audit import log_action
 
 router = APIRouter()
 
@@ -69,7 +70,9 @@ def read_categories(skip: int = 0, limit: int = 10000, db: Session = Depends(get
 
 @router.post("/categories", response_model=CategoryResponse)
 def create_category(category: CategoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    return crud_asset.create_category(db, category=category)
+    db_cat = crud_asset.create_category(db, category=category)
+    log_action(db, current_user.username, 'asset', 'CREATE_CATEGORY', category.name)
+    return db_cat
 
 @router.put("/categories/{category_id}", response_model=CategoryResponse)
 def update_category(category_id: int, category_in: schemas.asset.CategoryUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
@@ -80,14 +83,21 @@ def update_category(category_id: int, category_in: schemas.asset.CategoryUpdate,
 
 @router.delete("/categories/{category_id}")
 def delete_category(category_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    db_cat = db.query(Category).filter(Category.id == category_id).first()
+    if not db_cat:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
     # Check if any assets belong to this category before deleting
     assets = db.query(Asset).filter(Asset.category_id == category_id).first()
     if assets:
         raise HTTPException(status_code=400, detail="Cannot delete category because there are assets linked to it. Delete or move the assets first.")
         
+    cat_name = db_cat.name
     success = crud_asset.delete_category(db, category_id=category_id)
     if not success:
         raise HTTPException(status_code=404, detail="Category not found")
+    
+    log_action(db, current_user.username, 'asset', 'DELETE_CATEGORY', cat_name)
     return {"message": "Category deleted successfully"}
 
 # --- Employees ---
@@ -214,40 +224,64 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
             # 2. Process Employee
             owner_id = None
             if owner_name and status not in ["闲置", "报废"]:
+                # 预提取部门/组织信息用于加权匹配
+                dept_col_idx = header_idx.get("所属组织") or header_idx.get("使用部门") or header_idx.get("部门")
+                excel_dept = parse_excel_val(row[dept_col_idx]) if dept_col_idx is not None else ""
+
+                # 首先检查本地数据库是否存在该账号或同名同部门
                 employee = db.query(Employee).filter(Employee.ad_account == owner_name).first()
                 if not employee:
-                    employee = db.query(Employee).filter(Employee.name == owner_name).first()
-                
+                    employee = db.query(Employee).filter((Employee.name == owner_name) & (Employee.department == excel_dept)).first()
                 if not employee:
-                    # 从 AD 查询员工
+                    employee = db.query(Employee).filter(Employee.name == owner_name).first()
+
+                if not employee:
+                    # 本地没找到，尝试从 AD 精准匹配
                     try:
                         ad_users = search_ad_users(sys_bind_user, sys_bind_pass, owner_name)
                         if ad_users:
-                            au = ad_users[0]
-                            ad_account = au['username']
-                            # 关键修复：先按 ad_account 检查 DB，避免重复 INSERT
+                            # 权重识别：如果返回多个结果，比对部门名
+                            final_ad_user = None
+                            if len(ad_users) > 1 and excel_dept:
+                                for au in ad_users:
+                                    # 检查 DN 中是否包含 Excel 的部门关键词
+                                    if excel_dept in au.get('dn', ''):
+                                        final_ad_user = au
+                                        break
+                            
+                            # 如果没匹配到强相关的，取第1个
+                            if not final_ad_user:
+                                final_ad_user = ad_users[0]
+                            
+                            ad_account = final_ad_user['username']
+                            # 检查该 AD 账号是否已同步过
                             employee = db.query(Employee).filter(Employee.ad_account == ad_account).first()
                             if not employee:
-                                name = au.get('display_name') or owner_name
-                                department = getattr(au, 'department', '') or au.get('dn', '').split(',')[1].replace('OU=', '')
-                                email = f"{ad_account}@{config.get('DOMAIN_NAME', 'stom.local')}"
-                                employee = Employee(name=name, department=department, email=email, ad_account=ad_account)
+                                # 核心改进：优先保留 Excel 给出的名字作为显示名，除非 Excel 名字不符合规范
+                                display_name = owner_name if len(owner_name) >= 2 else (final_ad_user.get('display_name') or owner_name)
+                                dn = final_ad_user.get('dn', '')
+                                department = excel_dept or (dn.split(',')[1].replace('OU=', '') if ',' in dn else 'AD导入')
+                                
+                                employee = Employee(
+                                    name=display_name, 
+                                    department=department, 
+                                    email=f"{ad_account}@{config.get('DOMAIN_NAME', 'stom.local')}", 
+                                    ad_account=ad_account
+                                )
                                 db.add(employee)
                                 db.flush()
                     except Exception as e:
-                        print(f"Failed to lookup AD for {owner_name}: {e}")
-                
+                        print(f"Failed to lookup/match AD user {owner_name}: {e}")
+
                 if not employee:
-                    # AD 中没找到，建立本地账户（按名字查重避免重复）
-                    dept_col_idx = header_idx.get("所属组织") or header_idx.get("使用部门") or header_idx.get("部门")
-                    dept_name = parse_excel_val(row[dept_col_idx]) if dept_col_idx is not None and row[dept_col_idx] else "迁移产生部门"
+                    # AD 也搜不到，建立本地兜底账号
                     local_ad = f"local_{owner_name}"
                     employee = db.query(Employee).filter(Employee.ad_account == local_ad).first()
                     if not employee:
                         employee = Employee(
                             name=owner_name,
-                            department=dept_name,
-                            email=f"local_{owner_name}@migration.local",
+                            department=excel_dept or "迁移产生部门",
+                            email=f"{local_ad}@migration.local",
                             ad_account=local_ad
                         )
                         db.add(employee)
@@ -338,6 +372,7 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
         "success": success_count,
         "errors": errors
     }
+    log_action(db, current_user.username, 'asset', 'IMPORT_EXCEL', f"成功:{success_count}, 失败:{len(errors)}", {"errors": errors[:10]})
 
 # --- Batch Operations ---
 from pydantic import BaseModel as PydanticBase
@@ -365,6 +400,8 @@ def batch_delete_assets(body: BatchDeleteBody, db: Session = Depends(get_db), cu
                 results.append(id_str)
         except Exception as e:
             pass
+    
+    log_action(db, current_user.username, 'asset', 'BATCH_DELETE_HARD', f"数量: {len(results)}", {"ids": results})
     return {"deleted": len(results), "ids": results}
 
 @router.put("/batch-update")
@@ -424,6 +461,7 @@ def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), curren
             created += 1
         except Exception as e:
             db.rollback()
+    log_action(db, current_user.username, 'asset', 'BATCH_COPY', f"数量: {created}")
     return {"created": created}
 
 # --- Assets ---
@@ -433,7 +471,9 @@ def read_assets(keyword: str = "", status: str = "", skip: int = 0, limit: int =
 
 @router.post("/", response_model=AssetResponse)
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    return crud_asset.create_asset(db, asset=asset, current_user_id=current_user.id)
+    res = crud_asset.create_asset(db, asset=asset, current_user_id=current_user.id)
+    log_action(db, current_user.username, 'asset', 'CREATE', asset.asset_code)
+    return res
 
 @router.get("/{asset_id}", response_model=AssetResponse)
 def read_asset(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
@@ -447,6 +487,8 @@ def update_asset(asset_id: str, asset_in: schemas.asset.AssetUpdate, db: Session
     db_asset = crud_asset.update_asset(db, asset_id=asset_id, asset_in=asset_in, current_user_id=current_user.id)
     if not db_asset:
         raise HTTPException(status_code=404, detail="Asset not found")
+    
+    log_action(db, current_user.username, 'asset', 'UPDATE', db_asset.asset_code, asset_in.dict(exclude_unset=True))
     return db_asset
 
 @router.delete("/{asset_id}", response_model=AssetResponse)
@@ -454,6 +496,8 @@ def delete_asset(asset_id: str, db: Session = Depends(get_db), current_user: Use
     db_asset = crud_asset.delete_asset(db, asset_id=asset_id, current_user_id=current_user.id)
     if not db_asset:
         raise HTTPException(status_code=404, detail="Asset not found")
+    
+    log_action(db, current_user.username, 'asset', 'DELETE_SOFT', db_asset.asset_code)
     return db_asset
 
 @router.delete("/hard/{asset_id}")

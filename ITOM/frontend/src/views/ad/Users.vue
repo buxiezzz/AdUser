@@ -28,6 +28,13 @@
            </template>
          </el-table-column>
          <el-table-column prop="upn" label="UPN 邮箱别名" min-width="250" />
+         <el-table-column label="账号状态" width="100">
+           <template #default="{ row }">
+             <el-tag :type="row.enabled ? 'success' : 'danger'" size="small">
+               {{ row.enabled ? '正常' : '已禁用' }}
+             </el-tag>
+           </template>
+         </el-table-column>
          <el-table-column label="操作" width="120" fixed="right">
            <template #default="{ row }">
              <el-button link type="primary" size="small" @click="openUserDetail(row)">
@@ -54,6 +61,22 @@
         <div class="bg-gray-50 p-4 rounded-lg space-y-2">
           <div class="flex items-center"><span class="w-24 text-gray-500 text-sm">登录名:</span> <span class="font-medium font-mono text-sm">{{ currentUser?.username }}</span></div>
           <div class="flex items-center"><span class="w-24 text-gray-500 text-sm">DN 路径:</span> <span class="text-gray-600 font-mono text-xs break-all leading-tight">{{ currentUser?.dn }}</span></div>
+          <div class="flex items-center pt-2">
+            <span class="w-24 text-gray-500 text-sm">账号状态:</span>
+            <el-tag :type="currentUser?.enabled ? 'success' : 'danger'" size="small">
+              {{ currentUser?.enabled ? '正常激活' : '已禁用' }}
+            </el-tag>
+            <el-button 
+              class="ml-auto" 
+              :type="currentUser?.enabled ? 'danger' : 'success'" 
+              size="small" 
+              plain
+              :loading="togglingStatus"
+              @click="doToggleStatus"
+            >
+              {{ currentUser?.enabled ? '立即禁用该账号' : '激活并启用账号' }}
+            </el-button>
+          </div>
         </div>
 
         <el-divider>安全与变更</el-divider>
@@ -163,6 +186,8 @@ const originGroups = ref<string[]>([])
 const selectedGroups = ref<string[]>([])
 const updatingGroups = ref(false)
 
+const togglingStatus = ref(false)
+
 const openUserDetail = async (row: any) => {
     drawerVisible.value = true
     detailLoading.value = true
@@ -256,6 +281,37 @@ const doUpdateGroups = async () => {
         ElMessage.error(err.response?.data?.detail || '安全组更新失败')
     } finally {
         updatingGroups.value = false
+    }
+}
+
+const doToggleStatus = async () => {
+    const actionText = currentUser.value.enabled ? '禁用' : '启用'
+    try {
+        await ElMessageBox.confirm(`确定要${actionText}域账号 [${currentUser.value.username}] 吗?`, '警告', {
+            type: 'warning',
+            confirmButtonText: `确认${actionText}`,
+            cancelButtonText: '取消'
+        })
+    } catch { return }
+
+    togglingStatus.value = true
+    try {
+        const targetEnabled = !currentUser.value.enabled
+        await axios.put(`/api/ad/users/${currentUser.value.username}/status`, {
+            user_dn: currentUser.value.dn,
+            enabled: targetEnabled
+        })
+        ElMessage.success(`用户已成功${actionText}`)
+        // 同步更新本地状态
+        currentUser.value.enabled = targetEnabled
+        const idx = users.value.findIndex(u => u.username === currentUser.value.username)
+        if (idx > -1) {
+            users.value[idx].enabled = targetEnabled
+        }
+    } catch (err: any) {
+        ElMessage.error(err.response?.data?.detail || '状态切换失败')
+    } finally {
+        togglingStatus.value = false
     }
 }
 </script>

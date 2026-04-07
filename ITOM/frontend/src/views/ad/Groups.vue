@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">安全组策略台账与成员管理</h1>
+      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">安全策略组台账</h1>
       <el-button type="primary" :icon="Refresh" @click="fetchGroups" :loading="loading" plain>
         重新拉取同步
       </el-button>
@@ -17,14 +17,15 @@
     />
 
     <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl">
-      <div class="mb-4">
+      <div class="mb-5 flex items-center justify-between">
         <el-input 
           v-model="searchQuery" 
-          placeholder="在下方列表中过滤查找组名称..." 
-          prefix-icon="Filter"
+          placeholder="在列表中查找安全组名称..." 
+          :prefix-icon="Search"
           class="w-80"
           clearable
         />
+        <div class="text-sm text-gray-500">共加载到 {{ filteredGroups.length }} 个安全组</div>
       </div>
 
       <el-table :data="filteredGroups" style="width: 100%" v-loading="loading" border stripe>
@@ -101,17 +102,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Refresh } from '@element-plus/icons-vue'
+import { Refresh, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
 const loading = ref(false)
 const groups = ref<string[]>([])
 const searchQuery = ref('')
-
-// 所有用户的字典源 (为了 Transfer 左侧填充用)
-interface UserOption { key: string; label: string; disabled?: boolean; displayName: string; username: string; }
-const allUserOptions = ref<UserOption[]>([])
 
 const fetchGroups = async () => {
   loading.value = true
@@ -125,10 +122,14 @@ const fetchGroups = async () => {
   }
 }
 
+// 所有用户的字典源 (为了 Transfer 左侧填充用)
+interface UserOption { key: string; label: string; disabled?: boolean; displayName: string; username: string; }
+const allUserOptions = ref<UserOption[]>([])
+
 // 并发请求拿系统所有人员
 const fetchAllUsers = async () => {
     try {
-        const { data } = await axios.get('/api/ad/users', { params: { keyword: '' } }) // 空查即前500全局查
+        const { data } = await axios.get('/api/ad/users', { params: { keyword: '' } }) 
         const rawUsers = data.users || []
         allUserOptions.value = rawUsers.map((u: any) => ({
              key: (u.dn || '').toLowerCase(),
