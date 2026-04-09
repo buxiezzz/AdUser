@@ -8,27 +8,26 @@
         :default-active="route.path"
         active-text-color="#ffffff"
         background-color="transparent"
-        class="border-r-0 flex-1 overflow-y-auto custom-scrollbar"
+        class="sidebar-menu flex-1 overflow-y-auto custom-scrollbar"
         text-color="#c7d2fe"
+        unique-opened
         router
       >
-        <!-- 统一按 menuConfig 顺序渲染，有子项展开，无子项直接显示 -->
+        <!-- 统一按 menuConfig 顺序渲染 -->
         <template v-for="item in menuConfig" :key="item.path">
-          <!-- 无子项：直接菜单项 -->
           <el-menu-item
             v-if="!item.children"
             :index="item.path"
-            class="hover:bg-white/5 mx-2 my-1 rounded-xl transition-all duration-300"
+            class="menu-item hover:bg-white/5"
           >
             <el-icon><component :is="item.icon" /></el-icon>
             <span>{{ item.title }}</span>
           </el-menu-item>
 
-          <!-- 有子项：可展开子菜单 -->
           <el-sub-menu
             v-else
             :index="item.path"
-            class="mx-2"
+            class="sub-menu-container"
           >
             <template #title>
               <el-icon><component :is="item.icon" /></el-icon>
@@ -38,7 +37,7 @@
               v-for="child in item.children"
               :key="child.path"
               :index="child.path"
-              class="hover:bg-white/5 my-1 rounded-xl pl-12 transition-all duration-300"
+              class="menu-item sub-item hover:bg-white/5 pl-12"
             >
               <el-icon v-if="child.icon" class="scale-90"><component :is="child.icon" /></el-icon>
               <span class="text-sm">{{ child.title }}</span>
@@ -77,7 +76,7 @@
         </div>
       </el-header>
       
-      <el-main class="p-6 relative overflow-y-auto w-full h-full">
+      <el-main class="p-6 relative overflow-y-auto w-full h-full bg-[#f8fafc]">
         <!-- 路由出口 -->
         <router-view v-slot="{ Component, route }">
           <transition name="fade-transform" mode="out-in">
@@ -202,6 +201,13 @@ const submitChangePassword = async () => {
 </script>
 
 <style scoped>
+/* 菜单容器硬件加速 */
+.sidebar-menu {
+  border-right: none;
+  transform: translateZ(0);
+  will-change: height;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -212,15 +218,29 @@ const submitChangePassword = async () => {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+
+.menu-item {
+  margin: 4px 12px;
+  border-radius: 12px;
+  /* 仅针对必要属性进行动画，降低重排开销 */
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sub-menu-container {
+  margin: 0 12px;
+}
+
+:deep(.el-sub-menu__title) {
+  border-radius: 12px;
+  transition: background-color 0.2s;
 }
 
 :deep(.el-menu-item.is-active) {
   background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%) !important;
   color: #ffffff !important;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 
 :deep(.el-sub-menu__title:hover),
@@ -229,20 +249,16 @@ const submitChangePassword = async () => {
   color: #ffffff !important;
 }
 
-:deep(.el-sub-menu.is-active .el-sub-menu__title) {
-  color: #ffffff !important;
-}
-
 .fade-transform-leave-active,
 .fade-transform-enter-active {
-  transition: all 0.3s cubic-bezier(0.55, 0, 0.1, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .fade-transform-enter-from {
   opacity: 0;
-  transform: translateX(-15px);
+  transform: translateX(-10px);
 }
 .fade-transform-leave-to {
   opacity: 0;
-  transform: translateX(15px);
+  transform: translateX(10px);
 }
 </style>
