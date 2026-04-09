@@ -9,6 +9,10 @@ from sqlalchemy.orm import Session
 from crud.audit import log_action
 from models.user import User
 from api.routers.settings import load_config
+import io
+from openpyxl import Workbook
+from fastapi.responses import StreamingResponse
+from datetime import datetime
 
 router = APIRouter()
 
@@ -60,6 +64,52 @@ def api_search_ad_users(keyword: str = "", current_user: User = Depends(get_curr
     
     users = search_ad_users(sys_bind_user, sys_bind_pass, keyword)
     return {"users": users}
+
+@router.get("/users/export")
+def api_export_ad_users(keyword: str = "", db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    config = load_config()
+    sys_bind_user = config.get('BIND_USERNAME', '')
+    sys_bind_pass = config.get('BIND_PASSWORD', '')
+    sys_domain_name = config.get('DOMAIN_NAME', '')
+    base_dn = get_base_dn(sys_domain_name)
+    
+    users = search_ad_users(sys_bind_user, sys_bind_pass, keyword)
+    
+    # 创建 Excel 工作簿
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "域用户列表"
+    
+    # 写入表头
+    headers = ["姓名", "用户工号", "邮箱", "所属组织", "状态", "更新时间"]
+    ws.append(headers)
+    
+    # 填充数据
+    for u in users:
+        status_text = "正常" if u.get('enabled') else "已禁用"
+        
+        ws.append([
+            u.get('display_name', ''),
+            u.get('username', ''),
+            u.get('email', ''),
+            simplify_dn(u.get('dn', ''), base_dn),
+            status_text,
+            u.get('updated_at', '')
+        ])
+    
+    # 保存到流
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    log_action(db, current_user.username, 'ad', 'EXPORT_USERS', f"关键词: {keyword}")
+    
+    filename = f"Domain_Users_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 @router.get("/users/{username}")
 def api_get_ad_user_detail(username: str, current_user: User = Depends(get_current_active_user)):

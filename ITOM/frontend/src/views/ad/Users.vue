@@ -17,9 +17,12 @@
         <el-button type="primary" :icon="Search" @click="handleSearch" :loading="loading">
           在 AD 域中查找
         </el-button>
+        <el-button type="success" plain :icon="Download" @click="handleExport" :loading="exporting">
+          导出域用户名单 (Excel)
+        </el-button>
       </div>
       
-      <el-table :data="users" style="width: 100%" v-loading="loading" border stripe>
+      <el-table :data="displayUsers" style="width: 100%" v-loading="loading" border stripe>
          <el-table-column prop="display_name" label="显示名称" min-width="150" />
          <el-table-column prop="username" label="登录账号" min-width="150" />
          <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip>
@@ -44,8 +47,19 @@
          </el-table-column>
       </el-table>
       
-      <div class="mt-4 flex justify-end" v-if="users.length > 0">
-        <span class="text-sm text-gray-500">共检索到 {{ users.length }} 名员工</span>
+      <div class="mt-6 flex justify-between items-center" v-if="users.length > 0">
+        <span class="text-sm text-gray-500 font-medium">共检索到 <span class="text-indigo-600 font-bold">{{ users.length }}</span> 名员工</span>
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="users.length"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          background
+          class="is-background"
+        />
       </div>
     </el-card>
 
@@ -123,14 +137,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { ref, onMounted, computed } from 'vue'
+import { Search, Download } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
 
 const keyword = ref('')
 const loading = ref(false)
 const users = ref<any[]>([])
+const exporting = ref(false)
+
+// 分页逻辑
+const currentPage = ref(1)
+const pageSize = ref(20)
+
+const displayUsers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return users.value.slice(start, end)
+})
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  currentPage.value = 1
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
+}
 
 // 预加载的全局可选项
 const ouOptions = ref<{dn: string, name: string}[]>([])
@@ -160,6 +194,7 @@ const handleSearch = async () => {
       params: { keyword: keyword.value } 
     })
     users.value = data.users || []
+    currentPage.value = 1 // 搜索后重置到第一页
     if (users.value.length === 0) {
       ElMessage.warning('未找到符合要求的域用户')
     }
@@ -167,6 +202,39 @@ const handleSearch = async () => {
     ElMessage.error(err.response?.data?.detail || '搜索用户发生异常')
   } finally {
     loading.value = false
+  }
+}
+
+const handleExport = async () => {
+  exporting.value = true
+  try {
+    const response = await axios.get('/api/ad/users/export', {
+      params: { keyword: keyword.value },
+      responseType: 'blob'
+    })
+    
+    // 创建下载链接
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    
+    // 生成带时间戳的文件名
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    link.setAttribute('download', `AD_Users_Export_${timestamp}.xlsx`)
+    
+    document.body.appendChild(link)
+    link.click()
+    
+    // 清理
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+    ElMessage.success('域用户名单导出成功')
+  } catch (err: any) {
+    console.error('导出失败', err)
+    ElMessage.error('导出 Excel 失败，请检查网络或权限')
+  } finally {
+    exporting.value = false
   }
 }
 

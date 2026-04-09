@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import io
 import openpyxl
 from uuid import UUID
@@ -13,7 +13,7 @@ from schemas.asset import AssetResponse, AssetCreate, CategoryResponse, Category
 from api.deps import get_current_active_user
 from models.user import User
 from models.asset import Employee, Category, Asset, AssetLog
-from core.ad_utils import search_ad_users
+from core.ad_utils import search_ad_users, extract_department
 from api.routers.settings import load_config
 from crud.audit import log_action
 
@@ -45,13 +45,16 @@ def quick_update_status(asset_id: UUID, request: StatusUpdateRequest, db: Sessio
     """
     移动端专用：快速变更设备周转状态
     """
-    db_asset = crud_asset.update_asset_status(db, asset_id, request.status, current_user.id)
-    if not db_asset:
-        raise HTTPException(status_code=404, detail="Asset not found")
-    return db_asset
+    try:
+        db_asset = crud_asset.update_asset_status(db, asset_id, request.status, current_user.id)
+        if not db_asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        return db_asset
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 class ReassignRequest(schemas.asset.BaseModel):
-    owner_id: int
+    owner_id: Optional[int] = None
 
 @router.patch("/{asset_id}/reassign", response_model=AssetResponse)
 def reassign_asset_owner(asset_id: UUID, request: ReassignRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
@@ -117,7 +120,7 @@ def read_employees(keyword: str = "", skip: int = 0, limit: int = 10000, db: Ses
         db_emp = db.query(Employee).filter(Employee.ad_account == ad_account).first()
         
         name = au.get('display_name') or ad_account
-        department = getattr(au, 'department', '') or au.get('dn', '').split(',')[1].replace('OU=', '')
+        department = getattr(au, 'department', '') or extract_department(au.get('dn', ''))
         email = f"{ad_account}@{config.get('DOMAIN_NAME', 'stom.local')}"
         
         if not db_emp:
@@ -169,7 +172,8 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
         "资产编号": ["资产编号", "资产编码"],
         "当前状态": ["当前状态", "资产状态"],
         "设备分类": ["设备分类", "资产分类", "资产名称"],
-        "使用者": ["使用者AD账号", "使用人", "使用者", "员工名", "责任人"]
+        "使用者": ["使用者AD账号", "使用人", "使用者", "员工名", "责任人"],
+        "入库日期": ["入库日期", "购入日期", "创建日期", "登记日期"]
     }
     
     # 查找核心列的索引
@@ -260,7 +264,7 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
                                 # 核心改进：优先保留 Excel 给出的名字作为显示名，除非 Excel 名字不符合规范
                                 display_name = owner_name if len(owner_name) >= 2 else (final_ad_user.get('display_name') or owner_name)
                                 dn = final_ad_user.get('dn', '')
-                                department = excel_dept or (dn.split(',')[1].replace('OU=', '') if ',' in dn else 'AD导入')
+                                department = extract_department(excel_dept or dn) if (excel_dept or dn) else 'AD导入'
                                 
                                 employee = Employee(
                                     name=display_name, 
@@ -466,8 +470,17 @@ def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), curren
 
 # --- Assets ---
 @router.get("/", response_model=List[AssetResponse])
-def read_assets(keyword: str = "", status: str = "", skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    return crud_asset.get_assets(db, skip=skip, limit=limit, keyword=keyword, status=status)
+def read_assets(
+    keyword: str = "", 
+    status: str = "", 
+    sort_by: str = "updated_at", 
+    order: str = "desc", 
+    skip: int = 0, 
+    limit: int = 10000, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_active_user)
+):
+    return crud_asset.get_assets(db, skip=skip, limit=limit, keyword=keyword, status=status, sort_by=sort_by, order=order)
 
 @router.post("/", response_model=AssetResponse)
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
@@ -484,12 +497,15 @@ def read_asset(asset_id: str, db: Session = Depends(get_db), current_user: User 
 
 @router.put("/{asset_id}", response_model=AssetResponse)
 def update_asset(asset_id: str, asset_in: schemas.asset.AssetUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    db_asset = crud_asset.update_asset(db, asset_id=asset_id, asset_in=asset_in, current_user_id=current_user.id)
-    if not db_asset:
-        raise HTTPException(status_code=404, detail="Asset not found")
-    
-    log_action(db, current_user.username, 'asset', 'UPDATE', db_asset.asset_code, asset_in.dict(exclude_unset=True))
-    return db_asset
+    try:
+        db_asset = crud_asset.update_asset(db, asset_id=asset_id, asset_in=asset_in, current_user_id=current_user.id)
+        if not db_asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        
+        log_action(db, current_user.username, 'asset', 'UPDATE', db_asset.asset_code, asset_in.dict(exclude_unset=True))
+        return db_asset
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{asset_id}", response_model=AssetResponse)
 def delete_asset(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):

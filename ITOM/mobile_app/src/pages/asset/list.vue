@@ -2,8 +2,7 @@
   <view class="page-wrap">
     <!-- 自定义顶部导航栏 -->
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <text class="nav-title">资产列表</text>
-      <text class="nav-action" @click="goToCreate">资产入库</text>
+      <text class="nav-title">资产台账</text>
     </view>
 
     <!-- 搜索栏 -->
@@ -13,7 +12,7 @@
         <input
           class="search-input"
           v-model="keyword"
-          placeholder="搜索资产"
+          placeholder="搜索资产编码/序列号..."
           placeholder-class="search-placeholder"
           confirm-type="search"
           @confirm="onSearch"
@@ -24,17 +23,27 @@
       </view>
     </view>
 
-    <!-- 统计 + 排序 + 筛选 -->
+    <!-- 统计 + 批量操作区 -->
     <view class="stat-bar">
-      <text class="stat-total">总计 {{ total }} 条资产</text>
+      <view class="stat-left">
+        <text class="stat-total">总计 {{ total }} 条资产</text>
+      </view>
+      
       <view class="stat-right">
-        <view class="sort-btn" @click="toggleSort">
-          <text class="sort-text">{{ sortLabel }}</text>
-          <text class="sort-arrow">▼</text>
+        <!-- 常规模式：点此进入批量 -->
+        <view class="mini-btn-link" v-if="!isBatchMode" @click="startBatchMode">
+          <text class="btn-text">批量操作</text>
         </view>
-        <view class="filter-btn" @click="showFilter">
-          <text class="filter-icon">⊟</text>
-          <text class="filter-text">筛选</text>
+        
+        <!-- 批量模式：操作组 -->
+        <view class="batch-ops-group" v-else>
+          <text class="op-link" @click="toggleSelectAll">{{ isAllSelected ? '取消' : '全选' }}</text>
+          <view class="op-divider"></view>
+          <view class="print-trigger-btn" @click="executeBatchPrint">
+            <text class="print-btn-text">批量打印({{ selectedIds.length }})</text>
+          </view>
+          <view class="op-divider"></view>
+          <text class="op-link cancel" @click="exitBatchMode">退出</text>
         </view>
       </view>
     </view>
@@ -66,42 +75,51 @@
         class="asset-card" 
         v-for="item in assetList" 
         :key="item.id"
-        hover-class="card-hover"
-        @tap="goToDetail(item.id)"
+        :class="{ 'card-hover': !isBatchMode, 'is-selected': isSelected(item.id) }"
+        @tap="handleCardTap(item)"
       >
-        <!-- 卡片顶部：分类名 + 状态 -->
-        <view class="card-top">
-          <text class="card-category">{{ item.category?.name || '未知分类' }}</text>
-          <text :class="['card-status', statusClass(item.status)]">{{ item.status }}</text>
-        </view>
-        <!-- 卡片主体：图片 + 信息 -->
-        <view class="card-body">
-          <view class="card-img">
-            <text class="img-placeholder">🖼</text>
-          </view>
-          <view class="card-info">
-            <view class="info-row">
-              <text class="info-label">资产编码：</text>
-              <text class="info-value">{{ item.asset_code }}</text>
-            </view>
-            <view class="info-row" v-if="getFirstAttr(item)">
-              <text class="info-label">{{ getFirstAttr(item)?.key }}：</text>
-              <text class="info-value">{{ getFirstAttr(item)?.val }}</text>
-            </view>
-            <view class="info-row" v-if="item.owner">
-              <text class="info-label">使用人：</text>
-              <text class="info-value">{{ item.owner.name }}</text>
-            </view>
+        <!-- 批量选择勾选框 -->
+        <view class="batch-checkbox" v-if="isBatchMode">
+          <view class="checkbox-circle" :class="{ checked: isSelected(item.id) }">
+            <text v-if="isSelected(item.id)" class="check-icon">✓</text>
           </view>
         </view>
-        <!-- 卡片操作按钮 -->
-        <view class="card-actions">
-          <view class="action-btn" hover-class="btn-hover" @tap.stop="goToDetail(item.id)">
-            <text class="action-text">资产管理</text>
+
+        <view class="card-content-wrap">
+          <!-- 卡片顶部：分类名 + 状态 -->
+          <view class="card-top">
+            <text class="card-category">{{ item.category?.name || '未知分类' }}</text>
+            <text :class="['card-status', statusClass(item.status)]">{{ item.status }}</text>
           </view>
-          <view class="action-divider"></view>
-          <view class="action-btn" hover-class="btn-hover" @tap.stop="goToLogs(item.id)">
-            <text class="action-text">操作记录</text>
+          <!-- 卡片主体：图片 + 信息 -->
+          <view class="card-body">
+            <view class="card-img">
+              <text class="img-placeholder">🖼</text>
+            </view>
+            <view class="card-info">
+              <view class="info-row">
+                <text class="info-label">资产编码：</text>
+                <text class="info-value">{{ item.asset_code }}</text>
+              </view>
+              <view class="info-row">
+                <text class="info-label">使用人：</text>
+                <text class="info-value">{{ item.owner?.name || '-' }}</text>
+              </view>
+              <view class="info-row" v-if="getFirstAttr(item)">
+                <text class="info-label">{{ getFirstAttr(item)?.key }}：</text>
+                <text class="info-value">{{ getFirstAttr(item)?.val }}</text>
+              </view>
+            </view>
+          </view>
+          <!-- 卡片操作按钮 (非批量模式显示) -->
+          <view class="card-actions" v-if="!isBatchMode">
+            <view class="action-btn" hover-class="btn-hover" @tap.stop="goToDetail(item.id)">
+              <text class="action-text">资产管理</text>
+            </view>
+            <view class="action-divider"></view>
+            <view class="action-btn" hover-class="btn-hover" @tap.stop="goToLogs(item.id)">
+              <text class="action-text">操作记录</text>
+            </view>
           </view>
         </view>
       </view>
@@ -116,29 +134,82 @@
       <view class="list-status" v-else-if="!hasMore">
         <text class="status-text">— 没有更多了 —</text>
       </view>
-      <!-- 底部留白，防止被操作栏遮挡 -->
-      <view style="height: 120rpx;"></view>
+      <!-- 底部留白 -->
+      <view style="height: 140rpx;"></view>
     </scroll-view>
 
-    <!-- 底部固定操作栏 -->
-    <view class="bottom-bar">
-      <view class="bottom-btn" @click="goToAllLogs">
-        <text class="bottom-icon">📋</text>
-        <text class="bottom-text">全部操作记录</text>
-      </view>
-      <view class="bottom-divider"></view>
-      <view class="bottom-btn" @click="showBatchAction">
-        <text class="bottom-icon">⚙</text>
-        <text class="bottom-text">批量操作资产</text>
-      </view>
-    </view>
+    <!-- 只有在非批量模式下才显示通用导航栏 -->
+    <CustomTabBar v-if="!isBatchMode" :activeIndex="1" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import request from '@/utils/request'
+import { startPDAListener, stopPDAListener } from '@/utils/pda'
+import { printBatchAssets } from '@/utils/printer'
+import CustomTabBar from '@/components/CustomTabBar.vue'
+
+// 批量模式状态
+const isBatchMode = ref(false)
+const selectedIds = ref<string[]>([])
+
+const isSelected = (id: string) => selectedIds.value.includes(id)
+const isAllSelected = computed(() => assetList.value.length > 0 && selectedIds.value.length === assetList.value.length)
+
+// 切换批量模式
+const startBatchMode = () => {
+  isBatchMode.value = true
+  selectedIds.value = []
+}
+const exitBatchMode = () => {
+  isBatchMode.value = false
+  selectedIds.value = []
+}
+
+// 点击卡片处理
+const handleCardTap = (item: any) => {
+  if (isBatchMode.value) {
+    const idx = selectedIds.value.indexOf(item.id)
+    if (idx > -1) {
+      selectedIds.value.splice(idx, 1)
+    } else {
+      selectedIds.value.push(item.id)
+    }
+  } else {
+    goToDetail(item.id)
+  }
+}
+
+// 全选/取消
+const toggleSelectAll = () => {
+  if (selectedIds.value.length === assetList.value.length) {
+    selectedIds.value = []
+  } else {
+    selectedIds.value = assetList.value.map(item => item.id)
+  }
+}
+
+// 执行批量打印
+const executeBatchPrint = () => {
+  if (selectedIds.value.length === 0) {
+    uni.showToast({ title: '请先勾选资产', icon: 'none' })
+    return
+  }
+  
+  uni.showModal({
+    title: '批量打印确认',
+    content: `确定要打印选中的 ${selectedIds.value.length} 个资产标签吗？`,
+    success: (res) => {
+      if (res.confirm) {
+        // 根据 ID 找出完整的资产对象列表
+        const targets = assetList.value.filter(item => selectedIds.value.includes(item.id))
+        printBatchAssets(targets)
+      }
+    }
+  })
+}
 
 // 系统状态栏高度
 const statusBarHeight = ref(20)
@@ -159,14 +230,29 @@ const activeTab = ref('')
 
 // 页面显示时检查是否有外部传入的过滤状态
 onShow(() => {
+  uni.hideTabBar()
+  // PDA 扫描枪监听逻辑
+  startPDAListener((code) => {
+    if (code) {
+      keyword.value = code
+      uni.vibrateShort()
+      loadData(true)
+    }
+  })
+
   const status = uni.getStorageSync('active_asset_status')
   if (status !== undefined && status !== null) {
     activeTab.value = status
     loadData(true)
-    // 延时或标记删除，确保只在跳转时触发一次
     uni.removeStorageSync('active_asset_status')
+  } else {
+    // 默认进入也加载一次
+    loadData(true)
   }
 })
+
+onHide(() => stopPDAListener())
+onUnload(() => stopPDAListener())
 
 // 数据状态
 const keyword = ref('')
@@ -202,6 +288,8 @@ const loadData = async (reset = false) => {
     const params: any = {
       skip: skip.value,
       limit,
+      sort_by: 'updated_at',
+      order: 'desc'
     }
     if (keyword.value) params.keyword = keyword.value
     if (activeTab.value) params.status = activeTab.value
@@ -211,12 +299,8 @@ const loadData = async (reset = false) => {
       assetList.value.push(...res)
       skip.value += limit
       if (res.length < limit) hasMore.value = false
-      // 简易统计（无精确 count 接口时用当前加载量估算）
-      if (total.value === 0 || reset) total.value = res.length
-      else total.value = assetList.value.length
     } else {
       hasMore.value = false
-      if (reset) total.value = 0
     }
   } catch (e) {
     console.error(e)
@@ -226,10 +310,14 @@ const loadData = async (reset = false) => {
   }
 }
 
-// 获取资产总数（异步更新）
+// 获取资产总数（支持过滤条件的真实总数）
 const fetchTotal = async () => {
   try {
-    const res = await request.get('/assets/', { skip: 0, limit: 9999 })
+    const params: any = { skip: 0, limit: 99999 } // 请求很大范围以获取总数
+    if (keyword.value) params.keyword = keyword.value
+    if (activeTab.value) params.status = activeTab.value
+    
+    const res = await request.get('/assets/', params)
     if (res) total.value = res.length
   } catch (e) {}
 }
@@ -290,15 +378,6 @@ const goToCreate = () => {
 }
 const goToAllLogs = () => {
   uni.showToast({ title: '全部操作记录', icon: 'none', duration: 1500 })
-}
-const showBatchAction = () => {
-  uni.showActionSheet({
-    itemList: ['批量标记"在用"', '批量标记"闲置"', '批量标记"维修"'],
-    success: (res) => {
-      const actions = ['在用', '闲置', '维修']
-      uni.showToast({ title: `批量操作: ${actions[res.tapIndex]}`, icon: 'none' })
-    }
-  })
 }
 const showFilter = () => {
   uni.showToast({ title: '筛选功能开发中', icon: 'none', duration: 1500 })
@@ -575,8 +654,11 @@ onUnmounted(() => {
         margin-bottom: 5px;
         
         .info-label {
+          width: 65px; /* 设为4个汉字的固定宽度 */
           font-size: 12px;
           color: #999;
+          text-align: justify;
+          text-align-last: justify; /* 实现分散对齐 */
           flex-shrink: 0;
         }
         .info-value {
@@ -626,35 +708,135 @@ onUnmounted(() => {
   }
 }
 
-/* ===== 底部操作栏 ===== */
-.bottom-bar {
+/* ===== 统计 + 批量操作区 ===== */
+.stat-bar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 10px 16px;
   background: #fff;
-  border-top: 1px solid #eee;
-  padding: 10px 0;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  border-bottom: 1px solid #f8f8f8;
   
-  .bottom-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    
-    .bottom-icon {
-      font-size: 16px;
-    }
-    .bottom-text {
+  .stat-left {
+    .stat-total {
       font-size: 13px;
-      color: #555;
+      color: #999;
+      font-weight: 500;
     }
   }
   
-  .bottom-divider {
-    width: 1px;
-    height: 20px;
-    background: #eee;
+  .stat-right {
+    display: flex;
+    align-items: center;
+    
+    .mini-btn-link {
+      padding: 4px 8px;
+      background: #f0f6ff;
+      border-radius: 4px;
+      
+      .btn-text {
+        font-size: 12px;
+        color: #1677ff;
+        font-weight: 600;
+      }
+    }
+    
+    .batch-ops-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      .op-link {
+        font-size: 13px;
+        color: #1677ff;
+        font-weight: 600;
+        
+        &.cancel { color: #ff4d4f; }
+      }
+      
+      .op-divider {
+        width: 1px;
+        height: 12px;
+        background: #eee;
+      }
+      
+      .print-trigger-btn {
+        background: #1677ff;
+        padding: 4px 12px;
+        border-radius: 100px;
+        box-shadow: 0 2px 8px rgba(22, 119, 255, 0.3);
+        
+        .print-btn-text {
+          font-size: 12px;
+          color: #fff;
+          font-weight: 700;
+        }
+        
+        &:active {
+          opacity: 0.8;
+          transform: scale(0.95);
+        }
+      }
+    }
+  }
+}
+
+/* ===== 批量模式新增样式 ===== */
+.asset-card {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  
+  &.is-selected {
+    border: 2px solid #1677ff;
+    box-shadow: 0 4px 12px rgba(22, 119, 255, 0.15);
+  }
+}
+
+.batch-checkbox {
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  border-right: 1px solid #f0f0f0;
+  
+  .checkbox-circle {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    
+    &.checked {
+      background: #1677ff;
+      border-color: #1677ff;
+    }
+    
+    .check-icon {
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  }
+}
+
+.card-content-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-btn {
+  &.primary .bottom-text {
+    color: #1677ff;
+    font-weight: 700;
+  }
+  &.cancel .bottom-text {
+    color: #ff4d4f;
   }
 }
 </style>

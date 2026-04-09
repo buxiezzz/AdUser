@@ -1,8 +1,13 @@
 /**
  * PDA 硬件扫描驱动 (Honeywell/Zebra Android 广播模式)
  */
-export const PDA_SCAN_ACTION = 'com.honeywell.scan.broadcast';
-export const PDA_SCAN_DATA_KEY = 'data';
+const PDA_ACTIONS = [
+    'com.honeywell.scan.broadcast',        // Honeywell
+    'com.symbol.datawedge.api.RESULT_ACTION',// Zebra
+    'com.android.serial.BARCODE_DATA_ACTION', // 通用/新大陆
+    'dw.ex.scanner.read',                   // 其它
+];
+export const PDA_SCAN_DATA_KEY = 'data'; // 绝大多数 PDA 默认数据键为 data 或 value
 
 let main: any = null;
 let receiver: any = null;
@@ -20,7 +25,11 @@ export function startPDAListener(callback: (code: string) => void) {
         main = plus.android.runtimeMainActivity();
         plus.android.importClass('android.content.IntentFilter');
         filter = plus.android.newObject('android.content.IntentFilter');
-        filter.addAction(PDA_SCAN_ACTION);
+        
+        // 批量添加常见的 PDA 广播动作，提高兼容性
+        PDA_ACTIONS.forEach(action => {
+            filter.addAction(action);
+        });
 
         // 创建广播接收器
         receiver = plus.android.implements('io.dcloud.feature.internal.reflect.BroadcastReceiver', {

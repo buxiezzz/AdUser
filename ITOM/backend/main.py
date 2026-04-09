@@ -11,12 +11,24 @@ from models import asset as asset_model
 from models import audit as audit_model
 from crud.user import get_user_by_username, create_user
 from schemas.user import UserCreate
-from api.routers import auth, asset, ad, settings, audit
+from api.routers import auth, asset, ad, settings, audit, inventory
 
 # Create database tables (For production use Alembic migrations instead)
 user_model.Base.metadata.create_all(bind=engine)
 asset_model.Base.metadata.create_all(bind=engine)
 audit_model.Base.metadata.create_all(bind=engine)
+
+# 强制确保盘点模块的新表存在（兼容旧数据库文件不包含这两张表的情况）
+from models.asset import InventoryTask, InventoryRecord
+from sqlalchemy import inspect as sa_inspect
+_inspector = sa_inspect(engine)
+_existing_tables = _inspector.get_table_names()
+if "inventory_tasks" not in _existing_tables:
+    InventoryTask.__table__.create(bind=engine, checkfirst=True)
+    print("✅ 自动创建表: inventory_tasks")
+if "inventory_records" not in _existing_tables:
+    InventoryRecord.__table__.create(bind=engine, checkfirst=True)
+    print("✅ 自动创建表: inventory_records")
 
 app = FastAPI(
     title="ITOM Platform API",
@@ -38,6 +50,7 @@ app.include_router(asset.router, prefix="/api/assets", tags=["Assets"])
 app.include_router(ad.router, prefix="/api/ad", tags=["Active Directory"])
 app.include_router(settings.router, prefix="/api/settings", tags=["System Settings"])
 app.include_router(audit.router, prefix="/api/audit", tags=["Audit Logs"])
+app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory Management"])
 
 @app.on_event("startup")
 def create_default_admin():

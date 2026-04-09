@@ -20,36 +20,18 @@
           <text class="scan-icon">📷</text>
         </view>
       </view>
-
-      <view class="scan-actions">
-        <view class="scan-btn secondary" @click="manualInput">
-          <text class="btn-text">手动输入资产编码</text>
-        </view>
-      </view>
     </view>
-
-    <!-- 手动输入弹窗 -->
-    <view class="modal-mask" v-if="showInputModal" @click.self="showInputModal = false">
-      <view class="modal-box">
-        <text class="modal-title">手动输入资产编码</text>
-        <input
-          class="modal-input"
-          v-model="manualCode"
-          placeholder="请输入资产编码"
-          focus
-        />
-        <view class="modal-actions">
-          <view class="modal-btn cancel" @click="showInputModal = false">取消</view>
-          <view class="modal-btn confirm" @click="goByCode">查询</view>
-        </view>
-      </view>
-    </view>
+    
+    <CustomTabBar :activeIndex="2" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import request from '@/utils/request'
+import { startPDAListener, stopPDAListener } from '@/utils/pda'
+import CustomTabBar from '@/components/CustomTabBar.vue'
 
 const statusBarHeight = ref(20)
 try {
@@ -57,11 +39,6 @@ try {
 } catch (e) {}
 
 const isScanning = ref(false)
-const showInputModal = ref(false)
-const manualCode = ref('')
-
-import { onShow, onHide, onUnload } from '@dcloudio/uni-app'
-import { startPDAListener, stopPDAListener } from '@/utils/pda'
 
 // 核心处理函数：解析扫码结果并跳转
 const handleScanResult = async (code: string) => {
@@ -114,36 +91,12 @@ const startScan = async () => {
   }
 }
 
-const manualInput = () => {
-  manualCode.value = ''
-  showInputModal.value = true
-}
-
-const goByCode = async () => {
-  if (!manualCode.value.trim()) return
-  showInputModal.value = false
-  try {
-    const list = await request.get('/assets/', { keyword: manualCode.value.trim(), limit: 3 })
-    if (list && list.length > 0) {
-      uni.navigateTo({ url: `/pages/asset/detail?id=${list[0].id}` })
-    } else {
-      uni.showToast({ title: '未找到资产：' + manualCode.value, icon: 'none', duration: 2500 })
-    }
-  } catch (e) {
-    uni.showToast({ title: '查询失败', icon: 'none' })
-  }
-}
-
 onShow(() => {
-  // 1. 自动开启摄像头（可选，根据用户习惯）
-  setTimeout(() => {
-    // startScan() // 如果用户希望进场即扫，取消此行注释
-  }, 300)
-
-  // 2. 启动 PDA 硬件扫描枪监听
+  uni.hideTabBar()
+  // 1. 启动 PDA 硬件扫描枪监听（广播模式）
   startPDAListener((code) => {
-    handleScanResult(code)
-  })
+    handleScanResult(code);
+  });
 })
 
 onHide(() => {
@@ -261,64 +214,6 @@ onUnload(() => {
     &.secondary { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
     
     .btn-text { font-size: 15px; color: #fff; }
-  }
-}
-
-/* 弹窗 */
-.modal-mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.modal-box {
-  background: #fff;
-  border-radius: 14px;
-  padding: 24px 20px;
-  width: 300px;
-  
-  .modal-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1a1a1a;
-    display: block;
-    margin-bottom: 16px;
-    text-align: center;
-  }
-  
-  .modal-input {
-    width: 100%;
-    height: 44px;
-    background: #f5f7fa;
-    border-radius: 8px;
-    padding: 0 12px;
-    font-size: 14px;
-    color: #333;
-    box-sizing: border-box;
-    border: 1px solid #e8e8e8;
-  }
-  
-  .modal-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
-    
-    .modal-btn {
-      flex: 1;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      
-      &.cancel { background: #f5f5f5; color: #666; }
-      &.confirm { background: #1677ff; color: #fff; }
-    }
   }
 }
 </style>

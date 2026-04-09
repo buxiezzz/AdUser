@@ -34,6 +34,11 @@ def update_asset_status(db: Session, asset_id: str, status: str, user_id: int):
     db_asset = get_asset(db, str(asset_id))
     if not db_asset:
         return None
+        
+    # [业务红线]：变为“在用”必须有人员，否则报错
+    if status == "在用" and not db_asset.owner_id:
+        raise ValueError("资产变更为'在用'状态时，必须先行关联使用人。")
+        
     old_status = db_asset.status
     old_owner_id = db_asset.owner_id
     
@@ -143,19 +148,28 @@ def delete_category(db: Session, category_id: int):
     return True
 
 # ====== Asset CRUD ======
-def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = ""):
+def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = "", sort_by: str = "updated_at", order: str = "desc"):
     query = db.query(Asset).options(
         joinedload(Asset.category),
         joinedload(Asset.owner)
-    ).order_by(Asset.created_at.desc())
+    )
+    
+    # 动态排序逻辑
+    sort_col = getattr(Asset, sort_by, Asset.updated_at)
+    if order == "asc":
+        query = query.order_by(sort_col.asc())
+    else:
+        query = query.order_by(sort_col.desc())
     
     if keyword:
+        from sqlalchemy import String
         search = f"%{keyword}%"
-        # 搜索资产编码、分类名称或员工姓名
+        # 搜索资产编码、分类名称、员工姓名或动态属性（如序列号）
         query = query.join(Category, isouter=True).join(Employee, isouter=True).filter(
             (Asset.asset_code.ilike(search)) |
             (Category.name.ilike(search)) |
-            (Employee.name.ilike(search))
+            (Employee.name.ilike(search)) |
+            (Asset.dynamic_attributes.cast(String).ilike(search))
         )
     
     if status:
@@ -208,13 +222,19 @@ def update_asset(db: Session, asset_id: str, asset_in: AssetUpdate, current_user
     
     # 强制归还逻辑：如果状态变更为闲置或报废，清空使用人和部门
     new_status = update_data.get("status", old_status)
+    new_owner_id = update_data.get("owner_id", old_owner_id)
+
+    # [业务红线]：变为“在用”必须有人员，否则报错
+    if new_status == "在用" and not new_owner_id:
+        raise ValueError("资产变更为'在用'状态时，必须指定使用人。")
+
     if new_status in ["闲置", "报废"]:
         update_data["owner_id"] = None
         if "dynamic_attributes" in update_data and "所属组织" in update_data["dynamic_attributes"]:
-            update_data["dynamic_attributes"]["所属组织"] = ""
+            new_attrs = dict(update_data.get("dynamic_attributes") or db_asset.dynamic_attributes or {})
+            new_attrs["所属组织"] = ""
+            update_data["dynamic_attributes"] = new_attrs
             
-    new_owner_id = update_data.get("owner_id", old_owner_id)
-    
     action = "信息更新"
     if old_owner_id != new_owner_id:
         if new_owner_id is None:
@@ -225,6 +245,17 @@ def update_asset(db: Session, asset_id: str, asset_in: AssetUpdate, current_user
             action = "资产调拨"
     elif old_status != new_status:
         action = f"状态变更 ({old_status} -> {new_status})"
+
+    # --- 核心改进：人员变更时，强制同步域控中的组织单位到资产属性中 ---
+    if new_owner_id:
+        from models.asset import Employee
+        emp = db.query(Employee).filter(Employee.id == new_owner_id).first()
+        if emp and emp.department:
+            if "dynamic_attributes" not in update_data:
+                update_data["dynamic_attributes"] = dict(db_asset.dynamic_attributes or {})
+            # 如果没有明确传所属组织，或者需要强制对齐，则更新
+            update_data["dynamic_attributes"]["所属组织"] = emp.department
+    # -------------------------------------------------------
         
     for field, value in update_data.items():
         # Specifically allow None for owner_id to clear it

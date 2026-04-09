@@ -91,10 +91,14 @@
 
       <view style="height: 30rpx;"></view>
     </scroll-view>
+    <CustomTabBar :activeIndex="4" />
   </view>
 </template>
 
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app'
+import CustomTabBar from '@/components/CustomTabBar.vue'
+
 const navTo = (url: string) => uni.navigateTo({ url })
 
 const goProfile = () => navTo('/pages/profile/profile')
@@ -123,6 +127,10 @@ const logout = () => {
     }
   })
 }
+
+onShow(() => {
+  uni.hideTabBar()
+})
 </script>
 
 <style lang="scss" scoped>

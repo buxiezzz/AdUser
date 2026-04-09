@@ -69,12 +69,16 @@
         </view>
       </view>
     </view>
+    <CustomTabBar :activeIndex="0" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import request from '@/utils/request'
+import { startPDAListener, stopPDAListener } from '@/utils/pda'
+import CustomTabBar from '@/components/CustomTabBar.vue'
 
 const statCounts = ref<Record<string, number>>({})
 
@@ -130,6 +134,7 @@ const switchToInventory = () => {
   navTo('/pages/inventory/index')
 }
 
+// 处理 PDA 扫描
 const loadStats = async () => {
   try {
     const statuses = ['在用', '闲置', '维修', '报废']
@@ -142,7 +147,51 @@ const loadStats = async () => {
   } catch (e) {}
 }
 
-onMounted(() => loadStats())
+const handlePDAScan = async (code: string) => {
+  if (!code) return
+  
+  uni.vibrateShort()
+  uni.showLoading({ title: '正在查询资产...', mask: true })
+  
+  try {
+    // 根据扫描到的编码查找资产
+    const res = await request.get('/assets/', { keyword: code, limit: 1 })
+    uni.hideLoading()
+    
+    if (res && res.length > 0) {
+      const assetId = res[0].id
+      uni.navigateTo({
+        url: `/pages/asset/detail?id=${assetId}`
+      })
+    } else {
+      uni.showToast({
+        title: '未找到匹配资产',
+        icon: 'none'
+      })
+    }
+  } catch (e) {
+    uni.hideLoading()
+    uni.showToast({
+      title: '查询失败',
+      icon: 'none'
+    })
+  }
+}
+
+onShow(() => {
+  uni.hideTabBar()
+  loadStats()
+  startPDAListener((code) => {
+    handlePDAScan(code)
+  })
+})
+
+onHide(() => stopPDAListener())
+onUnload(() => stopPDAListener())
+
+onMounted(() => {
+  // 可以在这里做其他初始化
+})
 </script>
 
 <style lang="scss" scoped>

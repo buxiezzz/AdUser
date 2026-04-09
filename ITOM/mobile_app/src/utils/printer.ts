@@ -297,3 +297,93 @@ export const printAssetLabel = async (asset: any) => {
     }
     // #endif
 };
+/** 批量打印资产标签 */
+export const printBatchAssets = async (assets: any[]) => {
+    if (!assets || assets.length === 0) { toast('待打印列表为空'); return; }
+    
+    // 拉取模板配置（逻辑同单次打印）
+    if (!cachedTemplate) {
+        try {
+            const userToken = uni.getStorageSync('itom_token');
+            const res: any = await uni.request({
+                url: `${appConfig.baseUrl}/settings/`,
+                method: 'GET',
+                header: { 'Authorization': `Bearer ${userToken}` }
+            });
+            if (res?.statusCode === 200 && res.data?.PRINT_TEMPLATE) {
+                cachedTemplate = res.data.PRINT_TEMPLATE;
+            }
+        } catch (e) {}
+    }
+    
+    // 默认兜底
+    const template = cachedTemplate || {
+        paper: { width: 70, height: 50, orientation: 0, gapType: 2, darkness: 8, speed: 2 },
+        elements: [
+            { type: 'text', value: '先惠自动化技术有限公司', x: 5, y: 5, fontHeight: 3, width: 42, height: 6 },
+            { type: 'text', field: 'asset_code', prefix: '资产编码: ', x: 5, y: 13, fontHeight: 3, width: 42, height: 6 },
+            { type: 'text', field: 'category.name', prefix: '名称: ', x: 5, y: 21, fontHeight: 3, width: 42, height: 6 },
+            { type: 'qrcode', field: 'asset_code', x: 50, y: 10, width: 18 }
+        ]
+    };
+
+    // #ifdef APP-PLUS
+    const lpapi = uni.requireNativePlugin('DothanTech-LPAPI');
+    if (!lpapi) { alertModal('插件未加载', '请检查环境'); return; }
+    lpapi.init({});
+
+    const printAll = async (targetLpapi: any, assetList: any[]) => {
+        toast(`准备批量打印 ${assetList.length} 张...`, 'none', 3000);
+        for (let i = 0; i < assetList.length; i++) {
+            const asset = assetList[i];
+            const isLast = i === assetList.length - 1;
+            
+            // 执行单次打印排版不关闭连接
+            await new Promise((resolve, reject) => {
+                const paper = template.paper || { width: 70, height: 50, orientation: 0, gapType: 2, darkness: 8, speed: 2 };
+                targetLpapi.startJob({ width: paper.width, height: paper.height, orientation: paper.orientation });
+                
+                for (const item of template.elements) {
+                    if (item.type === 'text') {
+                        let val = item.field ? item.field.split('.').reduce((o: any, f: string) => (o ? o[f] : ''), asset) : (item.value || '');
+                        targetLpapi.drawText({ text: `${item.prefix || ''}${val || '-'}`, x: item.x, y: item.y, fontHeight: item.fontHeight, width: item.width, height: item.height });
+                    } else if (item.type === 'qrcode') {
+                        targetLpapi.draw2DQRCode({ text: asset.asset_code || '', x: item.x, y: item.y, width: item.width });
+                    } else if (item.type === 'line') {
+                        targetLpapi.drawLine({ 
+                            x1: item.x, 
+                            y1: item.y, 
+                            x2: item.x + (item.width || 0), 
+                            y2: item.y + (item.height || 0), 
+                            lineWidth: item.lineWidth || 0.5 
+                        });
+                    } else if (item.type === 'rect') {
+                        const rectFunc = targetLpapi.drawRectangle || targetLpapi.drawRect;
+                        if (rectFunc) {
+                            rectFunc({ x: item.x, y: item.y, width: item.width, height: item.height, lineWidth: item.lineWidth || 0.5 });
+                        }
+                    }
+                }
+
+                targetLpapi.commitJob({ GAP_TYPE: paper.gapType, PRINT_DARKNESS: paper.darkness, PRINT_SPEED: paper.speed }, () => {
+                    toast(`已处理 (${i + 1}/${assetList.length})`, 'none', 1000);
+                    setTimeout(resolve, 800); // 间隔一小段时间防止硬件堵塞
+                }, (e: any) => reject(e));
+            });
+        }
+        toast('批量任务发送完毕', 'success');
+        setTimeout(() => targetLpapi.closePrinter(), 1500);
+    };
+
+    // 获取并连接打印机 (同单例逻辑)
+    const savedName = uni.getStorageSync('lpapi_printer_name');
+    if (savedName) {
+        lpapi.openPrinter(savedName, () => printAll(lpapi, assets), (err: any) => {
+            uni.removeStorageSync('lpapi_printer_name');
+            toast('连接失败，请重新尝试触发打印以搜索设备', 'none');
+        });
+    } else {
+        toast('请先连接过一次打印机', 'none');
+    }
+    // #endif
+};

@@ -83,6 +83,12 @@ const adminRoutes: Array<any> = [
         name: 'PrinterTemplate',
         component: () => import('../views/settings/PrinterTemplate.vue'),
         meta: { title: '打印模板设置' }
+    },
+    {
+        path: 'inventory/list',
+        name: 'InventoryList',
+        component: () => import('../views/inventory/InventoryList.vue'),
+        meta: { title: '资产盘点控制台' }
     }
 ]
 

@@ -12,38 +12,39 @@
         text-color="#c7d2fe"
         router
       >
-        <!-- 顶级独立菜单 -->
-        <el-menu-item 
-          v-for="item in menuConfig.filter(m => !m.children)" 
-          :key="item.path" 
-          :index="item.path"
-          class="hover:bg-white/5 mx-2 my-1 rounded-xl transition-all duration-300"
-        >
-          <el-icon><component :is="item.icon" /></el-icon>
-          <span>{{ item.title }}</span>
-        </el-menu-item>
-        
-        <!-- 带子集的动态菜单 -->
-        <el-sub-menu 
-          v-for="sub in menuConfig.filter(m => m.children)" 
-          :key="sub.path" 
-          :index="sub.path"
-          class="mx-2"
-        >
-          <template #title>
-            <el-icon><component :is="sub.icon" /></el-icon>
-            <span>{{ sub.title }}</span>
-          </template>
-          <el-menu-item 
-            v-for="child in sub.children" 
-            :key="child.path" 
-            :index="child.path"
-            class="hover:bg-white/5 my-1 rounded-xl pl-12 transition-all duration-300"
+        <!-- 统一按 menuConfig 顺序渲染，有子项展开，无子项直接显示 -->
+        <template v-for="item in menuConfig" :key="item.path">
+          <!-- 无子项：直接菜单项 -->
+          <el-menu-item
+            v-if="!item.children"
+            :index="item.path"
+            class="hover:bg-white/5 mx-2 my-1 rounded-xl transition-all duration-300"
           >
-            <el-icon v-if="child.icon" class="scale-90"><component :is="child.icon" /></el-icon>
-            <span class="text-sm">{{ child.title }}</span>
+            <el-icon><component :is="item.icon" /></el-icon>
+            <span>{{ item.title }}</span>
           </el-menu-item>
-        </el-sub-menu>
+
+          <!-- 有子项：可展开子菜单 -->
+          <el-sub-menu
+            v-else
+            :index="item.path"
+            class="mx-2"
+          >
+            <template #title>
+              <el-icon><component :is="item.icon" /></el-icon>
+              <span>{{ item.title }}</span>
+            </template>
+            <el-menu-item
+              v-for="child in item.children"
+              :key="child.path"
+              :index="child.path"
+              class="hover:bg-white/5 my-1 rounded-xl pl-12 transition-all duration-300"
+            >
+              <el-icon v-if="child.icon" class="scale-90"><component :is="child.icon" /></el-icon>
+              <span class="text-sm">{{ child.title }}</span>
+            </el-menu-item>
+          </el-sub-menu>
+        </template>
       </el-menu>
       
       <div class="p-4 text-xs text-indigo-400 text-center border-t border-indigo-800">
@@ -68,8 +69,8 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                <el-dropdown-item divided command="logout" class="text-red-500">安全退出</el-dropdown-item>
+                <el-dropdown-item command="profile" :icon="User">个人中心(修改密码)</el-dropdown-item>
+                <el-dropdown-item divided command="logout" :icon="SwitchButton" class="text-red-500">安全退出系统</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -85,17 +86,74 @@
         </router-view>
       </el-main>
     </el-container>
+
+    <!-- 修改密码弹窗 (深色玻璃质感) -->
+    <el-dialog v-model="changePwdVisible" title="安全设置：修改登录密码" width="420px" append-to-body class="rounded-2xl">
+      <el-form :model="pwdForm" label-position="top">
+        <el-form-item label="当前原密码" required>
+          <el-input v-model="pwdForm.old_password" type="password" show-password placeholder="请输入您目前的登录密码" />
+        </el-form-item>
+        <el-form-item label="设定新密码" required>
+          <el-input v-model="pwdForm.new_password" type="password" show-password placeholder="请输入 6 位以上的新密码" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <el-button @click="changePwdVisible = false">取消</el-button>
+          <el-button type="primary" :loading="pwdLoading" @click="submitChangePassword">保存新密码</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { menuConfig } from '../router/menu'
 import { ElMessage } from 'element-plus'
+import { User, SwitchButton, ArrowDown } from '@element-plus/icons-vue'
+import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
+
+// --- 自动登出逻辑 (30分钟无交互自动登出) ---
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000 // 30分钟
+let inactivityTimer: any = null
+
+const resetInactivityTimer = () => {
+  if (inactivityTimer) clearTimeout(inactivityTimer)
+  inactivityTimer = setTimeout(() => {
+    handleAutoLogout()
+  }, INACTIVITY_TIMEOUT)
+}
+
+const handleAutoLogout = () => {
+  if (!localStorage.getItem('itom_token')) return
+  localStorage.removeItem('itom_token')
+  ElMessage.warning('由于您长时间未操作，系统已自动登出以保护账户安全')
+  router.push('/login')
+}
+
+onMounted(() => {
+  // 注册全局监听事件
+  const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
+  events.forEach(evt => {
+    window.addEventListener(evt, resetInactivityTimer, true)
+  })
+  resetInactivityTimer()
+})
+
+onUnmounted(() => {
+  // 清理
+  const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
+  events.forEach(evt => {
+    window.removeEventListener(evt, resetInactivityTimer, true)
+  })
+  if (inactivityTimer) clearTimeout(inactivityTimer)
+})
+// ------------------------------------
 
 const currentRouteName = computed(() => {
   return route.meta.title || '控制台概览'
@@ -106,6 +164,39 @@ const handleCommand = (command: string | number | object) => {
     localStorage.removeItem('itom_token')
     ElMessage.success('已安全登出')
     router.push('/login')
+  } else if (command === 'profile') {
+    changePwdVisible.value = true
+  }
+}
+
+// 修改密码逻辑
+const changePwdVisible = ref(false)
+const pwdLoading = ref(false)
+const pwdForm = ref({
+  old_password: '',
+  new_password: ''
+})
+
+const submitChangePassword = async () => {
+  if (!pwdForm.value.old_password || !pwdForm.value.new_password) {
+    return ElMessage.warning('请完整填写密码信息')
+  }
+  if (pwdForm.value.new_password.length < 6) {
+    return ElMessage.warning('新密码安全强度不足，请至少输入 6 位')
+  }
+  
+  pwdLoading.value = true
+  try {
+    await axios.post('/api/auth/change-password', pwdForm.value)
+    ElMessage.success('密码修改成功，为保障安全请重新登录')
+    changePwdVisible.value = false
+    // 强制登出
+    localStorage.removeItem('itom_token')
+    router.push('/login')
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.detail || '修改失败：原密码输入不正确')
+  } finally {
+    pwdLoading.value = false
   }
 }
 </script>

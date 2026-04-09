@@ -21,7 +21,8 @@ export const menuConfig: MenuItem[] = [
         children: [
             { title: '资产台账总览', icon: 'Memo', path: '/assets/list', showInMobile: true },
             { title: '资产分类字典', icon: 'Files', path: '/assets/categories', showInMobile: true },
-            { title: '资产操作日志', icon: 'DocumentCopy', path: '/assets/logs', showInMobile: false }
+            { title: '资产操作日志', icon: 'DocumentCopy', path: '/assets/logs', showInMobile: false },
+            { title: '资产盘点控制台', icon: 'Aim', path: '/inventory/list', showInMobile: true }
         ]
     },
     {

@@ -3,12 +3,18 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import uuid
+from datetime import datetime
+import pytz
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from database import Base
+
+# 获取北京时间的辅助函数
+def get_beijing_time():
+    return datetime.now(pytz.timezone('Asia/Shanghai'))
 
 class Employee(Base):
     __tablename__ = "employees"
@@ -18,7 +24,7 @@ class Employee(Base):
     department = Column(String(100))
     email = Column(String(100), unique=True, index=True)
     ad_account = Column(String(50), unique=True, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime, default=get_beijing_time)
     
     # 关系
     assets = relationship("Asset", back_populates="owner")
@@ -44,8 +50,8 @@ class Asset(Base):
     dynamic_attributes = Column(JSON, default={}) # 核心动态属性，存储 MAC、IP、CPU 等任意字段
     qr_code_token = Column(String(255), unique=True, nullable=True) # 用于H5扫码鉴权的独立票据
     
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime, default=get_beijing_time)
+    updated_at = Column(DateTime, default=get_beijing_time, onupdate=get_beijing_time)
 
     owner = relationship("Employee", back_populates="assets")
     category = relationship("Category", back_populates="assets")
@@ -61,6 +67,32 @@ class AssetLog(Base):
     previous_owner_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
     new_owner_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
     memo = Column(Text, nullable=True) # 备注
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime, default=get_beijing_time)
 
     asset = relationship("Asset", back_populates="logs")
+
+class InventoryTask(Base):
+    __tablename__ = "inventory_tasks"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), index=True)
+    description = Column(String(255), nullable=True)
+    start_time = Column(DateTime, default=get_beijing_time)
+    end_time = Column(DateTime, nullable=True)
+    status = Column(String(20), default="进行中")  # 进行中, 已完成, 已取消
+    total_count = Column(Integer, default=0)
+    finished_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=get_beijing_time)
+    
+    records = relationship("InventoryRecord", back_populates="task")
+
+class InventoryRecord(Base):
+    __tablename__ = "inventory_records"
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(String(36), ForeignKey("inventory_tasks.id"))
+    asset_id = Column(String(36), ForeignKey("assets.id"))
+    status = Column(String(20), default="未盘点")  # 未盘点, 已盘点, 盘亏
+    audit_time = Column(DateTime, nullable=True)
+    operator_id = Column(Integer, ForeignKey("sys_users.id"), nullable=True)
+    
+    task = relationship("InventoryTask", back_populates="records")
+    asset = relationship("Asset")

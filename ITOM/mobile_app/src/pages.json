@@ -29,6 +29,18 @@
       }
     },
     {
+      "path": "pages/inventory/create",
+      "style": {
+        "navigationBarTitleText": "发起新盘点"
+      }
+    },
+    {
+      "path": "pages/inventory/execute",
+      "style": {
+        "navigationBarTitleText": "执行盘点核对"
+      }
+    },
+    {
       "path": "pages/settings/index",
       "style": {
         "navigationBarTitleText": "设置"

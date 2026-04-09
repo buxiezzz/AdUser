@@ -77,9 +77,8 @@
     </view>
     
     <view class="action-footer">
-      <button class="btn primary" @click="handleInventory">盘点</button>
-      <button class="btn warning" @click="openPrint">打印</button>
-      <button class="btn default" style="flex: 1.5;" @click="openUnifiedChange">变更 (状态/人员)</button>
+      <button class="btn warning" @click="openPrint">打印标签</button>
+      <button class="btn primary" @click="openUnifiedChange">信息变更 (状态/人员)</button>
     </view>
 
     <!-- 综合变更浮层 -->
@@ -89,29 +88,39 @@
           <text class="title">资产信息变更</text>
           <text class="close" @click="closeChange">✕</text>
         </view>
-        <view class="change-body">
-          <view class="change-item">
-             <text class="c-label">当前状态</text>
-             <picker mode="selector" :range="statusList" :value="statusList.indexOf(pendingStatus)" @change="onPendingStatusChange">
-                <view class="c-val">
-                   {{ pendingStatus }}
-                   <text class="c-arrow">›</text>
-                </view>
-             </picker>
+        <scroll-view scroll-y class="change-body-scroll">
+          <view class="change-body">
+            <view class="change-item">
+               <text class="c-label">当前状态</text>
+               <picker mode="selector" :range="statusList" :value="statusList.indexOf(pendingStatus)" @change="onPendingStatusChange">
+                  <view class="c-val">
+                     {{ pendingStatus }}
+                     <text class="c-arrow">›</text>
+                  </view>
+               </picker>
+            </view>
+            
+            <view class="change-item" @click="navToSelect">
+               <text class="c-label">使用人 / 管理人</text>
+               <view class="c-val" :class="{ placeholder: !pendingOwner }">
+                  {{ pendingOwner ? pendingOwner.name : '点此指派人员' }}
+                  <text class="c-arrow">›</text>
+               </view>
+            </view>
+            
+            <view class="tip-text" v-if="pendingStatus === '闲置' && pendingOwner">
+               注意：设为闲置将自动清空当前使用人
+            </view>
+            
+            <view class="attr-edit-section">
+               <view class="section-divider">详细属性编辑</view>
+               <view class="change-item" v-for="(v, k) in pendingAttributes" :key="k">
+                  <text class="c-label">{{ k }}</text>
+                  <input class="c-input" v-model="pendingAttributes[k]" placeholder="请输入内容" />
+               </view>
+            </view>
           </view>
-          
-          <view class="change-item" @click="navToSelect">
-             <text class="c-label">使用人 / 管理人</text>
-             <view class="c-val" :class="{ placeholder: !pendingOwner }">
-                {{ pendingOwner ? pendingOwner.name : '点此指派人员' }}
-                <text class="c-arrow">›</text>
-             </view>
-          </view>
-          
-          <view class="tip-text" v-if="pendingStatus === '闲置' && pendingOwner">
-             注意：设为闲置将自动清空当前使用人
-          </view>
-        </view>
+        </scroll-view>
         <view class="dialog-footer">
           <button class="submit-btn" :loading="saving" @click="submitChange">确认保存变更</button>
         </view>
@@ -247,6 +256,8 @@ const pendingOwner = ref<any>(null)
 const openUnifiedChange = () => {
   pendingStatus.value = detail.value.status
   pendingOwner.value = detail.value.owner
+  // 深拷贝动态属性用于编辑
+  pendingAttributes.value = JSON.parse(JSON.stringify(detail.value.dynamic_attributes || {}))
   changeVisible.value = true
 }
 
@@ -267,6 +278,8 @@ const navToSelect = () => {
   uni.navigateTo({ url: '/pages/employee/select' })
 }
 
+const pendingAttributes = ref<any>({})
+
 const submitChange = async () => {
   if (saving.value) return
   
@@ -278,33 +291,23 @@ const submitChange = async () => {
 
   try {
     saving.value = true
-    uni.showLoading({ title: '保存中...' })
+    uni.showLoading({ title: '同步到服务器...' })
 
-    const promises = []
-    
-    // 1. 如果状态变了，更新状态
-    if (pendingStatus.value !== detail.value.status) {
-      promises.push(request.put(`/assets/${assetId.value}`, { status: pendingStatus.value }))
+    // 构造全量更新对象，确保原子化操作
+    const updatePayload: any = {
+      status: pendingStatus.value,
+      owner_id: finalOwnerId,
+      dynamic_attributes: pendingAttributes.value
     }
     
-    // 2. 如果人员变了（或者因为状态联动变了），更新人员
-    const currentOwnerId = detail.value.owner?.id || null
-    if (finalOwnerId !== currentOwnerId) {
-      promises.push(request.patch(`/assets/${assetId.value}/reassign`, { owner_id: finalOwnerId }))
-    }
-
-    if (promises.length > 0) {
-      await Promise.all(promises)
-      // 更新本地显示
-      detail.value.status = pendingStatus.value
-      detail.value.owner = finalOwnerId ? pendingOwner.value : null
-      if (detail.value.dynamic_attributes && finalOwnerId) {
-         detail.value.dynamic_attributes['所属组织'] = pendingOwner.value.department || ''
-      } else if (detail.value.dynamic_attributes) {
-         detail.value.dynamic_attributes['所属组织'] = ''
-      }
+    // 发起单一 PUT 请求，彻底解决同步不一致问题
+    const updatedAsset = await request.put(`/assets/${assetId.value}`, updatePayload)
+    
+    if (updatedAsset) {
+      // 成功后全量同步本地状态
+      detail.value = updatedAsset
+      uni.showToast({ title: '云端同步成功', icon: 'success' })
       loadLogs(assetId.value)
-      uni.showToast({ title: '变更已生效', icon: 'success' })
     }
     
     saving.value = false
@@ -646,15 +649,25 @@ onUnmounted(() => {
   border-radius: 12px;
   overflow: hidden;
   max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
   
   .dialog-header {
     display: flex;
     justify-content: space-between;
     padding: 15px;
     border-bottom: 1px solid #eee;
+    flex-shrink: 0;
     
     .title { font-size: 16px; font-weight: bold; color: #333; }
     .close { font-size: 18px; color: #999; }
+  }
+
+  .change-body-scroll {
+    flex: 1;
+    max-height: 50vh;
+    overflow-y: auto;
   }
   
   .dialog-body {
@@ -665,17 +678,21 @@ onUnmounted(() => {
   }
   
   .dialog-footer {
-    padding: 15px;
+    padding: 15px 15px 25px; // 增加底部安全间距
     border-top: 1px solid #eee;
+    flex-shrink: 0; // 强制不收缩，保证按钮完整
     
-    .print-btn {
-      background: #007aff;
+    .submit-btn, .print-btn {
+      background: #1a73e8;
       color: #fff;
-      border-radius: 20px;
-      height: 40px;
-      line-height: 40px;
-      font-size: 15px;
+      border-radius: 22px;
+      height: 44px;
+      line-height: 44px;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
       &::after { border: none; }
+      &:active { opacity: 0.8; }
     }
   }
 }
@@ -718,6 +735,25 @@ onUnmounted(() => {
   padding: 10rpx 20rpx;
   border-radius: 8rpx;
   margin-top: 10rpx;
+  margin-bottom: 20rpx;
+}
+.section-divider {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: bold;
+  padding: 10rpx 0;
+  border-left: 6rpx solid #1a73e8;
+  padding-left: 15rpx;
+  margin: 20rpx 0;
+  background: #f0f7ff;
+}
+.c-input {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8rpx;
+  padding: 12rpx 20rpx;
+  font-size: 28rpx;
+  color: #333;
 }
 
 /* 标签实体排版 */

@@ -10,6 +10,23 @@ def get_base_dn(domain_name):
     return ",".join([f"DC={part}" for part in domain_name.split('.')])
 
 
+def extract_department(dn: str):
+    """从 DN 中提取最直接的所属部门/OU名称"""
+    if not dn:
+        return ""
+    parts = dn.split(',')
+    # 优先查找第一个 OU=
+    for p in parts:
+        if p.upper().startswith('OU='):
+            return p.split('=')[1]
+    # 其次查找第一个 CN= (如果是容器而非 OU)
+    for p in parts:
+        if p.upper().startswith('CN='):
+            return p.split('=')[1]
+    # 最后兜底取第一段
+    return parts[0].split('=')[-1] if '=' in parts[0] else parts[0]
+
+
 def create_ou_if_not_exists(conn, ou_dn, domain_name):
     """递归检查并创建不存在的组织单元 (OU)。"""
     if ou_dn.lower() == get_base_dn(domain_name).lower():
@@ -243,20 +260,36 @@ def search_ad_users(bind_username: str, bind_password: str, keyword: str = ""):
         conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
         if not conn.bound: return []
         
-        search_base = get_base_dn(domain_name)
+        # 自动探测 Base DN，避免由于域名解析不准导致的路径缺失
+        search_base = None
+        if server.info and server.info.other:
+            contexts = server.info.other.get('defaultNamingContext')
+            if contexts:
+                search_base = contexts[0] if isinstance(contexts, list) else contexts
         
-        # 基础过滤：必须是 person 和 user
-        filter_str = '(&(objectClass=user)(objectCategory=person)'
+        if not search_base:
+            search_base = get_base_dn(domain_name)
+        
+        # 采用更专业的 AD 用户过滤语法：sAMAccountType=805306368 专指人员用户
+        filter_str = '(&(objectClass=user)(sAMAccountType=805306368)'
         if keyword:
-            # 加入关键词匹配：登录名 或 显示名
             filter_str += f'(|(sAMAccountName=*{keyword}*)(displayName=*{keyword}*))'
         filter_str += ')'
         
-        conn.search(search_base, filter_str, SUBTREE, 
-                    attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName', 'userAccountControl'])
+        # 执行分页搜索，generator=False 可以直接从 conn.entries 获取全量合并后的结果
+        conn.extend.standard.paged_search(
+            search_base=search_base,
+            search_filter=filter_str,
+            search_scope=SUBTREE,
+            attributes=['distinguishedName', 'sAMAccountName', 'displayName', 'description', 'userPrincipalName', 'userAccountControl'],
+            paged_size=1000,
+            generator=False
+        )
         
         for entry in conn.entries:
+            # 访问属性并处理列表值
             uac = int(entry.userAccountControl.value) if 'userAccountControl' in entry else 512
+            
             user_info = {
                 'dn': str(entry.distinguishedName) if 'distinguishedName' in entry else '',
                 'username': str(entry.sAMAccountName) if 'sAMAccountName' in entry else '',
@@ -270,6 +303,17 @@ def search_ad_users(bind_username: str, bind_password: str, keyword: str = ""):
         print(f"Error searching users: {e}")
     finally:
         if conn and conn.bound: conn.unbind()
+    
+    # --- 增加地区过滤器逻辑 ---
+    region_filter = config.get('ACTIVE_REGION_CODE', 'all')
+    if region_filter != 'all':
+        # 查找匹配的配置项
+        selected_region_config = next((item for item in config.get('REGION_OPTIONS', []) if item.get("code") == region_filter), None)
+        if selected_region_config and selected_region_config.get('keywords'):
+            keywords = selected_region_config['keywords']
+            # 只要 DN 中包含任意一个关键词即保留
+            users = [u for u in users if any(k.lower() in u.get('dn', '').lower() for k in keywords)]
+    # --- 过滤器逻辑结束 ---
         
     return users
 
