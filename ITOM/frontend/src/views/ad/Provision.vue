@@ -137,6 +137,7 @@ const ouOptions = ref<{dn: string, name: string}[]>([])
 const groupOptions = ref<string[]>([])
 const positionOptions = ref<{name: string, suffix: string, default_groups?: string[]}[]>([])
 const ouGroupMapping = ref<Record<string, string[]>>({})
+const defaultPassword = ref('')
 
 const form = reactive({
   new_username: '',
@@ -240,8 +241,9 @@ const fetchOptions = async () => {
     if (config.POSITIONS) {
       positionOptions.value = config.POSITIONS
     }
-    if (config.DEFAULT_USER_PASSWORD && !form.password) {
-      form.password = config.DEFAULT_USER_PASSWORD
+    if (config.DEFAULT_USER_PASSWORD) {
+      defaultPassword.value = config.DEFAULT_USER_PASSWORD
+      if (!form.password) form.password = config.DEFAULT_USER_PASSWORD
     }
     if (config.OU_GROUP_MAPPING) {
       ouGroupMapping.value = config.OU_GROUP_MAPPING
@@ -271,7 +273,7 @@ const submitForm = async () => {
         const { data } = await axios.post('/api/ad/users', form)
         if (data.success) {
           ElMessage.success('域用户创建成功: ' + data.message)
-          resetForm()
+          resetForm(true) // 使用部分重置，方便连续创建
         }
       } catch (err: any) {
         ElMessage.error(err.response?.data?.detail || '用户创建失败，请检查网络或 AD 日志')
@@ -282,10 +284,19 @@ const submitForm = async () => {
   })
 }
 
-const resetForm = () => {
+const resetForm = (partial = false) => {
   if (formRef.value) {
-    formRef.value.resetFields()
-    lastAutoAddedGroups = []
+    if (partial) {
+      // 连续创建场景：仅清除姓名和工号
+      form.new_username = ''
+      form.new_display_name = ''
+      // 这里的逻辑建议保留 OU 和 Position 以便连续操作
+    } else {
+      // 彻底重置
+      formRef.value.resetFields()
+      form.password = defaultPassword.value
+      lastAutoAddedGroups = []
+    }
   }
 }
 

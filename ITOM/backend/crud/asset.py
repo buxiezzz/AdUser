@@ -19,7 +19,10 @@ def record_inventory_check(db: Session, asset_id: str, user_id: int):
     # 创建一条盘点日志
     db_asset = get_asset(db, asset_id)
     if not db_asset:
-        return None
+        raise ValueError("资产不存在")
+        
+    if db_asset.status in ["报废", "下账"]:
+        raise ValueError(f"资产当前为【{db_asset.status}】状态，禁止盘点")
     log_entry = AssetLog(
         asset_id=db_asset.id,
         operated_by=user_id,
@@ -164,7 +167,7 @@ def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""
     if keyword:
         from sqlalchemy import String
         search = f"%{keyword}%"
-        # 搜索资产编码、分类名称、员工姓名或动态属性（如序列号）
+        # 搜索资产编码、分类名称、员工姓名或动态属性
         query = query.join(Category, isouter=True).join(Employee, isouter=True).filter(
             (Asset.asset_code.ilike(search)) |
             (Category.name.ilike(search)) |
@@ -176,6 +179,24 @@ def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""
         query = query.filter(Asset.status == status)
         
     return query.offset(skip).limit(limit).all()
+
+def count_assets(db: Session, keyword: str = "", status: str = ""):
+    query = db.query(Asset)
+    
+    if keyword:
+        from sqlalchemy import String
+        search = f"%{keyword}%"
+        query = query.join(Category, isouter=True).join(Employee, isouter=True).filter(
+            (Asset.asset_code.ilike(search)) |
+            (Category.name.ilike(search)) |
+            (Employee.name.ilike(search)) |
+            (Asset.dynamic_attributes.cast(String).ilike(search))
+        )
+    
+    if status:
+        query = query.filter(Asset.status == status)
+        
+    return query.count()
 
 def get_asset(db: Session, asset_id: str):
     asset_id_hex = asset_id.replace('-', '')

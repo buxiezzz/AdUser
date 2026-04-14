@@ -47,13 +47,18 @@ const ouOptions = ref<any[]>([])
 const selectedOuName = ref('')
 const loading = ref(false)
 
-const loadOus = async () => {
+const loadInitialData = async () => {
   try {
     const res = await request.get('/ad/ous')
     ouOptions.value = res || []
-  } catch (e) {
-    console.error(e)
-  }
+  } catch (e) {}
+
+  try {
+    const config = await request.get('/settings/config')
+    if (config.DEFAULT_USER_PASSWORD) {
+      form.value.password = config.DEFAULT_USER_PASSWORD
+    }
+  } catch (e) {}
 }
 
 const onOuChange = (e: any) => {
@@ -77,10 +82,10 @@ const submit = async () => {
     const res = await request.post('/ad/users', form.value)
     uni.hideLoading()
     uni.showToast({ title: 'AD 账户开通成功!', icon: 'success' })
-    // Reset form
+    // Reset identity fields only for continuous creation
     form.value.new_username = ''
     form.value.new_display_name = ''
-    form.value.password = ''
+    // Do NOT clear password and ou_path here for convenience
   } catch (e: any) {
     uni.hideLoading()
   } finally {
@@ -89,7 +94,7 @@ const submit = async () => {
 }
 
 onMounted(() => {
-  loadOus()
+  loadInitialData()
 })
 </script>
 

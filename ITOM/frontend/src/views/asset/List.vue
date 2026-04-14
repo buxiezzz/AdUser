@@ -34,6 +34,7 @@
           <el-option label="在用" value="在用" />
           <el-option label="维修" value="维修" />
           <el-option label="报废" value="报废" />
+          <el-option label="下账" value="下账" />
         </el-select>
 
         <el-select v-model="searchCategory" placeholder="设备类型" clearable class="w-36">
@@ -62,7 +63,7 @@
           @click="resetFilters"
         >重置全部筛选</el-button>
 
-        <span class="text-xs text-gray-400 ml-auto">{{ filteredAssets.length }} / {{ rawAssets.length }} 条匹配</span>
+        <span class="text-xs text-gray-400 ml-auto">{{ totalAssets }} 条匹配资产</span>
       </div>
 
       <!-- 批量操作浮动栏（勾选>0时展示） -->
@@ -77,7 +78,7 @@
         </div>
       </transition>
 
-      <el-table ref="tableRef" :data="pagedAssets" style="width: 100%" v-loading="loading" border stripe @selection-change="handleSelectionChange" @sort-change="handleSortChange" @row-click="handleRowClick" row-class-name="cursor-pointer">
+      <el-table ref="tableRef" :data="rawAssets" style="width: 100%" v-loading="loading" border stripe @selection-change="handleSelectionChange" @sort-change="handleSortChange" @row-click="handleRowClick" row-class-name="cursor-pointer">
          <el-table-column type="selection" width="55" fixed="left" />
          <el-table-column prop="status" label="资产状态" width="110" sortable="custom">
            <template #default="{ row }">
@@ -152,15 +153,16 @@
 
       <!-- 分页控制条 -->
       <div class="flex items-center justify-between mt-4 px-1">
-        <span class="text-sm text-gray-500">共 <b>{{ filteredAssets.length }}</b> 条资产，当前第 {{ currentPage }} / {{ Math.ceil(filteredAssets.length / pageSize) || 1 }} 页</span>
+        <span class="text-sm text-gray-500">共查询到 <b>{{ totalAssets }}</b> 条资产，当前第 {{ currentPage }} 页</span>
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[20, 50, 100, 200]"
           layout="sizes, prev, pager, next, jumper"
-          :total="filteredAssets.length"
+          :total="totalAssets"
           background
-          @size-change="currentPage = 1"
+          @current-change="handlePageChange"
+          @size-change="handlePageChange"
         />
       </div>
     </el-card>
@@ -183,6 +185,7 @@
                 <el-option label="在用" value="在用" />
                 <el-option label="维修" value="维修" />
                 <el-option label="报废" value="报废" />
+                <el-option label="下账" value="下账" />
               </el-select>
             </el-form-item>
             <el-form-item label="资产编码" required>
@@ -241,7 +244,7 @@
                 placeholder="键入检索 AD 域用户"
                 :remote-method="searchEmployees"
                 :loading="empLoading"
-                :disabled="form.status === '闲置' || form.status === '报废'"
+                :disabled="form.status === '闲置' || form.status === '报废' || form.status === '下账'"
                 @change="handleOwnerChange"
               >
                 <el-option
@@ -254,7 +257,7 @@
                   <span style="float: right; color: var(--el-text-color-secondary); font-size: 13px">{{ emp.department }}</span>
                 </el-option>
               </el-select>
-              <div v-if="form.status === '闲置' || form.status === '报废'" class="text-xs text-gray-400 mt-1">闲置或报废状态下不可绑定人。</div>
+              <div v-if="form.status === '闲置' || form.status === '报废' || form.status === '下账'" class="text-xs text-gray-400 mt-1">闲置、报废或下账状态下不可绑定人。</div>
             </el-form-item>
           </div>
 
@@ -291,7 +294,7 @@
             </div>
             <div class="flex gap-2 items-center">
                 <el-button @click="drawerVisible = false">取消</el-button>
-                <el-button type="danger" plain v-if="!isNew && form.status !== '报废'" @click="doArchive">报废与归档</el-button>
+                <el-button type="danger" plain v-if="!isNew && form.status !== '报废' && form.status !== '下账'" @click="doArchive">报废与归档</el-button>
                 <el-button type="danger" v-if="!isNew" @click="doHardDelete">彻底删除台账</el-button>
                 <el-button type="primary" @click="submitSave">保存提交档案</el-button>
             </div>
@@ -532,7 +535,7 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { Plus, Refresh, Download, User, Right, Select } from '@element-plus/icons-vue'
 import axios from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
 import * as XLSX from 'xlsx'
 import QrcodeVue from 'qrcode.vue'
 
@@ -592,113 +595,82 @@ const fetchGlobals = async () => {
     }
 }
 
-const fetchAssets = async () => {
-    loading.value = true
-    try {
-        const { data } = await axios.get('/api/assets/')
-        rawAssets.value = data || []
-    } catch {
-        ElMessage.error('无法拉取资产池数据')
-    } finally {
-        loading.value = false
-    }
-}
+// 移除了冲突的 fetchAssets 定义，统一使用下面的服务端逻辑
 
 onMounted(() => {
     fetchGlobals()
     fetchAssets()
 })
 
-const filteredAssets = computed(() => {
-    return rawAssets.value.filter(a => {
-        // 关键词（资产编号 + 使用人名字）
-        if (searchKeyword.value) {
-            const kw = searchKeyword.value.toLowerCase()
-            const code = (a.asset_code || '').toLowerCase()
-            const ownerName = a.owner ? a.owner.name.toLowerCase() : ''
-            if (!code.includes(kw) && !ownerName.includes(kw)) return false
-        }
-        // 资产状态
-        if (searchStatus.value && a.status !== searchStatus.value) return false
-        // 设备分类
-        if (searchCategory.value !== '' && a.category_id !== searchCategory.value) return false
-        // 使用人名字
-        if (searchOwner.value) {
-            const ownerName = a.owner ? a.owner.name.toLowerCase() : ''
-            if (!ownerName.includes(searchOwner.value.toLowerCase())) return false
-        }
-        // 所属组织/部门
-        if (searchDept.value) {
-            const dept = a.owner ? a.owner.department : (a.dynamic_attributes?.['所属组织'] || '')
-            if (dept !== searchDept.value) return false
-        }
-        // 入库日期范围（用本地时区日期比较，避免 UTC 换算偏差）
-        if (searchDateRange.value && searchDateRange.value.length === 2) {
-            const d = new Date(a.created_at)
-            const assetDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-            const [startDate, endDate] = searchDateRange.value as [string, string]
-            if (assetDate < startDate || assetDate > endDate) return false
-        }
-        return true
-    })
-})
-
-// ------- 分页与排序 -------
+// 分页与排序状态
 const currentPage = ref(1)
-const pageSize = ref(50)
-const sortProp = ref('')
-const sortOrder = ref('')
+const pageSize = ref(20)
+const totalAssets = ref(0)
+const sortProp = ref('updated_at')
+const sortOrder = ref('desc')
 
-// 过滤条件变化时重置到第一页
-watch(filteredAssets, () => { currentPage.value = 1 })
-
-const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
-    sortProp.value = prop || ''
-    sortOrder.value = order || ''
+// 获取资产列表 (服务端驱动)
+const fetchAssets = async () => {
+    loading.value = true
+    try {
+        const params: any = {
+            skip: (currentPage.value - 1) * pageSize.value,
+            limit: pageSize.value,
+            keyword: searchKeyword.value,
+            status: searchStatus.value,
+            sort_by: sortProp.value,
+            order: sortOrder.value === 'ascending' ? 'asc' : 'desc'
+        }
+        
+        // 主数据请求：独立执行，绝对不能因 count 失败而被拖垮
+        const dataRes = await axios.get('/api/assets/', { params })
+        rawAssets.value = dataRes.data || []
+        
+        // 总数请求：独立执行，失败了只影响页码显示，不影响列表
+        axios.get('/api/assets/count', { 
+            params: { keyword: searchKeyword.value, status: searchStatus.value }
+        }).then(countRes => {
+            totalAssets.value = countRes.data || rawAssets.value.length
+        }).catch(() => {
+            // count 失败时用当前页数据量做降级估算
+            totalAssets.value = rawAssets.value.length
+        })
+        
+    } catch {
+        ElMessage.error('无法拉取资产台账数据，请检查网络连接')
+    } finally {
+        loading.value = false
+    }
 }
 
-// 排序后的数据
-const sortedAssets = computed(() => {
-    if (!sortProp.value || !sortOrder.value) return filteredAssets.value
-    return [...filteredAssets.value].sort((a, b) => {
-        let aVal: any = ''
-        let bVal: any = ''
-        switch (sortProp.value) {
-            case 'status':        aVal = a.status || '';        bVal = b.status || '';        break
-            case 'asset_code':    aVal = a.asset_code || '';    bVal = b.asset_code || '';    break
-            case 'category_name': aVal = getCategoryName(a.category_id); bVal = getCategoryName(b.category_id); break
-            case 'created_at':    aVal = new Date(a.created_at).getTime(); bVal = new Date(b.created_at).getTime(); break
-            case 'department':
-                aVal = a.owner ? a.owner.department : (a.dynamic_attributes?.['所属组织'] || '')
-                bVal = b.owner ? b.owner.department : (b.dynamic_attributes?.['所属组织'] || '')
-                break
-            case 'owner_name': aVal = a.owner ? a.owner.name : ''; bVal = b.owner ? b.owner.name : ''; break
-            default: return 0
-        }
-        if (typeof aVal === 'number') {
-            return sortOrder.value === 'ascending' ? aVal - bVal : bVal - aVal
-        }
-        return sortOrder.value === 'ascending'
-            ? String(aVal).localeCompare(String(bVal), 'zh-CN')
-            : String(bVal).localeCompare(String(aVal), 'zh-CN')
-    })
+// 监听筛选条件，增加防抖，避免频繁请求
+let timer: any = null
+watch([searchKeyword, searchStatus, searchCategory, searchOwner, searchDept, searchDateRange], () => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+        currentPage.value = 1
+        fetchAssets()
+    }, 300)
 })
 
-// 分页后的数据（表格实际显示）
-const pagedAssets = computed(() => {
-    const start = (currentPage.value - 1) * pageSize.value
-    return sortedAssets.value.slice(start, start + pageSize.value)
-})
+const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
+    sortProp.value = prop || 'updated_at'
+    sortOrder.value = order || 'desc'
+    fetchAssets()
+}
 
+const handlePageChange = () => {
+    fetchAssets()
+}
+
+// 模拟动态属性列 (仅基于当前可视页)
 const dynamicHeaders = computed(() => {
     const keys = new Set<string>()
-    const excludedKeys = ['规格型号', '计量单位', '所属组织', '序列号', '备注'] // These are already statically rendered
-    filteredAssets.value.forEach(asset => {
+    const excludedKeys = ['规格型号', '计量单位', '所属组织', '序列号', '备注']
+    rawAssets.value.forEach(asset => {
         if(asset.dynamic_attributes) {
             Object.keys(asset.dynamic_attributes).forEach(k => {
-                if (!excludedKeys.includes(k)) {
-                    keys.add(k)
-                }
+                if (!excludedKeys.includes(k)) keys.add(k)
             })
         }
     })
@@ -714,6 +686,7 @@ const getStatusType = (status: string) => {
     if(status === '闲置') return 'success'
     if(status === '在用') return 'primary'
     if(status === '维修') return 'warning'
+    if(status === '下账') return 'info'
     return 'danger' // 报废
 }
 
@@ -801,7 +774,7 @@ const handleCategoryChange = (_val: number) => {
 }
 
 const handleStatusChange = (val: string) => {
-    if(val === '闲置' || val === '报废') {
+    if(val === '闲置' || val === '报废' || val === '下账') {
         form.value.owner_id = null
         if (form.value.dynamic_attributes) {
             form.value.dynamic_attributes['所属组织'] = ''
@@ -958,35 +931,67 @@ const doHardDelete = async () => {
     }
 }
 
-const exportExcel = () => {
-    if (filteredAssets.value.length === 0) return ElMessage.warning('当前暂无数据可导出')
+const exportExcel = async () => {
+    if (totalAssets.value === 0) return ElMessage.warning('当前暂无数据可导出')
     
-    const rows = filteredAssets.value.map(a => {
-        const baseRow: any = {
-            '资产状态': a.status,
-            '资产编码': a.asset_code,
-            '资产分类': getCategoryName(a.category_id),
-            '规格型号': a.dynamic_attributes ? (a.dynamic_attributes['规格型号'] || '') : '',
-            '计量单位': a.dynamic_attributes && a.dynamic_attributes['计量单位'] ? a.dynamic_attributes['计量单位'] : '台/件',
-            '入库日期': new Date(a.created_at).toLocaleDateString(),
-            '所属组织': a.owner ? a.owner.department : (a.dynamic_attributes ? (a.dynamic_attributes['所属组织'] || '') : ''),
-            '使用人': a.owner ? a.owner.name : '',
-            '序列号': a.dynamic_attributes ? (a.dynamic_attributes['序列号'] || '') : '',
-            '备注': a.dynamic_attributes ? (a.dynamic_attributes['备注'] || '') : ''
-        }
-        
-        // Append any other dynamic headers that are not part of the core 10
-        dynamicHeaders.value.forEach(h => {
-             baseRow[h] = a.dynamic_attributes ? (a.dynamic_attributes[h] || '') : ''
-        })
-        
-        return baseRow
+    const exportLoading = ElLoading.service({
+        lock: true,
+        text: '全量导出涉及数据量较大，正在准备清单，请稍后...',
+        background: 'rgba(0, 0, 0, 0.7)'
     })
 
-    const ws = XLSX.utils.json_to_sheet(rows)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, "资产台账导出")
-    XLSX.writeFile(wb, `IT资产台账导出_${new Date().getTime()}.xlsx`)
+    try {
+        // 1. 获取全量数据 (不再受分页限制)
+        const params: any = {
+            skip: 0,
+            limit: 100000, // 给一个足够大的数值模拟全量
+            keyword: searchKeyword.value,
+            status: searchStatus.value,
+            sort_by: sortProp.value,
+            order: sortOrder.value === 'ascending' ? 'asc' : 'desc'
+        }
+        
+        const res = await axios.get('/api/assets/', { params })
+        const allAssets = res.data || []
+        
+        if (allAssets.length === 0) {
+            ElMessage.warning('未获取到数据')
+            return
+        }
+
+        // 2. 转换数据逻辑
+        const rows = allAssets.map(a => {
+            const baseRow: any = {
+                '资产状态': a.status,
+                '资产编码': a.asset_code,
+                '资产分类': getCategoryName(a.category_id),
+                '规格型号': a.dynamic_attributes ? (a.dynamic_attributes['规格型号'] || '') : '',
+                '计量单位': a.dynamic_attributes && a.dynamic_attributes['计量单位'] ? a.dynamic_attributes['计量单位'] : '台/件',
+                '入库日期': new Date(a.created_at).toLocaleDateString(),
+                '所属组织': a.owner ? a.owner.department : (a.dynamic_attributes ? (a.dynamic_attributes['所属组织'] || '') : ''),
+                '使用人': a.owner ? a.owner.name : '',
+                '序列号': a.dynamic_attributes ? (a.dynamic_attributes['序列号'] || '') : '',
+                '备注': a.dynamic_attributes ? (a.dynamic_attributes['备注'] || '') : ''
+            }
+            
+            dynamicHeaders.value.forEach(h => {
+                 baseRow[h] = a.dynamic_attributes ? (a.dynamic_attributes[h] || '') : ''
+            })
+            
+            return baseRow
+        })
+
+        const ws = XLSX.utils.json_to_sheet(rows)
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, "资产台账导出")
+        XLSX.writeFile(wb, `ITOM_资产台账_${new Date().getTime()}.xlsx`)
+        ElMessage.success(`全量导出成功，共计 ${rows.length} 条记录`)
+    } catch (err) {
+        console.error(err)
+        ElMessage.error('导出全量数据失败，请检查网络或咨询管理员')
+    } finally {
+        exportLoading.close()
+    }
 }
 
 // ------ 批量打印核心逻辑 ------

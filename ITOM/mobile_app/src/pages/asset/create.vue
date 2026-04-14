@@ -36,8 +36,13 @@
           </view>
 
           <view class="form-item">
-            <text class="label">资产型号</text>
-            <input class="input" v-model="form.dynamic_attributes['资产型号']" placeholder="如：ThinkPad X1 / 24寸显示器" />
+            <text class="label">规格型号</text>
+            <input class="input" v-model="form.dynamic_attributes['规格型号']" placeholder="如：ThinkPad X1" />
+          </view>
+          
+          <view class="form-item">
+            <text class="label">序列号(SN)</text>
+            <input class="input" v-model="form.dynamic_attributes['序列号']" placeholder="请输入硬件SN码" />
           </view>
           
           <view class="form-item">
@@ -79,11 +84,11 @@
         </view>
 
         <!-- 详细属性 (动态加载) -->
-        <view class="form-section" v-if="dynamicAttrFields.filter(f => !['资产型号','计量单位','使用日期'].includes(f)).length > 0">
+        <view class="form-section" v-if="dynamicAttrFields.filter(f => !['规格型号','序列号','计量单位','使用日期'].includes(f)).length > 0">
           <view class="section-title">详细属性 ({{ selectedCategory?.name }})</view>
           
           <template v-for="field in dynamicAttrFields" :key="field">
-            <view class="form-item" v-if="!['资产型号','计量单位','使用日期'].includes(field)">
+            <view class="form-item" v-if="!['规格型号','序列号','计量单位','使用日期'].includes(field)">
               <text class="label">{{ field }}</text>
               <input 
                 class="input" 
@@ -129,7 +134,7 @@ interface Employee {
 
 const categories = ref<Category[]>([])
 const employees = ref<Employee[]>([])
-const statusOptions = ['闲置', '在用', '维修', '报废']
+const statusOptions = ['闲置', '在用', '维修', '报废', '下账']
 
 const selectedCategory = ref<Category | null>(null)
 const selectedEmployee = ref<Employee | null>(null)
@@ -141,7 +146,8 @@ const form = reactive({
   status: '闲置',
   owner_id: null as number | null,
   dynamic_attributes: {
-    '资产型号': '',
+    '规格型号': '',
+    '序列号': '',
     '计量单位': '台',
     '使用日期': new Date().toISOString().split('T')[0]
   } as Record<string, any>
@@ -163,8 +169,8 @@ const loadInitialData = async () => {
 }
 
 const openReassign = () => {
-  if (form.status === '报废') {
-    uni.showToast({ title: `报废状态下不可绑定使用人`, icon: 'none' })
+  if (form.status === '报废' || form.status === '下账') {
+    uni.showToast({ title: `该状态下不可绑定使用人`, icon: 'none' })
     return
   }
   // 方案 A：允许闲置状态下选人，选完会联动变状态
@@ -214,8 +220,8 @@ const onStatusChange = (e: any) => {
   const newStatus = statusOptions[e.detail.value]
   form.status = newStatus
   
-  // 业务逻辑：如果变成闲置或报废，必须清空使用人
-  if (newStatus === '闲置' || newStatus === '报废') {
+  // 业务逻辑：如果变成闲置或报废或下账，必须清空使用人
+  if (newStatus === '闲置' || newStatus === '报废' || newStatus === '下账') {
     if (selectedEmployee.value) {
       selectedEmployee.value = null
       form.owner_id = null

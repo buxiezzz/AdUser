@@ -13,9 +13,15 @@
       <view v-if="showServerSetting" class="server-form">
         <text class="hint">💡 换了网络后在此处更新电脑的局域网 IP</text>
         <view class="ip-row">
-          <text class="prefix">http://</text>
-          <input class="ip-input" v-model="serverIp" placeholder="例如: 10.20.133.62" />
-          <text class="suffix">:18000/api</text>
+          <view class="input-group main">
+            <text class="prefix">http://</text>
+            <input class="ip-input" v-model="serverIp" placeholder="例如: 10.20.133.62" />
+          </view>
+          <view class="input-group port">
+            <text class="sep">:</text>
+            <input class="ip-input" v-model="serverPort" placeholder="18000" type="number" />
+          </view>
+          <text class="suffix">/api</text>
         </view>
         <button class="save-btn" size="mini" @click="saveServerUrl">保存并重试</button>
       </view>
@@ -53,6 +59,7 @@ const loading = ref(false)
 const loadError = ref(false)
 const showServerSetting = ref(false)
 const serverIp = ref('')
+const serverPort = ref('18000')
 
 // 显示当前生效的 IP
 const displayServerUrl = computed(() => {
@@ -65,8 +72,12 @@ onMounted(() => {
   // 回显当前保存的 IP
   const saved = uni.getStorageSync('itom_server_url') as string
   if (saved) {
-    const match = saved.match(/http:\/\/([^:]+):/)
-    if (match) serverIp.value = match[1]
+    // 匹配 http://ip:port/api 或 http://ip:port
+    const match = saved.match(/http:\/\/([^:]+):(\d+)/)
+    if (match) {
+      serverIp.value = match[1]
+      serverPort.value = match[2]
+    }
   }
   loadConfig()
 })
@@ -82,7 +93,8 @@ const saveServerUrl = () => {
     uni.showToast({ title: 'IP 格式不正确', icon: 'none' })
     return
   }
-  uni.setStorageSync('itom_server_url', `http://${ip}:18000/api`)
+  const port = serverPort.value.trim() || '18000'
+  uni.setStorageSync('itom_server_url', `http://${ip}:${port}/api`)
   uni.showToast({ title: '地址已保存，正在重新连接...', icon: 'success' })
   showServerSetting.value = false
   // 重新加载配置
@@ -156,31 +168,57 @@ const editConfig = () => {
     .ip-row {
       display: flex;
       align-items: center;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 0 8px;
-      height: 38px;
-      .prefix, .suffix {
-        font-size: 12px;
+      gap: 8px;
+      
+      .input-group {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 0 10px;
+        height: 42px;
+        transition: border-color 0.2s;
+        
+        &:focus-within {
+          border-color: #007aff;
+        }
+        
+        &.main { flex: 1; }
+        &.port { width: 90px; }
+      }
+
+      .prefix, .suffix, .sep {
+        font-size: 13px;
         color: #999;
         flex-shrink: 0;
       }
+      .sep {
+        font-weight: bold;
+        color: #333;
+        margin: 0 2px;
+      }
+      
       .ip-input {
         flex: 1;
         font-size: 14px;
-        height: 38px;
-        padding: 0 4px;
+        height: 42px;
         min-width: 0;
+        color: #333;
       }
     }
     .save-btn {
-      margin-top: 10px;
-      background: #007aff;
+      margin-top: 12px;
+      background: linear-gradient(135deg, #007aff, #0056b3);
       color: #fff;
-      border-radius: 6px;
-      font-size: 13px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      height: 40px;
+      line-height: 40px;
+      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
       &::after { border: none; }
+      &:active { opacity: 0.9; transform: translateY(1px); }
     }
   }
 }

@@ -48,7 +48,19 @@
       </view>
     </view>
 
-    <!-- 功能分组 -->
+    <!-- 功能分组 (资产) -->
+    <view class="section-wrap">
+      <view class="section-title">资产操作</view>
+      <view class="section-list">
+        <view class="list-item" @click="navTo('/pages/asset/create')">
+          <text class="item-icon">📥</text>
+          <text class="item-label">新资产入库</text>
+          <text class="item-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 功能分组 (AD) -->
     <view class="section-wrap">
       <view class="section-title">域账号创建</view>
       <view class="section-list">
@@ -137,7 +149,7 @@ const switchToInventory = () => {
 // 处理 PDA 扫描
 const loadStats = async () => {
   try {
-    const statuses = ['在用', '闲置', '维修', '报废']
+    const statuses = ['在用', '闲置', '维修', '报废', '下账']
     const counts: Record<string, number> = {}
     for (const s of statuses) {
       const res = await request.get('/assets/', { status: s, limit: 9999 })

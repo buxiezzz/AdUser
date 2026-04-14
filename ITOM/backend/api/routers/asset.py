@@ -37,8 +37,11 @@ def quick_inventory_check(asset_id: UUID, db: Session = Depends(get_db), current
     """
     移动端专用：免密扫码快速生成一条“盘点核对”日志
     """
-    log_entry = crud_asset.record_inventory_check(db, asset_id, current_user.id)
-    return {"message": "盘点记录已入账", "log_id": log_entry.id}
+    try:
+        log_entry = crud_asset.record_inventory_check(db, asset_id, current_user.id)
+        return {"message": "盘点记录已入账", "log_id": log_entry.id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.patch("/{asset_id}/status", response_model=AssetResponse)
 def quick_update_status(asset_id: UUID, request: StatusUpdateRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
@@ -469,6 +472,17 @@ def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), curren
     return {"created": created}
 
 # --- Assets ---
+@router.get("/count")
+def get_assets_count(
+    keyword: str = "", 
+    status: str = "", 
+    db: Session = Depends(get_db)
+):
+    """
+    高性能计数接口：仅返回符合条件的资产总数，不加载数据内容
+    """
+    return crud_asset.count_assets(db, keyword=keyword, status=status)
+
 @router.get("/", response_model=List[AssetResponse])
 def read_assets(
     keyword: str = "", 

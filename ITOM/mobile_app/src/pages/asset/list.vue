@@ -30,6 +30,10 @@
       </view>
       
       <view class="stat-right">
+        <!-- 常规模式：点此新建入库 -->
+        <view class="mini-btn-link" style="margin-right: 12px; background: #e8f5e9;" v-if="!isBatchMode" @click="navToCreate">
+          <text class="btn-text" style="color: #4caf50;">+ 新建入库</text>
+        </view>
         <!-- 常规模式：点此进入批量 -->
         <view class="mini-btn-link" v-if="!isBatchMode" @click="startBatchMode">
           <text class="btn-text">批量操作</text>
@@ -40,7 +44,7 @@
           <text class="op-link" @click="toggleSelectAll">{{ isAllSelected ? '取消' : '全选' }}</text>
           <view class="op-divider"></view>
           <view class="print-trigger-btn" @click="executeBatchPrint">
-            <text class="print-btn-text">批量打印({{ selectedIds.length }})</text>
+            <text class="print-btn-text">批量打印({{ selectedIds.size }})</text>
           </view>
           <view class="op-divider"></view>
           <text class="op-link cancel" @click="exitBatchMode">退出</text>
@@ -105,9 +109,9 @@
                 <text class="info-label">使用人：</text>
                 <text class="info-value">{{ item.owner?.name || '-' }}</text>
               </view>
-              <view class="info-row" v-if="getFirstAttr(item)">
-                <text class="info-label">{{ getFirstAttr(item)?.key }}：</text>
-                <text class="info-value">{{ getFirstAttr(item)?.val }}</text>
+              <view class="info-row">
+                <text class="info-label">规格型号：</text>
+                <text class="info-value">{{ item.dynamic_attributes?.['规格型号'] || '-' }}</text>
               </view>
             </view>
           </view>
@@ -144,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import request from '@/utils/request'
 import { startPDAListener, stopPDAListener } from '@/utils/pda'
@@ -153,30 +157,32 @@ import CustomTabBar from '@/components/CustomTabBar.vue'
 
 // 批量模式状态
 const isBatchMode = ref(false)
-const selectedIds = ref<string[]>([])
+// 批量模式状态 (使用 Set 提升查找性能)
+const selectedIds = ref(new Set<string>())
 
-const isSelected = (id: string) => selectedIds.value.includes(id)
-const isAllSelected = computed(() => assetList.value.length > 0 && selectedIds.value.length === assetList.value.length)
+const isSelected = (id: string) => selectedIds.value.has(id)
+const isAllSelected = computed(() => assetList.value.length > 0 && selectedIds.value.size === assetList.value.length)
 
 // 切换批量模式
 const startBatchMode = () => {
   isBatchMode.value = true
-  selectedIds.value = []
+  selectedIds.value.clear()
 }
 const exitBatchMode = () => {
   isBatchMode.value = false
-  selectedIds.value = []
+  selectedIds.value.clear()
 }
 
 // 点击卡片处理
 const handleCardTap = (item: any) => {
   if (isBatchMode.value) {
-    const idx = selectedIds.value.indexOf(item.id)
-    if (idx > -1) {
-      selectedIds.value.splice(idx, 1)
+    if (selectedIds.value.has(item.id)) {
+      selectedIds.value.delete(item.id)
     } else {
-      selectedIds.value.push(item.id)
+      selectedIds.value.add(item.id)
     }
+    // 强制触发响应式更新
+    selectedIds.value = new Set(selectedIds.value)
   } else {
     goToDetail(item.id)
   }
@@ -184,34 +190,39 @@ const handleCardTap = (item: any) => {
 
 // 全选/取消
 const toggleSelectAll = () => {
-  if (selectedIds.value.length === assetList.value.length) {
-    selectedIds.value = []
+  if (selectedIds.value.size === assetList.value.length) {
+    selectedIds.value.clear()
   } else {
-    selectedIds.value = assetList.value.map(item => item.id)
+    selectedIds.value = new Set(assetList.value.map(item => item.id))
   }
 }
 
 // 执行批量打印
 const executeBatchPrint = () => {
-  if (selectedIds.value.length === 0) {
+  if (selectedIds.value.size === 0) {
     uni.showToast({ title: '请先勾选资产', icon: 'none' })
     return
   }
   
   uni.showModal({
     title: '批量打印确认',
-    content: `确定要打印选中的 ${selectedIds.value.length} 个资产标签吗？`,
+    content: `确定要打印选中的 ${selectedIds.value.size} 个资产标签吗？`,
     success: (res) => {
       if (res.confirm) {
-        // 根据 ID 找出完整的资产对象列表
-        const targets = assetList.value.filter(item => selectedIds.value.includes(item.id))
+        const targets = assetList.value.filter(item => selectedIds.value.has(item.id))
         printBatchAssets(targets)
       }
     }
   })
 }
 
-// 系统状态栏高度
+// 跳转新建资产
+const navToCreate = () => {
+  uni.navigateTo({ url: '/pages/asset/create' })
+}
+
+// ---------------------------
+// 交互与搜索逻辑
 const statusBarHeight = ref(20)
 try {
   const sysInfo = uni.getSystemInfoSync()
@@ -225,6 +236,7 @@ const statusTabs = [
   { label: '在用', value: '在用' },
   { label: '维修', value: '维修' },
   { label: '报废', value: '报废' },
+  { label: '下账', value: '下账' },
 ]
 const activeTab = ref('')
 
@@ -244,10 +256,12 @@ onShow(() => {
   if (status !== undefined && status !== null) {
     activeTab.value = status
     loadData(true)
+    fetchTotal()
     uni.removeStorageSync('active_asset_status')
   } else {
     // 默认进入也加载一次
     loadData(true)
+    fetchTotal()
   }
 })
 
@@ -310,15 +324,16 @@ const loadData = async (reset = false) => {
   }
 }
 
-// 获取资产总数（支持过滤条件的真实总数）
+// 获取资产总数（使用高性能计数接口）
 const fetchTotal = async () => {
   try {
-    const params: any = { skip: 0, limit: 99999 } // 请求很大范围以获取总数
+    const params: any = {}
     if (keyword.value) params.keyword = keyword.value
     if (activeTab.value) params.status = activeTab.value
     
-    const res = await request.get('/assets/', params)
-    if (res) total.value = res.length
+    // 调用专用计数接口，只返回一个数字，不再拉取全量模型数据
+    const res = await request.get('/assets/count', params)
+    total.value = res || 0
   } catch (e) {}
 }
 
@@ -330,16 +345,21 @@ const onRefresh = () => {
 }
 const loadMore = () => loadData()
 const switchTab = (val: string) => {
+  if (loading.value) return // 防止连点
   activeTab.value = val
-  loadData(true)
+  
+  // 关键：利用 nextTick 让 UI 先变色（Tab 激活感），再跑繁重的数据加载
+  nextTick(() => {
+    // 微小延迟（10ms），确保主线程先处理完 UI 点击反馈
+    setTimeout(() => {
+      loadData(true)
+      fetchTotal()
+    }, 10)
+  })
 }
 
 const getFirstAttr = (item: any) => {
-  if (!item.dynamic_attributes) return null
-  const keys = Object.keys(item.dynamic_attributes)
-  if (keys.length === 0) return null
-  const k = keys[0]
-  return { key: k, val: item.dynamic_attributes[k] }
+  return null // 已弃用此逻辑，改用硬编码展示【规格型号】
 }
 
 const statusClass = (s: string) => {
@@ -347,6 +367,7 @@ const statusClass = (s: string) => {
   if (s === '闲置') return 'status-idle'
   if (s === '维修') return 'status-repair'
   if (s === '报废') return 'status-scrap'
+  if (s === '下账') return 'status-scrap'
   return 'status-idle'
 }
 
@@ -388,6 +409,7 @@ onMounted(() => {
   uni.$on('refreshAssetList', (data : any) => {
     activeTab.value = data.status || ''
     loadData(true)
+    fetchTotal()
   })
   
   loadData(true)
@@ -592,7 +614,8 @@ onUnmounted(() => {
   margin-bottom: 12px;
   overflow: hidden;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s;
+  /* 开启硬件加速，大幅降低 Windows 端卡顿 */
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
   
   &.card-hover {
     background: #f0f6ff;

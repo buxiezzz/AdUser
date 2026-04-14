@@ -12,9 +12,11 @@ from api.deps import get_current_active_user
 from database import DATABASE_URL
 
 router = APIRouter()
-# os.path.dirname(__file__) is <backend>/api/routers
-# os.path.dirname(...) twice goes to <backend>
-CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'core', 'config.json')
+# 将配置文件路径迁移至已持久化的数据目录，确保容器重启或镜像构建时不丢失
+CONFIG_FILE_PATH = "/app/data/config.json"
+if not os.path.exists("/app"):
+    # 本地非容器环境降级方案
+    CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'core', 'config.json')
 
 class SettingsUpdateSchema(BaseModel):
     domain_controller_ip: str | None = None

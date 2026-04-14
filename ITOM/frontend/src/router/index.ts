@@ -131,7 +131,13 @@ const routes: Array<RouteRecordRaw> = [
         path: '/',
         component: MainLayout,
         redirect: '/dashboard',
-        children: adminRoutes as any
+        children: [
+            ...adminRoutes as any,
+            // 父级菜单默认重定向到第一个子页面，避免右侧空白
+            { path: 'assets', redirect: '/assets/list' },
+            { path: 'ad', redirect: '/ad/provision' },
+            { path: 'settings', redirect: '/settings/templates' }
+        ]
     },
     {
         path: '/:pathMatch(.*)*',

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">权限模板配置</h1>
+      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">职位、岗位与全域参数配置</h1>
       <el-button type="primary" :loading="saving" @click="saveTemplates">
         <el-icon class="mr-1"><Check /></el-icon>
         保存所有模板配置

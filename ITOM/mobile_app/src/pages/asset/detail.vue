@@ -243,13 +243,13 @@ const statusClass = (status: string) => {
   if (status === '在用') return 'status-active'
   if (status === '闲置') return 'status-idle'
   if (status === '维修') return 'status-repair'
-  return 'status-offline' // 报废
+  return 'status-offline' // 报废、下账
 }
 
 const printVisible = ref(false)
 const changeVisible = ref(false)
 const saving = ref(false)
-const statusList = ['在用', '闲置', '维修', '报废']
+const statusList = ['在用', '闲置', '维修', '报废', '下账']
 const pendingStatus = ref('')
 const pendingOwner = ref<any>(null)
 
@@ -271,8 +271,8 @@ const onPendingStatusChange = (e: any) => {
 }
 
 const navToSelect = () => {
-  if (pendingStatus.value === '报废') {
-    uni.showToast({ title: '报废资产无法变更人员', icon: 'none' })
+  if (pendingStatus.value === '报废' || pendingStatus.value === '下账') {
+    uni.showToast({ title: '已下账或报废资产无法变更人员', icon: 'none' })
     return
   }
   uni.navigateTo({ url: '/pages/employee/select' })
@@ -285,7 +285,7 @@ const submitChange = async () => {
   
   // 业务校验：如果设为闲置，强制清空人员
   let finalOwnerId = pendingOwner.value?.id || null
-  if (pendingStatus.value === '闲置' || pendingStatus.value === '报废') {
+  if (pendingStatus.value === '闲置' || pendingStatus.value === '报废' || pendingStatus.value === '下账') {
     finalOwnerId = null
   }
 

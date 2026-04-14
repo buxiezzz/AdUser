@@ -10,7 +10,7 @@ services:
     ports:
       - "9000:8000"
     volumes:
-      - ./backend/data:/app/data
+      - ./itom_data:/app/data
       - /etc/localtime:/etc/localtime:ro
     environment:
       - TZ=Asia/Shanghai

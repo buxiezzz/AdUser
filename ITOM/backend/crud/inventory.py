@@ -19,7 +19,7 @@ def create_inventory_task(db: Session, task_in: InventoryTaskCreate):
     db.flush()
 
     # 2. 筛选资产范围 (如果有特定列表则按列表，否则默认为全部在册资产)
-    query = db.query(Asset).filter(Asset.status != "报废")
+    query = db.query(Asset).filter(Asset.status.notin_(["报废", "下账"]))
     if task_in.asset_ids:
         query = query.filter(Asset.id.in_([str(aid) for aid in task_in.asset_ids]))
     
@@ -47,6 +47,9 @@ def submit_inventory_record(db: Session, task_id: str, asset_code: str, operator
     asset = db.query(Asset).filter(Asset.asset_code == asset_code).first()
     if not asset:
         return None, "资产编码不存在"
+    
+    if asset.status in ["报废", "下账"]:
+        return None, f"该资产处于【{asset.status}】状态，禁止盘点"
     
     record = db.query(InventoryRecord).filter(
         InventoryRecord.task_id == task_id,

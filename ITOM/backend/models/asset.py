@@ -44,7 +44,7 @@ class Asset(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     asset_code = Column(String(100), unique=True, index=True) # 财务固资编号
     category_id = Column(Integer, ForeignKey("asset_categories.id"))
-    status = Column(String(20), default="闲置") # 闲置, 在用, 维修, 报废
+    status = Column(String(20), default="闲置") # 闲置, 在用, 维修, 报废, 下账
     owner_id = Column(Integer, ForeignKey("employees.id"), nullable=True) # 当前使用者
     
     dynamic_attributes = Column(JSON, default={}) # 核心动态属性，存储 MAC、IP、CPU 等任意字段

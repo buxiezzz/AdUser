@@ -84,20 +84,30 @@
 
       <!-- 退出登录 -->
       <view class="logout-wrap">
-        <view class="logout-btn" @click="logout">
-          <text class="logout-text">退出登录</text>
+        <view class="logout-btn" hover-class="btn-hover" @tap="logout" style="margin-bottom: 12px;">
+          <text class="logout-text">退出当前账号</text>
+        </view>
+        <view class="logout-btn secondary" hover-class="btn-hover" @tap="exitApp" v-if="isNative">
+          <text class="logout-text gray">彻底退出 APP 程序</text>
         </view>
       </view>
 
-      <view style="height: 30rpx;"></view>
+      <!-- 底部留白，防止被 TabBar 遮挡 -->
+      <view style="height: 180rpx;"></view>
     </scroll-view>
     <CustomTabBar :activeIndex="4" />
   </view>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+
+const isNative = ref(false)
+// #ifdef APP-PLUS
+isNative.value = true
+// #endif
 
 const navTo = (url: string) => uni.navigateTo({ url })
 
@@ -116,13 +126,34 @@ const showAbout = () => {
 }
 
 const logout = () => {
+  console.log('触发退出登录')
+  uni.vibrateShort({})
   uni.showModal({
     title: '退出确认',
-    content: '确定要退出登录吗？',
+    content: '确定要退出登录并返回登录页吗？',
     success: (res) => {
       if (res.confirm) {
-        uni.removeStorageSync('token')
+        uni.removeStorageSync('itom_token')
         uni.reLaunch({ url: '/pages/login/login' })
+      }
+    }
+  })
+}
+
+const exitApp = () => {
+  console.log('触发退出程序')
+  uni.vibrateShort({})
+  uni.showModal({
+    title: '彻底退出',
+    content: '确定要关闭并退出 ITOM 程序吗？',
+    success: (res) => {
+      if (res.confirm) {
+        // #ifdef APP-PLUS
+        plus.runtime.quit();
+        // #endif
+        // #ifndef APP-PLUS
+        uni.showToast({ title: '仅原生 App 支持彻底退出', icon: 'none' })
+        // #endif
       }
     }
   })
@@ -195,7 +226,21 @@ onShow(() => {
     justify-content: center;
     border: 1px solid #ff4d4f;
     
-    .logout-text { font-size: 15px; color: #ff4d4f; }
+    &.secondary {
+      border-color: #d9d9d9;
+    }
+
+    &.btn-hover {
+      opacity: 0.6;
+      background-color: #f0f0f0;
+    }
+    
+    .logout-text { 
+      font-size: 15px; 
+      color: #ff4d4f; 
+      
+      &.gray { color: #888; }
+    }
   }
 }
 </style>

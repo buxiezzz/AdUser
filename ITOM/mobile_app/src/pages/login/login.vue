@@ -26,7 +26,7 @@
           <input
             class="port-input"
             v-model="serverPort"
-            placeholder="8081"
+            placeholder="18000"
             type="number"
           />
           <text class="suffix">/api</text>
@@ -65,7 +65,7 @@ const showServerSetting = ref(false)
 
 // 分开保存 IP 和 端口
 const serverIp = ref('')
-const serverPort = ref('8081')
+const serverPort = ref('18000')
 
 // 展示当前生效的服务器地址
 const displayServerUrl = computed(() => {
@@ -91,7 +91,7 @@ const onServerIpInput = () => {
 
 const saveServerUrl = () => {
   const ip = serverIp.value.trim()
-  const port = serverPort.value.trim() || '8081'
+  const port = serverPort.value.trim() || '18000'
   if (!ip) {
     uni.showToast({ title: '请输入 IP 地址', icon: 'none' })
     return
