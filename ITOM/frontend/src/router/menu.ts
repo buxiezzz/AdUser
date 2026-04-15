@@ -44,6 +44,8 @@ export const menuConfig: MenuItem[] = [
         path: '/settings',
         showInMobile: true,
         children: [
+            { title: '账号与权限分配', icon: 'Avatar', path: '/settings/users', showInMobile: false },
+            { title: '归属地管理', icon: 'OfficeBuilding', path: '/settings/locations', showInMobile: true },
             { title: '职位与岗位配置', icon: 'UserFilled', path: '/settings/templates', showInMobile: true },
             { title: '系统设置', icon: 'Cpu', path: '/settings/system', showInMobile: true },
             { title: '标签打印模板', icon: 'Printer', path: '/settings/printer', showInMobile: false }

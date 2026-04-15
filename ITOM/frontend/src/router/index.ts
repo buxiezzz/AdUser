@@ -89,6 +89,18 @@ const adminRoutes: Array<any> = [
         name: 'InventoryList',
         component: () => import('../views/inventory/InventoryList.vue'),
         meta: { title: '资产盘点控制台' }
+    },
+    {
+        path: 'settings/locations',
+        name: 'LocationManagement',
+        component: () => import('../views/settings/Locations.vue'),
+        meta: { title: '归属地管理' }
+    },
+    {
+        path: 'settings/users',
+        name: 'UserManagement',
+        component: () => import('../views/settings/Users.vue'),
+        meta: { title: '账号与权限分配' }
     }
 ]
 

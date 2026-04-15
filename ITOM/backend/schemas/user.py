@@ -6,6 +6,7 @@ class UserCreate(BaseModel):
     password: str
     email: Optional[str] = None
     role: Optional[str] = "user"
+    location_id: Optional[int] = None
 
 class UserResponse(BaseModel):
     id: int
@@ -13,6 +14,9 @@ class UserResponse(BaseModel):
     email: Optional[str] = None
     role: str
     is_active: bool
+    location_id: Optional[int] = None
+    is_group_admin: bool = False
+    location_name: Optional[str] = None  # 前端展示用
 
     class Config:
         from_attributes = True

@@ -475,13 +475,19 @@ def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), curren
 @router.get("/count")
 def get_assets_count(
     keyword: str = "", 
-    status: str = "", 
-    db: Session = Depends(get_db)
+    status: str = "",
+    location_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     高性能计数接口：仅返回符合条件的资产总数，不加载数据内容
     """
-    return crud_asset.count_assets(db, keyword=keyword, status=status)
+    # 非集团超管自动按归属地过滤
+    effective_location_id = location_id
+    if not current_user.is_group_admin and current_user.location_id:
+        effective_location_id = current_user.location_id
+    return crud_asset.count_assets(db, keyword=keyword, status=status, location_id=effective_location_id)
 
 @router.get("/", response_model=List[AssetResponse])
 def read_assets(
@@ -490,11 +496,16 @@ def read_assets(
     sort_by: str = "updated_at", 
     order: str = "desc", 
     skip: int = 0, 
-    limit: int = 10000, 
+    limit: int = 10000,
+    location_id: Optional[int] = None,
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_active_user)
 ):
-    return crud_asset.get_assets(db, skip=skip, limit=limit, keyword=keyword, status=status, sort_by=sort_by, order=order)
+    # 非集团超管自动按归属地过滤
+    effective_location_id = location_id
+    if not current_user.is_group_admin and current_user.location_id:
+        effective_location_id = current_user.location_id
+    return crud_asset.get_assets(db, skip=skip, limit=limit, keyword=keyword, status=status, sort_by=sort_by, order=order, location_id=effective_location_id)
 
 @router.post("/", response_model=AssetResponse)
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):

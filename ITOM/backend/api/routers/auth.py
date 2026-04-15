@@ -17,12 +17,44 @@ router = APIRouter()
 @router.post("/login", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = get_user_by_username(db, username=form_data.username)
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户名或密码错误",
+            detail="该账号未被分配权限",
             headers={"WWW-Authenticate": "Bearer"},
         )
+        
+    # 第一层：检查本地数据库密码
+    is_valid = verify_password(form_data.password, user.hashed_password)
+    
+    # 第二层：如果本地密码不对，尝试 AD 域验证 (双重回源模式)
+    if not is_valid:
+        from ldap3 import Server, Connection, Tls
+        import ssl
+        config = load_config()
+        dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+        domain_name = config.get('DOMAIN_NAME', '')
+        
+        if dc_ip and domain_name:
+            try:
+                tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+                server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+                # 尝试通过 AD 验证凭据
+                upn = f"{form_data.username}@{domain_name}"
+                conn = Connection(server, user=upn, password=form_data.password, auto_bind=True)
+                if conn.bound:
+                    is_valid = True
+                conn.unbind()
+            except Exception as e:
+                print(f"AD Auth Fallback Error: {e}")
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="密码错误 或 AD域验证失败",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
@@ -64,5 +96,10 @@ def change_password(data: PasswordChange, current_user: User = Depends(get_curre
     return {"message": "密码已成功修改"}
 
 @router.get("/me", response_model=UserResponse)
-def read_users_me(current_user = Depends(get_current_active_user)):
+def read_users_me(current_user = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    # 手动附加归属地名称用于前端展示
+    if current_user.location_id and current_user.location:
+        current_user.location_name = current_user.location.name
+    else:
+        current_user.location_name = "集团总部" if current_user.is_group_admin else "未分配"
     return current_user

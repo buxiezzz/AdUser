@@ -37,6 +37,11 @@
           <el-option label="下账" value="下账" />
         </el-select>
 
+        <el-select v-model="searchLocation" placeholder="归属地" clearable class="w-36" v-if="isGroupAdmin">
+          <el-option label="全部归属地" :value="0" />
+          <el-option v-for="loc in locationList" :key="loc.id" :label="loc.name" :value="loc.id" />
+        </el-select>
+
         <el-select v-model="searchCategory" placeholder="设备类型" clearable class="w-36">
           <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
         </el-select>
@@ -58,7 +63,7 @@
         />
 
         <el-button
-          v-if="searchStatus || searchCategory || searchOwner || searchDept || searchDateRange"
+          v-if="searchStatus || searchCategory || searchOwner || searchDept || searchDateRange || searchLocation"
           type="warning" plain size="small"
           @click="resetFilters"
         >重置全部筛选</el-button>
@@ -95,6 +100,12 @@
          <el-table-column prop="category_name" label="资产名称" width="120" sortable="custom">
            <template #default="{ row }">
              <el-tag size="small" type="info">{{ getCategoryName(row.category_id) }}</el-tag>
+           </template>
+         </el-table-column>
+         <el-table-column prop="location_name" label="归属地" width="120" v-if="isGroupAdmin">
+           <template #default="{ row }">
+             <el-tag v-if="row.location" size="small" effect="plain" type="warning">{{ row.location.name }}</el-tag>
+             <span v-else class="text-gray-400 text-sm">未分配</span>
            </template>
          </el-table-column>
          <el-table-column label="规格型号" min-width="120" show-overflow-tooltip>
@@ -190,6 +201,14 @@
             </el-form-item>
             <el-form-item label="资产编码" required>
               <el-input v-model="form.asset_code" placeholder="如 IT-PC-2023001" />
+            </el-form-item>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 mt-2" v-if="isGroupAdmin">
+            <el-form-item label="归属地">
+              <el-select v-model="form.location_id" placeholder="选择归属地" clearable>
+                <el-option v-for="loc in locationList" :key="loc.id" :label="loc.name" :value="loc.id" />
+              </el-select>
             </el-form-item>
           </div>
 
@@ -557,7 +576,13 @@ const searchCategory = ref<number | ''>('')
 const searchOwner = ref('')
 const searchDept = ref('')
 const searchDateRange = ref<string[] | null>(null)
+const searchLocation = ref<number | ''>(0)
 const savingTemplate = ref(false)
+
+// 归属地相关
+const locationList = ref<any[]>([])
+const isGroupAdmin = ref(false)
+const userLocationId = ref<number | null>(null)
 
 // 从当前数据中提炼唯一的部门列表供下拉选择
 const uniqueDepts = computed(() => {
@@ -575,14 +600,17 @@ const resetFilters = () => {
     searchOwner.value = ''
     searchDept.value = ''
     searchDateRange.value = null
+    searchLocation.value = 0
 }
 
 const fetchGlobals = async () => {
     try {
-        const [catRes, empRes, settingsRes] = await Promise.all([
+        const [catRes, empRes, settingsRes, locRes, userRes] = await Promise.all([
             axios.get('/api/assets/categories'),
             axios.get('/api/assets/employees', { params: { keyword: '' }}),
-            axios.get('/api/settings/')
+            axios.get('/api/settings/'),
+            axios.get('/api/locations/'),
+            axios.get('/api/auth/me')
         ])
         categories.value = catRes.data || []
         employees.value = empRes.data || []
@@ -590,6 +618,11 @@ const fetchGlobals = async () => {
         if (settingsRes.data && settingsRes.data.PRINT_TEMPLATE) {
             printConfig.value = { ...printConfig.value, ...settingsRes.data.PRINT_TEMPLATE }
         }
+
+        // 归属地和用户信息
+        locationList.value = locRes.data || []
+        isGroupAdmin.value = userRes.data?.is_group_admin || false
+        userLocationId.value = userRes.data?.location_id || null
     } catch {
         ElMessage.warning('拉取分类、人员或全局配置数据失败')
     }
@@ -622,13 +655,22 @@ const fetchAssets = async () => {
             order: sortOrder.value === 'ascending' ? 'asc' : 'desc'
         }
         
+        // 归属地过滤：集团超管可手动切换，普通用户由后端自动过滤
+        if (isGroupAdmin.value && searchLocation.value && searchLocation.value !== 0) {
+            params.location_id = searchLocation.value
+        }
+        
         // 主数据请求：独立执行，绝对不能因 count 失败而被拖垮
         const dataRes = await axios.get('/api/assets/', { params })
         rawAssets.value = dataRes.data || []
         
         // 总数请求：独立执行，失败了只影响页码显示，不影响列表
+        const countParams: any = { keyword: searchKeyword.value, status: searchStatus.value }
+        if (isGroupAdmin.value && searchLocation.value && searchLocation.value !== 0) {
+            countParams.location_id = searchLocation.value
+        }
         axios.get('/api/assets/count', { 
-            params: { keyword: searchKeyword.value, status: searchStatus.value }
+            params: countParams
         }).then(countRes => {
             totalAssets.value = countRes.data || rawAssets.value.length
         }).catch(() => {
@@ -645,7 +687,7 @@ const fetchAssets = async () => {
 
 // 监听筛选条件，增加防抖，避免频繁请求
 let timer: any = null
-watch([searchKeyword, searchStatus, searchCategory, searchOwner, searchDept, searchDateRange], () => {
+watch([searchKeyword, searchStatus, searchCategory, searchOwner, searchDept, searchDateRange, searchLocation], () => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => {
         currentPage.value = 1
@@ -791,6 +833,7 @@ const openCreateDrawer = () => {
         category_id: undefined,
         status: '闲置',
         owner_id: undefined,
+        location_id: userLocationId.value || undefined,  // 自动带上归属地
         created_at: undefined,
         dynamic_attributes: { '计量单位': '台' }  // 默认单位为台
     }
@@ -805,6 +848,7 @@ const openManageDrawer = async (row: any) => {
         category_id: row.category_id,
         status: row.status,
         owner_id: row.owner_id,
+        location_id: row.location_id,
         created_at: row.created_at,
         dynamic_attributes: { ...row.dynamic_attributes }
     }

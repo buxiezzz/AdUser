@@ -151,10 +151,11 @@ def delete_category(db: Session, category_id: int):
     return True
 
 # ====== Asset CRUD ======
-def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = "", sort_by: str = "updated_at", order: str = "desc"):
+def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = "", sort_by: str = "updated_at", order: str = "desc", location_id: int = None):
     query = db.query(Asset).options(
         joinedload(Asset.category),
-        joinedload(Asset.owner)
+        joinedload(Asset.owner),
+        joinedload(Asset.location)
     )
     
     # 动态排序逻辑
@@ -177,10 +178,14 @@ def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""
     
     if status:
         query = query.filter(Asset.status == status)
+    
+    # 归属地过滤
+    if location_id is not None:
+        query = query.filter(Asset.location_id == location_id)
         
     return query.offset(skip).limit(limit).all()
 
-def count_assets(db: Session, keyword: str = "", status: str = ""):
+def count_assets(db: Session, keyword: str = "", status: str = "", location_id: int = None):
     query = db.query(Asset)
     
     if keyword:
@@ -195,6 +200,10 @@ def count_assets(db: Session, keyword: str = "", status: str = ""):
     
     if status:
         query = query.filter(Asset.status == status)
+    
+    # 归属地过滤
+    if location_id is not None:
+        query = query.filter(Asset.location_id == location_id)
         
     return query.count()
 

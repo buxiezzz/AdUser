@@ -63,7 +63,10 @@
           <el-dropdown trigger="click" @command="handleCommand">
             <span class="flex items-center cursor-pointer outline-none">
               <el-avatar size="small" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" class="mr-2" />
-              <span class="text-gray-700 text-sm font-medium">管理员</span>
+              <div class="flex flex-col items-start">
+                <span class="text-gray-700 text-sm font-medium leading-tight">{{ userDisplayName }}</span>
+                <span v-if="userLocationName" class="text-xs text-indigo-500 leading-tight">{{ userLocationName }}</span>
+              </div>
               <el-icon class="el-icon--right"><arrow-down /></el-icon>
             </span>
             <template #dropdown>
@@ -117,6 +120,19 @@ import axios from 'axios'
 const router = useRouter()
 const route = useRoute()
 
+const userDisplayName = ref('管理员')
+const userLocationName = ref('')
+
+const fetchUserInfo = async () => {
+  try {
+    const { data } = await axios.get('/api/auth/me')
+    userDisplayName.value = data.username || '管理员'
+    userLocationName.value = data.location_name || ''
+  } catch {
+    // 获取用户信息失败时使用默认值
+  }
+}
+
 // --- 自动登出逻辑 (30分钟无交互自动登出) ---
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000 // 30分钟
 let inactivityTimer: any = null
@@ -136,6 +152,7 @@ const handleAutoLogout = () => {
 }
 
 onMounted(() => {
+  fetchUserInfo()
   // 注册全局监听事件
   const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
   events.forEach(evt => {
