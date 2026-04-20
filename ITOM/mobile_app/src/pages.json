@@ -97,6 +97,14 @@
     {
       "path": "pages/settings/templates",
       "style": { "navigationBarTitleText": "权限模板配置" }
+    },
+    {
+      "path": "pages/asset/transfer_apply",
+      "style": { "navigationBarTitleText": "发起调拨申请" }
+    },
+    {
+      "path": "pages/asset/transfer_list",
+      "style": { "navigationBarTitleText": "资产调拨记录" }
     }
   ],
   "globalStyle": {

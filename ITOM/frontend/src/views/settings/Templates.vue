@@ -115,7 +115,7 @@
       <!-- 全局账号预设 -->
       <el-tab-pane label="全域默认配置" name="global_config">
         <div class="p-6 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 mt-4 space-y-6">
-          <div class="flex items-center space-x-3 text-indigo-900 font-bold text-lg">
+          <div class="flex items-center space-x-3 text-dark font-bold text-lg">
             <el-icon :size="24"><Lock /></el-icon>
             <span>域账号开通预设策略</span>
           </div>

@@ -48,7 +48,7 @@
       </el-table>
       
       <div class="mt-6 flex justify-between items-center" v-if="users.length > 0">
-        <span class="text-sm text-gray-500 font-medium">共检索到 <span class="text-indigo-600 font-bold">{{ users.length }}</span> 名员工</span>
+        <span class="text-sm text-gray-500 font-medium">共检索到 <span class="text-primary font-bold">{{ users.length }}</span> 名员工</span>
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"

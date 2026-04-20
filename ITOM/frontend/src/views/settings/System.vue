@@ -33,7 +33,7 @@
       <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl">
         <template #header>
           <div class="flex items-center text-gray-800 font-semibold">
-            <el-icon class="mr-2 text-indigo-500"><Connection /></el-icon>
+            <el-icon class="mr-2 text-primary"><Connection /></el-icon>
             Active Directory 主连接参数
           </div>
         </template>

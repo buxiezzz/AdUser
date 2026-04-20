@@ -1,11 +1,1 @@
-
-> frontend@0.0.0 dev
-> vite
-
-
-  VITE v7.3.1  ready in 274 ms
-
-  ➜  Local:   http://localhost:15173/
-  ➜  Network: use --host to expose
-10:32:13 [vite] (client) hmr update /src/views/settings/Users.vue, /src/style.css
-10:32:30 [vite] (client) hmr update /src/views/settings/Users.vue, /src/style.css
+./start.sh: line 103: npm: command not found

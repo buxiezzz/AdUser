@@ -102,18 +102,18 @@
              <el-tag size="small" type="info">{{ getCategoryName(row.category_id) }}</el-tag>
            </template>
          </el-table-column>
-         <el-table-column prop="location_name" label="归属地" width="120" v-if="isGroupAdmin">
+         <el-table-column prop="location_name" label="归属地" width="120" sortable="custom">
            <template #default="{ row }">
              <el-tag v-if="row.location" size="small" effect="plain" type="warning">{{ row.location.name }}</el-tag>
              <span v-else class="text-gray-400 text-sm">未分配</span>
            </template>
          </el-table-column>
-         <el-table-column label="规格型号" min-width="120" show-overflow-tooltip>
+         <el-table-column prop="model" label="规格型号" min-width="120" show-overflow-tooltip sortable="custom">
             <template #default="{ row }">
               <span class="text-gray-600">{{ row.dynamic_attributes ? row.dynamic_attributes['规格型号'] : '' }}</span>
             </template>
          </el-table-column>
-         <el-table-column label="计量单位" width="100">
+         <el-table-column prop="unit" label="计量单位" width="120" sortable="custom">
             <template #default="{ row }">
               <span class="text-gray-600">{{ row.dynamic_attributes && row.dynamic_attributes['计量单位'] ? row.dynamic_attributes['计量单位'] : '台/件' }}</span>
             </template>
@@ -139,12 +139,12 @@
              <span v-else class="text-gray-400 text-sm">-</span>
            </template>
          </el-table-column>
-         <el-table-column label="序列号" min-width="150" show-overflow-tooltip>
+         <el-table-column prop="serial" label="序列号" min-width="150" show-overflow-tooltip sortable="custom">
             <template #default="{ row }">
               <span class="text-gray-600 font-mono">{{ row.dynamic_attributes ? row.dynamic_attributes['序列号'] : '' }}</span>
             </template>
          </el-table-column>
-         <el-table-column label="备注" min-width="150" show-overflow-tooltip>
+         <el-table-column prop="memo" label="备注" min-width="150" show-overflow-tooltip sortable="custom">
             <template #default="{ row }">
               <span class="text-gray-600">{{ row.dynamic_attributes ? row.dynamic_attributes['备注'] : '' }}</span>
             </template>
@@ -153,8 +153,10 @@
             v-for="key in dynamicHeaders" 
             :key="key" 
             :label="key"
+            :prop="key"
             min-width="120"
             show-overflow-tooltip
+            sortable="custom"
           >
             <template #default="{ row }">
                <span class="text-gray-600">{{ row.dynamic_attributes ? row.dynamic_attributes[key] : '' }}</span>
@@ -310,6 +312,7 @@
                 <el-button type="info" plain size="small" v-if="!isNew" @click="openLogs(currentAsset)">追溯流转日志</el-button>
                 <el-button type="success" plain size="small" v-if="!isNew" @click="printBatchLabels([currentAsset])">打印资产标签</el-button>
                 <el-button type="warning" plain size="small" v-if="!isNew" @click="doCopyAsset(currentAsset)">借此复制新建</el-button>
+                <el-button type="primary" plain size="small" v-if="!isNew" @click="openTransferDialog(currentAsset)">发起跨区调拨</el-button>
             </div>
             <div class="flex gap-2 items-center">
                 <el-button @click="drawerVisible = false">取消</el-button>
@@ -547,6 +550,33 @@
           <el-empty v-else description="暂无追溯记录" />
        </div>
     </el-dialog>
+
+    <!-- 调拨申请弹窗 -->
+    <el-dialog v-model="transferDialogVisible" title="发起资产跨归属地调拨申请" width="450px" append-to-body>
+      <el-form :model="transferForm" label-position="top">
+        <el-form-item label="待调拨资产">
+          <el-input :value="`${transferForm.asset_code} (${getCategoryName(transferForm.category_id)})`" disabled />
+        </el-form-item>
+        <el-form-item label="当前归属地">
+          <el-tag>{{ getLocName(transferForm.from_location_id) }}</el-tag>
+        </el-form-item>
+        <el-form-item label="目标接收归属地" required>
+          <el-select v-model="transferForm.to_location_id" placeholder="请选择目标子公司/分部" class="w-full">
+            <el-option 
+              v-for="loc in locationList.filter(l => l.id !== transferForm.from_location_id)" 
+              :key="loc.id" :label="loc.name" :value="loc.id" 
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="调拨申请备注">
+          <el-input v-model="transferForm.memo" type="textarea" :rows="3" placeholder="请说明调拨原因，如：业务人员借调、资产跨区配置等..." />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="transferDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="transferSubmitting" @click="submitTransfer">提交调拨申请</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -578,6 +608,57 @@ const searchDept = ref('')
 const searchDateRange = ref<string[] | null>(null)
 const searchLocation = ref<number | ''>(0)
 const savingTemplate = ref(false)
+
+// 调拨相关
+const transferDialogVisible = ref(false)
+const transferSubmitting = ref(false)
+const transferForm = ref({
+    asset_id: '',
+    asset_code: '',
+    category_id: 0,
+    from_location_id: 0,
+    to_location_id: undefined,
+    memo: ''
+})
+
+const getLocName = (id: number) => {
+    const loc = locationList.value.find(l => l.id === id)
+    return loc ? loc.name : '未知'
+}
+
+const openTransferDialog = (asset: any) => {
+    transferForm.value = {
+        asset_id: asset.id,
+        asset_code: asset.asset_code,
+        category_id: asset.category_id,
+        from_location_id: asset.location_id,
+        to_location_id: undefined,
+        memo: ''
+    }
+    transferDialogVisible.value = true
+}
+
+const submitTransfer = async () => {
+    if (!transferForm.value.to_location_id) {
+        return ElMessage.warning('请选择目标归属地')
+    }
+    transferSubmitting.value = true
+    try {
+        await axios.post('/api/transfers/', {
+            asset_id: transferForm.value.asset_id,
+            to_location_id: transferForm.value.to_location_id,
+            memo: transferForm.value.memo
+        })
+        ElMessage.success('调拨申请已提交，等待超管审批')
+        transferDialogVisible.value = false
+        drawerVisible.value = false
+        fetchAssets()
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.detail || '提交失败')
+    } finally {
+        transferSubmitting.value = false
+    }
+}
 
 // 归属地相关
 const locationList = ref<any[]>([])
@@ -1008,6 +1089,7 @@ const exportExcel = async () => {
             const baseRow: any = {
                 '资产状态': a.status,
                 '资产编码': a.asset_code,
+                '归属地': a.location ? a.location.name : '未分配',
                 '资产分类': getCategoryName(a.category_id),
                 '规格型号': a.dynamic_attributes ? (a.dynamic_attributes['规格型号'] || '') : '',
                 '计量单位': a.dynamic_attributes && a.dynamic_attributes['计量单位'] ? a.dynamic_attributes['计量单位'] : '台/件',

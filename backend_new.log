@@ -1,0 +1,6 @@
+INFO:     Will watch for changes in these directories: ['/Users/long/Desktop/1230/AdUser/ITOM/backend']
+INFO:     Uvicorn running on http://0.0.0.0:18000 (Press CTRL+C to quit)
+INFO:     Started reloader process [13402] using StatReload
+INFO:     Started server process [13407]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

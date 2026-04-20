@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100 font-sans text-gray-800 pb-20">
     <!-- Header -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 shadow-md sticky top-0 z-50 flex items-center">
+    <div class="bg-gradient-to-r from-primary to-primary text-white p-4 shadow-md sticky top-0 z-50 flex items-center">
       <el-icon class="mr-3 text-xl cursor-pointer" @click="goBack"><ArrowLeft /></el-icon>
       <h1 class="text-lg font-bold">新资产入库</h1>
     </div>
@@ -18,7 +18,7 @@
       
       <!-- Basic Info Section -->
       <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-        <h2 class="text-sm font-bold text-blue-600 mb-4 flex items-center"><el-icon class="mr-2"><InfoFilled /></el-icon> 基础信息</h2>
+        <h2 class="text-sm font-bold text-primary mb-4 flex items-center"><el-icon class="mr-2"><InfoFilled /></el-icon> 基础信息</h2>
         
         <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
           <el-form-item label="资产分类" prop="category_id">

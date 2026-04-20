@@ -24,11 +24,11 @@
           :class="[
             'h-full p-8 rounded-3xl border-2 transition-all duration-400 flex flex-col items-center text-center space-y-4 overflow-hidden',
             activeRegionCode === 'all' 
-              ? 'border-indigo-600 bg-indigo-50/50 ring-8 ring-indigo-50' 
+              ? 'border-primary bg-indigo-50/50 ring-8 ring-indigo-50' 
               : 'border-gray-100 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-2'
           ]"
         >
-          <div :class="['p-5 rounded-2xl shadow-inner', activeRegionCode === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-50 text-gray-400']">
+          <div :class="['p-5 rounded-2xl shadow-inner', activeRegionCode === 'all' ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400']">
             <el-icon :size="36"><Monitor /></el-icon>
           </div>
           <div>
@@ -36,7 +36,7 @@
             <p class="text-sm text-gray-500 mt-2 leading-relaxed italic">关闭所有背景过滤，展示 AD 目录的完整原始数据结构。</p>
           </div>
           <div v-if="activeRegionCode === 'all'" class="absolute -top-1 -right-1">
-            <div class="bg-indigo-600 text-white p-2 rounded-bl-3xl shadow-lg">
+            <div class="bg-primary text-white p-2 rounded-bl-3xl shadow-lg">
               <el-icon :size="20"><CircleCheckFilled /></el-icon>
             </div>
           </div>
@@ -96,7 +96,7 @@
 
     <!-- 底部确认栏 -->
     <div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 px-4">
-      <div class="bg-indigo-900/90 backdrop-blur-md rounded-2xl p-4 shadow-2xl flex items-center justify-between border border-white/10">
+      <div class="bg-dark/90 backdrop-blur-md rounded-2xl p-4 shadow-2xl flex items-center justify-between border border-white/10">
         <div class="flex items-center space-x-3 ml-2">
           <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
           <span class="text-white text-sm font-bold">准备应用：{{ activeRegionLabel }}</span>

@@ -176,7 +176,8 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
         "当前状态": ["当前状态", "资产状态"],
         "设备分类": ["设备分类", "资产分类", "资产名称"],
         "使用者": ["使用者AD账号", "使用人", "使用者", "员工名", "责任人"],
-        "入库日期": ["入库日期", "购入日期", "创建日期", "登记日期"]
+        "入库日期": ["入库日期", "购入日期", "创建日期", "登记日期"],
+        "归属地": ["归属地", "所属地", "分拨中心", "子公司", "分部"]
     }
     
     # 查找核心列的索引
@@ -312,7 +313,21 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
                     v = parse_excel_val(row[col_idx])
                     dynamic_attributes[k] = v
 
-            # 4. Check if asset exists, if not create, if yes update
+            # 4. Process Location (优先从 Excel 读取，如果没有则根据当前身份自动带入)
+            location_id = None
+            if "归属地" in core_idx:
+                loc_name = parse_excel_val(row[core_idx["归属地"]])
+                if loc_name:
+                    from models.asset import Location
+                    db_loc = db.query(Location).filter(Location.name == loc_name).first()
+                    if db_loc:
+                        location_id = db_loc.id
+            
+            # 如果 Excel 没提供或超管允许为空，则对区域管理员强制归档到其名下
+            if not location_id and not current_user.is_group_admin and current_user.location_id:
+                location_id = current_user.location_id
+
+            # 5. Check if asset exists, if not create, if yes update
             asset = db.query(Asset).filter(Asset.asset_code == asset_code).first()
             is_new = False
             if not asset:
@@ -321,6 +336,7 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
                     category_id=category.id,
                     status=status,
                     owner_id=owner_id,
+                    location_id=location_id,
                     dynamic_attributes=dynamic_attributes
                 )
                 db.add(asset)
@@ -329,6 +345,7 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
                 asset.category_id = category.id
                 asset.status = status
                 asset.owner_id = owner_id
+                asset.location_id = location_id
                 asset.dynamic_attributes = dynamic_attributes
 
             db.flush()

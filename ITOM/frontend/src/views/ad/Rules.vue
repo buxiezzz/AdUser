@@ -17,7 +17,7 @@
     <el-card shadow="never" class="border-0 ring-1 ring-indigo-50 rounded-3xl bg-gradient-to-br from-indigo-50/40 to-white overflow-hidden shadow-xl">
       <div class="flex flex-col md:flex-row p-4 gap-8">
         <div class="flex-1 space-y-4">
-          <h3 class="text-lg font-bold text-indigo-900 flex items-center">
+          <h3 class="text-lg font-bold text-dark flex items-center">
              <el-icon class="mr-2"><MagicStick /></el-icon> 账号生成即时预览
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -38,7 +38,7 @@
         </div>
         <div class="w-full md:w-80 flex flex-col items-center justify-center bg-white rounded-2xl border-2 border-dashed border-indigo-100 p-6">
           <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">生成后的 AD Description</span>
-          <div class="text-2xl font-black text-indigo-600 break-all text-center">
+          <div class="text-2xl font-black text-primary break-all text-center">
             {{ previewName ? `${previewOU || 'AA'}-${previewPos || 'BB'}-${previewName}` : '等待输入姓名...' }}
           </div>
         </div>
@@ -50,7 +50,7 @@
       <section class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-xl font-bold text-gray-800 flex items-center">
-            <el-icon class="mr-2 text-indigo-500"><OfficeBuilding /></el-icon> 部门标识 (AA)
+            <el-icon class="mr-2 text-primary"><OfficeBuilding /></el-icon> 部门标识 (AA)
           </h3>
         </div>
         <el-table :data="ouList" border class="rounded-2xl overflow-hidden shadow-sm" stripe>
@@ -73,7 +73,7 @@
       <section class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-xl font-bold text-gray-800 flex items-center">
-            <el-icon class="mr-2 text-indigo-500"><UserFilled /></el-icon> 职位标识 (BB)
+            <el-icon class="mr-2 text-primary"><UserFilled /></el-icon> 职位标识 (BB)
           </h3>
         </div>
         <el-table :data="positionsData" border class="rounded-2xl overflow-hidden shadow-sm" stripe>

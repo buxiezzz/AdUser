@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import String, cast
 from uuid import UUID
 import uuid
 
-from models.asset import Asset, Category, Employee, AssetLog
+from models.asset import Asset, Category, Employee, AssetLog, Location
 from models.user import User
 from schemas.asset import AssetCreate, AssetUpdate, CategoryCreate, CategoryUpdate, EmployeeCreate
 
@@ -151,61 +152,61 @@ def delete_category(db: Session, category_id: int):
     return True
 
 # ====== Asset CRUD ======
+def _build_asset_query(db: Session, keyword: str = "", status: str = "", location_id: int = None):
+    query = db.query(Asset).join(Category, isouter=True).join(Employee, isouter=True).join(Location, isouter=True)
+    
+    if keyword:
+        search = f"%{keyword}%"
+        query = query.filter(
+            (Asset.asset_code.ilike(search)) |
+            (Category.name.ilike(search)) |
+            (Employee.name.ilike(search)) |
+            (cast(Asset.dynamic_attributes, String).ilike(search))
+        )
+    
+    if status:
+        query = query.filter(Asset.status == status)
+    
+    if location_id is not None:
+        query = query.filter(Asset.location_id == location_id)
+        
+    return query
+
 def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = "", sort_by: str = "updated_at", order: str = "desc", location_id: int = None):
-    query = db.query(Asset).options(
+    query = _build_asset_query(db, keyword, status, location_id).options(
         joinedload(Asset.category),
         joinedload(Asset.owner),
         joinedload(Asset.location)
     )
     
     # 动态排序逻辑
-    sort_col = getattr(Asset, sort_by, Asset.updated_at)
+    sort_mapping = {
+        "category_name": Category.name,
+        "location_name": Location.name,
+        "owner_name": Employee.name,
+        "department": cast(Asset.dynamic_attributes["所属组织"], String),
+        "model": cast(Asset.dynamic_attributes["规格型号"], String),
+        "unit": cast(Asset.dynamic_attributes["计量单位"], String),
+        "serial": cast(Asset.dynamic_attributes["序列号"], String),
+        "memo": cast(Asset.dynamic_attributes["备注"], String)
+    }
+    
+    if sort_by in sort_mapping:
+        sort_col = sort_mapping[sort_by]
+    elif hasattr(Asset, sort_by):
+        sort_col = getattr(Asset, sort_by)
+    else:
+        sort_col = cast(Asset.dynamic_attributes[sort_by], String)
+
     if order == "asc":
         query = query.order_by(sort_col.asc())
     else:
         query = query.order_by(sort_col.desc())
-    
-    if keyword:
-        from sqlalchemy import String
-        search = f"%{keyword}%"
-        # 搜索资产编码、分类名称、员工姓名或动态属性
-        query = query.join(Category, isouter=True).join(Employee, isouter=True).filter(
-            (Asset.asset_code.ilike(search)) |
-            (Category.name.ilike(search)) |
-            (Employee.name.ilike(search)) |
-            (Asset.dynamic_attributes.cast(String).ilike(search))
-        )
-    
-    if status:
-        query = query.filter(Asset.status == status)
-    
-    # 归属地过滤
-    if location_id is not None:
-        query = query.filter(Asset.location_id == location_id)
         
     return query.offset(skip).limit(limit).all()
 
 def count_assets(db: Session, keyword: str = "", status: str = "", location_id: int = None):
-    query = db.query(Asset)
-    
-    if keyword:
-        from sqlalchemy import String
-        search = f"%{keyword}%"
-        query = query.join(Category, isouter=True).join(Employee, isouter=True).filter(
-            (Asset.asset_code.ilike(search)) |
-            (Category.name.ilike(search)) |
-            (Employee.name.ilike(search)) |
-            (Asset.dynamic_attributes.cast(String).ilike(search))
-        )
-    
-    if status:
-        query = query.filter(Asset.status == status)
-    
-    # 归属地过滤
-    if location_id is not None:
-        query = query.filter(Asset.location_id == location_id)
-        
-    return query.count()
+    return _build_asset_query(db, keyword, status, location_id).count()
 
 def get_asset(db: Session, asset_id: str):
     asset_id_hex = asset_id.replace('-', '')

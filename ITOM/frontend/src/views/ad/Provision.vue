@@ -108,7 +108,7 @@
             auto-insert-space 
             :loading="submitting"
             @click="submitForm"
-            class="bg-indigo-600 hover:bg-indigo-700 border-none"
+            class="bg-primary hover:bg-primary-dark border-none"
           >
             立即开通账号
           </el-button>

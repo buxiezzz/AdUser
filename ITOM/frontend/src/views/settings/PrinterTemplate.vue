@@ -133,8 +133,8 @@
               <template #prepend>固定</template>
             </el-input>
             <div class="text-[10px] text-gray-400 mt-1" v-if="row.type === 'text'">
-              <span class="cursor-pointer hover:text-indigo-500" @click="row.field=''; row.value='公司名称'">设为固定值</span> | 
-              <span class="cursor-pointer hover:text-indigo-500" @click="row.field='asset_code'; row.value=''">设为动态字段</span>
+              <span class="cursor-pointer hover:text-primary" @click="row.field=''; row.value='公司名称'">设为固定值</span> | 
+              <span class="cursor-pointer hover:text-primary" @click="row.field='asset_code'; row.value=''">设为动态字段</span>
             </div>
           </template>
         </el-table-column>

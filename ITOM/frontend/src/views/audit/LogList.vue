@@ -65,7 +65,7 @@
         
         <el-table-column prop="target" label="目标标识" width="200">
           <template #default="{ row }">
-            <span class="font-bold text-indigo-700">{{ row.target }}</span>
+            <span class="font-bold text-primary-dark">{{ row.target }}</span>
           </template>
         </el-table-column>
         

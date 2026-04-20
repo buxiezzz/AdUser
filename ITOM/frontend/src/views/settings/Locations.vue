@@ -62,7 +62,7 @@
         <!-- 资产统计 -->
         <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
           <div class="text-center flex-1">
-            <div class="text-xl font-bold text-indigo-600">{{ getAssetCount(loc.id) }}</div>
+            <div class="text-xl font-bold text-primary">{{ getAssetCount(loc.id) }}</div>
             <div class="text-xs text-gray-400 mt-1">资产总数</div>
           </div>
           <div class="w-px h-8 bg-gray-100"></div>

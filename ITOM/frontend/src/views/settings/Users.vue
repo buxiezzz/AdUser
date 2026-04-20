@@ -263,6 +263,9 @@ const submitForm = async () => {
             if (payload.location_id === '') {
                 payload.location_id = null
             }
+            if (payload.email === '') {
+                payload.email = null
+            }
             
             if (editingUser.value) {
                 // 不传空密码

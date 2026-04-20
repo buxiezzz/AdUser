@@ -9,13 +9,13 @@
         <div v-if="asset && asset.status !== '闲置'" @click="returnAsset" class="bg-emerald-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
           <el-icon><RefreshLeft /></el-icon> <span>退库</span>
         </div>
-        <div @click="triggerMobilePrint" class="bg-indigo-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
+        <div @click="triggerMobilePrint" class="bg-primary/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
           <el-icon><Printer /></el-icon> <span>打印标签</span>
         </div>
         <div @click="openReassignDialog" class="bg-yellow-600/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
           <el-icon><User /></el-icon> <span>修改归属</span>
         </div>
-        <div @click="$router.push('/mobile/asset/create')" class="bg-blue-500/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
+        <div @click="$router.push('/mobile/asset/create')" class="bg-primary/90 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
           <el-icon><Plus /></el-icon> <span>录入</span>
         </div>
         <div @click="logout" class="bg-red-500/80 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer shadow-sm">
@@ -26,7 +26,7 @@
     
     <div class="p-4 pt-14">
       <div v-if="loading" class="flex flex-col items-center justify-center mt-20">
-      <el-spinner class="text-blue-500 mb-4 text-3xl"/>
+      <el-spinner class="text-primary mb-4 text-3xl"/>
       <p class="text-sm text-gray-500">正在查询资产档案...</p>
     </div>
 
@@ -39,7 +39,7 @@
 
     <div v-else-if="asset" class="pb-10">
        <!-- Header Card -->
-       <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-5 text-white shadow-md relative overflow-hidden mb-4">
+       <div class="bg-gradient-to-r from-primary to-primary-dark rounded-xl p-5 text-white shadow-md relative overflow-hidden mb-4">
          <div class="absolute -right-4 -top-4 opacity-10 text-8xl pointer-events-none">📱</div>
          <h1 class="text-2xl font-bold mb-1 break-all pr-12">{{ getCategoryName() }}</h1>
          <p class="text-blue-100 text-xs tracking-wider font-mono opacity-80">{{ asset.asset_code }}</p>
@@ -57,7 +57,7 @@
        <!-- Core Info -->
        <div class="bg-white rounded-xl p-0 shadow-sm mb-4 overflow-hidden border border-gray-100">
          <div class="p-4 bg-gray-50/50 border-b border-gray-100 flex items-center">
-            <el-icon class="text-blue-500 mr-2 text-lg"><User /></el-icon>
+            <el-icon class="text-primary mr-2 text-lg"><User /></el-icon>
             <h2 class="font-bold text-gray-700">使用归属</h2>
          </div>
          <div class="p-4 grid grid-cols-2 gap-y-4">

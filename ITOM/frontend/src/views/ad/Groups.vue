@@ -13,7 +13,7 @@
       type="info"
       show-icon
       :closable="false"
-      class="border border-indigo-100 bg-indigo-50 text-indigo-800"
+      class="border border-indigo-100 bg-indigo-50 text-dark"
     />
 
     <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl">

@@ -78,7 +78,8 @@
     
     <view class="action-footer">
       <button class="btn warning" @click="openPrint">打印标签</button>
-      <button class="btn primary" @click="openUnifiedChange">信息变更 (状态/人员)</button>
+      <button class="btn primary" @click="openUnifiedChange">信息变更</button>
+      <button class="btn info" @click="navToTransferApply">调拨申请</button>
     </view>
 
     <!-- 综合变更浮层 -->
@@ -345,6 +346,12 @@ const confirmReassign = (emp: any) => {
     // 如果弹窗没开（备选），直接走老逻辑（通常不会发生，除非代码触发）
     detail.value.owner = emp
   }
+}
+
+const navToTransferApply = () => {
+  uni.navigateTo({ 
+    url: `/pages/asset/transfer_apply?id=${assetId.value}&code=${detail.value.asset_code}&loc_id=${detail.value.location_id}&loc_name=${detail.value.location?.name || ''}` 
+  })
 }
 
 onLoad((options: any) => {
@@ -626,6 +633,11 @@ onUnmounted(() => {
     
     &.warning {
       background: #ff9900;
+      color: #fff;
+    }
+    
+    &.info {
+      background: #39c5bb;
       color: #fff;
     }
   }

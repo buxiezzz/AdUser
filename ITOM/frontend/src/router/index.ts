@@ -25,6 +25,12 @@ const adminRoutes: Array<any> = [
         meta: { title: '资产分类字典' }
     },
     {
+        path: 'assets/transfers',
+        name: 'AssetTransfers',
+        component: () => import('../views/asset/TransferList.vue'),
+        meta: { title: '跨归属地调拨申请' }
+    },
+    {
         path: 'assets/logs',
         name: 'AssetLogs',
         component: () => import('../views/audit/LogList.vue'),

@@ -57,6 +57,11 @@
           <text class="item-label">新资产入库</text>
           <text class="item-arrow">›</text>
         </view>
+        <view class="list-item" @click="navTo('/pages/asset/transfer_list')">
+          <text class="item-icon">🚚</text>
+          <text class="item-label">跨区调拨审核</text>
+          <text class="item-arrow">›</text>
+        </view>
       </view>
     </view>
 

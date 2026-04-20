@@ -11,7 +11,7 @@ from models import asset as asset_model
 from models import audit as audit_model
 from crud.user import get_user_by_username, create_user
 from schemas.user import UserCreate
-from api.routers import auth, asset, ad, settings, audit, inventory, location, user as user_router
+from api.routers import auth, asset, ad, settings, audit, inventory, location, transfer, user as user_router
 
 # Create database tables (For production use Alembic migrations instead)
 user_model.Base.metadata.create_all(bind=engine)
@@ -35,6 +35,12 @@ from models.asset import Location
 if "locations" not in _existing_tables:
     Location.__table__.create(bind=engine, checkfirst=True)
     print("✅ 自动创建表: locations")
+
+# 确保调拨表存在
+from models.asset import AssetTransfer
+if "asset_transfers" not in _existing_tables:
+    AssetTransfer.__table__.create(bind=engine, checkfirst=True)
+    print("✅ 自动创建表: asset_transfers")
 
 # 确保新增字段存在（兼容旧数据库）
 from sqlalchemy import text as sa_text
@@ -92,6 +98,7 @@ app.include_router(settings.router, prefix="/api/settings", tags=["System Settin
 app.include_router(audit.router, prefix="/api/audit", tags=["Audit Logs"])
 app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory Management"])
 app.include_router(location.router, prefix="/api/locations", tags=["Location Management"])
+app.include_router(transfer.router, prefix="/api/transfers", tags=["Asset Transfer Management"])
 app.include_router(user_router.router, prefix="/api/users", tags=["User Management"])
 
 @app.on_event("startup")
