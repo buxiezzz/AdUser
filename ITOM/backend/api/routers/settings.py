@@ -8,15 +8,27 @@ import ssl
 import zipfile
 import io
 from ldap3 import Server, Connection, Tls
-from api.deps import get_current_active_user
-from database import DATABASE_URL
+from api.deps import get_current_active_user, get_device_source
+import glob
+from sqlalchemy.orm import Session
+from database import DATABASE_URL, get_db
+from crud.audit import log_action
 
 router = APIRouter()
-# 将配置文件路径迁移至已持久化的数据目录，确保容器重启或镜像构建时不丢失
-CONFIG_FILE_PATH = "/app/data/config.json"
-if not os.path.exists("/app"):
-    # 本地非容器环境降级方案
-    CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'core', 'config.json')
+
+def get_base_data_dir() -> str:
+    if os.path.exists("/app"):
+        return "/app/data"
+    else:
+        return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'core')
+
+def get_config_path(location_id=None) -> str:
+    base_dir = get_base_data_dir()
+    if location_id:
+        return os.path.join(base_dir, f"config_location_{location_id}.json")
+    return os.path.join(base_dir, "config.json")
+
+
 
 class SettingsUpdateSchema(BaseModel):
     domain_controller_ip: str | None = None
@@ -33,8 +45,14 @@ class SettingsUpdateSchema(BaseModel):
     ou_prefix_mapping: Dict[str, str] | None = None
     print_template: dict | None = None
 
-def load_config() -> Dict[str, Any]:
-    if not os.path.exists(CONFIG_FILE_PATH):
+def load_config(location_id=None) -> Dict[str, Any]:
+    config_path = get_config_path(location_id)
+    if location_id and not os.path.exists(config_path):
+        # Fallback to default if location specific config doesn't exist yet
+        config_path = get_config_path(None)
+
+        
+    if not os.path.exists(config_path):
         return {
             "DOMAIN_CONTROLLER_IP": "",
             "DOMAIN_NAME": "your_domain.com",
@@ -67,18 +85,20 @@ def load_config() -> Dict[str, Any]:
                 "qrSize": 62
             }
         }
-    with open(CONFIG_FILE_PATH, 'r', encoding='utf-8') as f:
+    with open(config_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def save_config(config_data: Dict[str, Any]):
-    with open(CONFIG_FILE_PATH, 'w', encoding='utf-8') as f:
+def save_config(config_data: Dict[str, Any], location_id=None):
+    config_path = get_config_path(location_id)
+    with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=2, ensure_ascii=False)
+
 
 
 @router.get("/public", response_model=Dict[str, Any])
 def get_public_settings():
     """获取公开的系统级设定 (如是否允许注册)"""
-    config_data = load_config()
+    config_data = load_config(None)
     return {
         "allow_registration": config_data.get("ALLOW_REGISTRATION", True)
     }
@@ -88,14 +108,17 @@ def get_settings(current_user: Any = Depends(get_current_active_user)):
     """获取系统基础配置项"""
     # 出于安全考虑，通常不向前端直接暴露某些密码信息，不过这是 Admin 级别的 API 
     # 可以视需求做脱敏
-    config_data = load_config()
+    config_data = load_config(current_user.location_id)
     return config_data
+
 
 
 @router.post("/", response_model=Dict[str, Any])
 def update_settings(
     settings: SettingsUpdateSchema,
-    current_user: Any = Depends(get_current_active_user)
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_active_user),
+    device: str = Depends(get_device_source)
 ):
     """更新系统级配置"""
     if current_user.role != 'admin':  # 只有超管可配
@@ -104,7 +127,8 @@ def update_settings(
             detail="权限不足，仅超级管理员可修改全局系统设定"
         )
         
-    config_data = load_config()
+    config_data = load_config(current_user.location_id)
+
     
     if settings.domain_controller_ip is not None:
         config_data["DOMAIN_CONTROLLER_IP"] = settings.domain_controller_ip
@@ -137,7 +161,8 @@ def update_settings(
     if settings.print_template is not None:
         config_data["PRINT_TEMPLATE"] = settings.print_template
         
-    save_config(config_data)
+    save_config(config_data, current_user.location_id)
+    log_action(db, (current_user.display_name or current_user.username), 'settings', 'UPDATE_SETTINGS', '全局系统配置', device_source=device)
     
     return {"success": True, "message": "全局配置更新成功", "data": config_data}
 
@@ -147,14 +172,18 @@ def export_settings(current_user: Any = Depends(get_current_active_user)):
     if current_user.role != 'admin':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限导出")
     
-    if not os.path.exists(CONFIG_FILE_PATH):
-        config_data = load_config()
-        save_config(config_data)
+    base_dir = get_base_data_dir()
+    default_config_path = get_config_path(None)
+    if not os.path.exists(default_config_path):
+        config_data = load_config(None)
+        save_config(config_data, None)
 
     memory_file = io.BytesIO()
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
-        # 1. 写入配置文件
-        zf.write(CONFIG_FILE_PATH, arcname="config.json")
+        # 1. 写入所有的配置文件 config*.json
+        config_files = glob.glob(os.path.join(base_dir, 'config*.json'))
+        for c_file in config_files:
+            zf.write(c_file, arcname=os.path.basename(c_file))
         
         # 2. 写入数据库文件
         if DATABASE_URL.startswith("sqlite:///"):
@@ -189,17 +218,23 @@ def import_settings(
             config_data = json.loads(content.decode('utf-8'))
             if not isinstance(config_data, dict):
                 raise ValueError("配置文件格式错误：不是一个有效的字典结构")
-            save_config(config_data)
+            # 导入单文件只保存给现在的归属地
+            save_config(config_data, current_user.location_id)
             return {"success": True, "message": "配置导入成功，已立即生效"}
+
             
         # 全量恢复逻辑：如果传了 .zip
         if file.filename.endswith('.zip'):
+            base_dir = get_base_data_dir()
             with zipfile.ZipFile(io.BytesIO(content), 'r') as zf:
-                # 恢复配置
-                if 'config.json' in zf.namelist():
-                    config_data = json.loads(zf.read('config.json').decode('utf-8'))
-                    if isinstance(config_data, dict):
-                        save_config(config_data)
+                # 恢复所有配置 config*.json
+                for item_name in zf.namelist():
+                    if item_name.startswith('config') and item_name.endswith('.json'):
+                        config_data = json.loads(zf.read(item_name).decode('utf-8'))
+                        if isinstance(config_data, dict):
+                            out_path = os.path.join(base_dir, item_name)
+                            with open(out_path, 'w', encoding='utf-8') as out_f:
+                                json.dump(config_data, out_f, indent=2, ensure_ascii=False)
                 
                 # 恢复数据库
                 if 'itom.db' in zf.namelist():

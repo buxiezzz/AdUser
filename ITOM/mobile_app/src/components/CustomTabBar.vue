@@ -102,7 +102,7 @@ const switchTab = (index: number, url: string) => {
     transform: translateY(-2px);
   }
   .tab-label {
-    color: #1677ff;
+    color: #e51923;
     font-weight: 800; /* 选中时加粗 */
   }
 }
@@ -114,7 +114,7 @@ const switchTab = (index: number, url: string) => {
   .center-icon {
     width: 62px;
     height: 62px;
-    background: linear-gradient(135deg, #1677ff, #4fa3ff);
+    background: linear-gradient(135deg, #e51923, #b91c1c);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -129,7 +129,7 @@ const switchTab = (index: number, url: string) => {
     position: absolute;
     bottom: 12px; /* 文字显著上提，远离屏幕边缘 */
     font-weight: 800;
-    color: #1677ff;
+    color: #e51923;
     font-size: 11px;
     width: 100px;
   }

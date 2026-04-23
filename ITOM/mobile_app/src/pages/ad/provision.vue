@@ -124,7 +124,7 @@ onMounted(() => {
       display: inline-block;
       width: 4px;
       height: 16px;
-      background: #007aff;
+      background: #e51923;
       margin-right: 8px;
       border-radius: 2px;
     }
@@ -149,7 +149,7 @@ onMounted(() => {
       border: 1px solid transparent;
       
       &:focus {
-        border-color: #007aff;
+        border-color: #e51923;
         background: #fff;
       }
     }
@@ -167,13 +167,13 @@ onMounted(() => {
   
   .submit-btn {
     margin-top: 30px;
-    background: #007aff;
+    background: #e51923;
     color: #fff;
     border-radius: 8px;
     font-size: 16px;
     
     &::after { border: none; }
-    &:active { background: #0062cc; }
+    &:active { background: #b91c1c; }
   }
 }
 </style>

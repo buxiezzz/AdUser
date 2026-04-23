@@ -35,8 +35,8 @@ export const menuConfig: MenuItem[] = [
             { title: '一键创建域账号', icon: 'Connection', path: '/ad/provision', showInMobile: true },
             { title: '域用户检索', icon: 'Search', path: '/ad/users', showInMobile: true },
             { title: '安全策略组台账', icon: 'Lock', path: '/ad/groups', showInMobile: true },
-            { title: '向导操作日志', icon: 'Files', path: '/ad/logs', showInMobile: false },
-            { title: '地区过滤器', icon: 'MapLocation', path: '/ad/filter', showInMobile: true }
+            { title: '参数配置', icon: 'UserFilled', path: '/settings/templates', showInMobile: true },
+            { title: '操作日志', icon: 'Files', path: '/ad/logs', showInMobile: false }
         ]
     },
     {
@@ -47,7 +47,6 @@ export const menuConfig: MenuItem[] = [
         children: [
             { title: '账号与权限分配', icon: 'Avatar', path: '/settings/users', showInMobile: false },
             { title: '归属地管理', icon: 'OfficeBuilding', path: '/settings/locations', showInMobile: true },
-            { title: '职位与岗位配置', icon: 'UserFilled', path: '/settings/templates', showInMobile: true },
             { title: '系统设置', icon: 'Cpu', path: '/settings/system', showInMobile: true },
             { title: '标签打印模板', icon: 'Printer', path: '/settings/printer', showInMobile: false }
         ]

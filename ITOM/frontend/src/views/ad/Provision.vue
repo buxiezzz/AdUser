@@ -228,7 +228,8 @@ const fetchOptions = async () => {
     // 注：若你启用了强 JWT 校验，需在 axios 发请求前置入 token header
     
     // 我们先尝试直接调用路由获取 OU
-    const { data: ous } = await axios.get('/api/ad/ous')
+    // 仅在此处开启地区过滤器逻辑
+    const { data: ous } = await axios.get('/api/ad/ous?apply_filter=true')
     ouOptions.value = ous
   } catch (err: any) {
     ElMessage.warning('拉取 OU 列表失败，可能是当前并未登录或 AD 配置未联通: ' + (err.response?.data?.detail || err.message))

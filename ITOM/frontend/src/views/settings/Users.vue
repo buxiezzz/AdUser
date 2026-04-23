@@ -264,7 +264,7 @@ const submitForm = async () => {
                 payload.location_id = null
             }
             if (payload.email === '') {
-                payload.email = null
+                (payload as any).email = null
             }
             
             if (editingUser.value) {

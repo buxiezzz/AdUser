@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
@@ -40,3 +40,8 @@ def get_current_admin_user(current_user: User = Depends(get_current_user)) -> Us
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail="权限不足")
     return current_user
+
+def get_device_source(request: Request) -> str:
+    """通过 User-Agent 自动识别请求来源终端"""
+    from core.device import detect_device
+    return detect_device(request)

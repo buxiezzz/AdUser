@@ -240,7 +240,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { Check, Delete, Plus, CopyDocument, Grid } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
 
 const loading = ref(false)
@@ -385,7 +385,13 @@ const loadTableTemplate = () => {
 }
 
 const removeElement = (index: number) => {
-  template.value.elements.splice(index, 1)
+  ElMessageBox.confirm('确定要从模板中移除此元素吗？', '操作确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    template.value.elements.splice(index, 1)
+  }).catch(() => {})
 }
 
 // 预览缩放比例，1mm = 4.5px

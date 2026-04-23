@@ -1,15 +1,15 @@
 <template>
   <el-container class="h-screen bg-gray-50">
-    <el-aside width="220px" class="bg-indigo-900 text-white flex flex-col shadow-xl">
-      <div class="h-16 flex items-center justify-center font-extrabold text-xl tracking-widest bg-gradient-to-r from-indigo-900 to-indigo-800 text-white border-b border-white/10 shadow-sm">
-        ITOM <span class="text-indigo-300 ml-2">CORE</span>
+    <el-aside width="240px" class="bg-white flex flex-col border-r border-gray-100 shadow-sm">
+      <div class="h-28 flex items-center justify-center bg-white border-b border-gray-50 mb-4 px-4 overflow-hidden">
+        <img :src="logo" alt="SK先惠" class="h-16 w-auto transform hover:scale-105 transition-transform" />
       </div>
       <el-menu
         :default-active="route.path"
         active-text-color="#ffffff"
         background-color="transparent"
         class="sidebar-menu flex-1 overflow-y-auto custom-scrollbar"
-        text-color="#c7d2fe"
+        text-color="#4b5563"
         unique-opened
         router
       >
@@ -18,7 +18,7 @@
           <el-menu-item
             v-if="!item.children"
             :index="item.path"
-            class="menu-item hover:bg-white/5"
+            class="menu-item"
           >
             <el-icon><component :is="item.icon" /></el-icon>
             <span>{{ item.title }}</span>
@@ -37,7 +37,7 @@
               v-for="child in item.children"
               :key="child.path"
               :index="child.path"
-              class="menu-item sub-item hover:bg-white/5 pl-12"
+              class="menu-item sub-item pl-12"
             >
               <el-icon v-if="child.icon" class="scale-90"><component :is="child.icon" /></el-icon>
               <span class="text-sm">{{ child.title }}</span>
@@ -46,7 +46,7 @@
         </template>
       </el-menu>
       
-      <div class="p-4 text-xs text-indigo-400 text-center border-t border-indigo-800">
+      <div class="p-4 text-xs text-gray-400 text-center border-t border-gray-50">
         ITOM Core v1.0
       </div>
     </el-aside>
@@ -116,6 +116,7 @@ import { menuConfig } from '../router/menu'
 import { ElMessage } from 'element-plus'
 import { User, SwitchButton, ArrowDown } from '@element-plus/icons-vue'
 import axios from 'axios'
+import logo from '@/assets/logo.png'
 
 const router = useRouter()
 const route = useRoute()
@@ -126,7 +127,7 @@ const userLocationName = ref('')
 const fetchUserInfo = async () => {
   try {
     const { data } = await axios.get('/api/auth/me')
-    userDisplayName.value = data.username || '管理员'
+    userDisplayName.value = data.display_name || data.username || '管理员'
     userLocationName.value = data.location_name || ''
   } catch {
     // 获取用户信息失败时使用默认值
@@ -232,7 +233,7 @@ const submitChangePassword = async () => {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 10px;
 }
 
@@ -253,17 +254,29 @@ const submitChangePassword = async () => {
   transition: background-color 0.2s;
 }
 
-:deep(.el-menu-item.is-active) {
-  background: linear-gradient(90deg, #4f46e5 0%, #4338ca 100%) !important;
+:deep(.el-menu-item.is-active),
+:deep(.el-menu-item.is-active i),
+:deep(.el-menu-item.is-active span) {
   color: #ffffff !important;
+}
+
+:deep(.el-menu-item.is-active) {
+  background: linear-gradient(90deg, #e51923 0%, #b91c1c 100%) !important;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(229, 25, 35, 0.2);
 }
 
 :deep(.el-sub-menu__title:hover),
 :deep(.el-menu-item:hover) {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  color: #ffffff !important;
+  background-color: #fef2f2 !important;
+}
+
+:deep(.el-menu-item) {
+  color: #374151 !important;
+}
+
+:deep(.el-sub-menu__title) {
+  color: #374151 !important;
 }
 
 .fade-transform-leave-active,

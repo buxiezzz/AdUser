@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
+    display_name: Optional[str] = None # 新增
     email: Optional[str] = None
     role: str
     is_active: bool

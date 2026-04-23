@@ -240,13 +240,13 @@ onUnload(() => stopPDAListener())
     display: flex;
     gap: 12px;
   }
-  .nav-btn { font-size: 14px; color: #1677ff; }
+  .nav-btn { font-size: 14px; color: #e51923; }
 }
 
 
 .stat-banner {
   display: flex;
-  background: linear-gradient(135deg, #1677ff, #4fa3ff);
+  background: linear-gradient(135deg, #e51923, #b91c1c);
   margin: 15px;
   padding: 20px;
   border-radius: 14px;
@@ -274,7 +274,7 @@ onUnload(() => stopPDAListener())
     align-items: center;
     justify-content: center;
     gap: 10px;
-    &.scanning-glow { border-color: #1677ff; background: #e6f7ff; }
+    &.scanning-glow { border-color: #e51923; background: #e6f7ff; }
     .scan-icon { font-size: 36px; }
     .scan-text { font-size: 13px; color: #666; }
   }

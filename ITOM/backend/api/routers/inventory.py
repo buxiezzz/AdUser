@@ -4,16 +4,19 @@ from typing import List
 from uuid import UUID
 
 from database import get_db
-from api.deps import get_current_active_user
+from api.deps import get_current_active_user, get_device_source
 from models.user import User
 import schemas.inventory as schemas
 import crud.inventory as crud
+from crud.audit import log_action
 
 router = APIRouter()
 
 @router.post("/tasks", response_model=schemas.InventoryTaskResponse)
-def create_task(task_in: schemas.InventoryTaskCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    return crud.create_inventory_task(db, task_in)
+def create_task(task_in: schemas.InventoryTaskCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
+    res = crud.create_inventory_task(db, task_in)
+    log_action(db, (current_user.display_name or current_user.username), 'inventory', 'INVENTORY_TASK_CREATE', task_in.name, device_source=device)
+    return res
 
 @router.get("/tasks", response_model=List[schemas.InventoryTaskResponse])
 def list_tasks(skip: int = 0, limit: int = 20, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
@@ -33,18 +36,24 @@ def submit_record(task_id: str, submit_in: schemas.InventorySubmit, db: Session 
 @router.get("/tasks/{task_id}/records", response_model=List[schemas.InventoryRecordResponse])
 def get_records(task_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     # 简单实现，获取该任务下所有记录
-    from models.asset import InventoryRecord, Asset
-    results = db.query(InventoryRecord).join(Asset).filter(InventoryRecord.task_id == task_id).all()
+    from models.asset import InventoryRecord, Asset, Category
+    from sqlalchemy.orm import joinedload
+    
+    # 联表查询 Asset 和 Category
+    results = db.query(InventoryRecord)\
+        .join(Asset)\
+        .options(joinedload(InventoryRecord.asset).joinedload(Asset.category))\
+        .filter(InventoryRecord.task_id == task_id).all()
+        
     # 补全响应模型所需字段
     for r in results:
         r.asset_code = r.asset.asset_code
-        # 安全读取，防止动态属性为 None 时报错
-        attrs = r.asset.dynamic_attributes or {}
-        r.asset_name = attrs.get("设备名称", "未知设备")
+        # 优先使用分类名称作为资产名称，更符合业务习惯
+        r.asset_name = r.asset.category.name if r.asset.category else "未知设备"
     return results
 
 @router.delete("/tasks/{task_id}")
-def delete_task(task_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def delete_task(task_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     from models.asset import InventoryTask, InventoryRecord
     task = db.query(InventoryTask).filter(InventoryTask.id == task_id).first()
     if not task:
@@ -53,8 +62,10 @@ def delete_task(task_id: str, db: Session = Depends(get_db), current_user: User 
     # 删除关联的记录
     db.query(InventoryRecord).filter(InventoryRecord.task_id == task_id).delete()
     # 删除任务主体
+    task_name = task.name
     db.delete(task)
     db.commit()
+    log_action(db, (current_user.display_name or current_user.username), 'inventory', 'INVENTORY_TASK_DELETE', task_name, device_source=device)
     return {"message": "任务已成功删除"}
 
 @router.get("/tasks/{task_id}/export")
@@ -69,14 +80,16 @@ def export_records(task_id: str, db: Session = Depends(get_db), current_user: Us
     if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
 
-    results = db.query(InventoryRecord).join(Asset).filter(InventoryRecord.task_id == task_id).all()
+    results = db.query(InventoryRecord)\
+        .join(Asset)\
+        .options(joinedload(InventoryRecord.asset).joinedload(Asset.category))\
+        .filter(InventoryRecord.task_id == task_id).all()
     
     data = []
     for r in results:
-        attrs = r.asset.dynamic_attributes or {}
         data.append({
             "资产编码": r.asset.asset_code,
-            "资产名称": attrs.get("设备名称", "未知"),
+            "资产名称": r.asset.category.name if r.asset.category else "未知",
             "盘点状态": r.status,
             "核对人UID": r.operator_id or "未记录",
             "核对时间": r.audit_time.strftime("%Y-%m-%d %H:%M:%S") if r.audit_time else "—"

@@ -147,7 +147,7 @@ const editConfig = () => {
   }
   .server-ip {
     font-size: 13px;
-    color: #007aff;
+    color: #e51923;
     margin-right: 6px;
   }
   .arrow {
@@ -181,7 +181,7 @@ const editConfig = () => {
         transition: border-color 0.2s;
         
         &:focus-within {
-          border-color: #007aff;
+          border-color: #e51923;
         }
         
         &.main { flex: 1; }
@@ -209,7 +209,7 @@ const editConfig = () => {
     }
     .save-btn {
       margin-top: 12px;
-      background: linear-gradient(135deg, #007aff, #0056b3);
+      background: linear-gradient(135deg, #e51923, #0056b3);
       color: #fff;
       border-radius: 8px;
       font-size: 14px;
@@ -282,13 +282,13 @@ const editConfig = () => {
   
   .edit-btn {
     margin-top: 30px;
-    background: #007aff;
+    background: #e51923;
     color: #fff;
     border-radius: 8px;
     font-size: 16px;
     
     &::after { border: none; }
-    &:active { background: #0062cc; }
+    &:active { background: #b91c1c; }
   }
 }
 </style>

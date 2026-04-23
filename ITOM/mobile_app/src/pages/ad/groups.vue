@@ -74,7 +74,7 @@ onMounted(() => {
     
     .action-btn {
       font-size: 13px;
-      color: #007aff;
+      color: #e51923;
     }
   }
   

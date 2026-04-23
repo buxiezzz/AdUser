@@ -97,6 +97,9 @@ onShow(() => {
   startPDAListener((code) => {
     handleScanResult(code);
   });
+  
+  // 2. 优化：进入页面直接启动摄像头扫码，无需二次点击
+  startScan();
 })
 
 onHide(() => {
@@ -170,7 +173,7 @@ onUnload(() => {
   position: absolute;
   width: 24px;
   height: 24px;
-  border-color: #1677ff;
+  border-color: #e51923;
   border-style: solid;
   
   &.tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
@@ -184,7 +187,7 @@ onUnload(() => {
   left: 10px;
   right: 10px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #1677ff, transparent);
+  background: linear-gradient(90deg, transparent, #e51923, transparent);
   top: 30px;
   
   &.scanning {
@@ -210,7 +213,7 @@ onUnload(() => {
     align-items: center;
     justify-content: center;
     
-    &.primary { background: #1677ff; }
+    &.primary { background: #e51923; }
     &.secondary { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
     
     .btn-text { font-size: 15px; color: #fff; }

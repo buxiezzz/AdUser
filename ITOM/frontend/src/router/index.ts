@@ -43,12 +43,6 @@ const adminRoutes: Array<any> = [
         meta: { title: '一键创建域账号' }
     },
     {
-        path: 'ad/filter',
-        name: 'ADRegionFilter',
-        component: () => import('../views/ad/RegionFilter.vue'),
-        meta: { title: '地区过滤器' }
-    },
-    {
         path: 'ad/users',
         name: 'ADUsers',
         component: () => import('../views/ad/Users.vue'),
@@ -64,7 +58,7 @@ const adminRoutes: Array<any> = [
         path: 'ad/logs',
         name: 'ADLogs',
         component: () => import('../views/audit/LogList.vue'),
-        meta: { title: '域账号操作日志', module: 'ad' }
+        meta: { title: '操作日志', module: 'ad' }
     },
     {
         path: 'settings/system',
@@ -82,7 +76,7 @@ const adminRoutes: Array<any> = [
         path: 'settings/templates',
         name: 'SystemTemplates',
         component: () => import('../views/settings/Templates.vue'),
-        meta: { title: '权限模板配置' }
+        meta: { title: '参数配置' }
     },
     {
         path: 'settings/printer',

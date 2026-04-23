@@ -124,7 +124,7 @@ onMounted(() => {
         
         &.target {
           font-weight: bold;
-          color: #007aff;
+          color: #e51923;
         }
         
         &.detail-text {

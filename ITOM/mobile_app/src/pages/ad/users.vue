@@ -107,7 +107,7 @@ const formatOU = (dn: string) => {
   
   .search-btn {
     margin-left: 10px;
-    color: #007aff;
+    color: #e51923;
     font-size: 15px;
     padding: 5px;
   }
@@ -133,7 +133,7 @@ const formatOU = (dn: string) => {
         width: 44px;
         height: 44px;
         border-radius: 22px;
-        background-color: #007aff;
+        background-color: #e51923;
         color: #fff;
         display: flex;
         align-items: center;

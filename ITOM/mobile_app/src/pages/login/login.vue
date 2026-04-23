@@ -2,7 +2,7 @@
   <view class="login-container">
     <view class="logo-box">
       <image class="logo" src="/static/logo.png" mode="aspectFit"></image>
-      <text class="app-name">ITOM 移动端</text>
+      <text class="app-name">SK 先惠 | ITOM 运维助手</text>
     </view>
     
     <view class="form-box">
@@ -194,7 +194,7 @@ const handleLogin = async () => {
     .server-value {
       flex: 1;
       font-size: 12px;
-      color: #007aff;
+      color: #e51923;
       margin: 0 6px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -254,14 +254,14 @@ const handleLogin = async () => {
         width: 50px;
         font-size: 14px;
         height: 40px;
-        color: #007aff;
+        color: #e51923;
         text-align: center;
       }
     }
 
     .save-btn {
       margin-top: 10px;
-      background-color: #007aff;
+      background-color: #e51923;
       color: #fff;
       border-radius: 6px;
       font-size: 13px;
@@ -294,14 +294,14 @@ const handleLogin = async () => {
       transition: all 0.3s;
       
       &:focus {
-        border-bottom-color: #007aff;
+        border-bottom-color: #e51923;
       }
     }
   }
   
   .login-btn {
     margin-top: 40px;
-    background-color: #007aff;
+    background-color: #e51923;
     color: #fff;
     border-radius: 8px;
     font-size: 16px;
@@ -311,7 +311,7 @@ const handleLogin = async () => {
     }
     
     &:active {
-      background-color: #0062cc;
+      background-color: #b91c1c;
     }
   }
 }

@@ -10,6 +10,16 @@
     <!-- 过滤器 -->
     <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl">
       <div class="flex flex-wrap gap-4 items-center">
+        <el-input
+          v-model="filterKeyword"
+          placeholder="搜索资产编号 / 调拨单号"
+          class="w-64"
+          clearable
+          @keyup.enter="fetchTransfers"
+        >
+          <template #prefix><el-icon><Search /></el-icon></template>
+        </el-input>
+
         <el-select v-model="filterStatus" placeholder="单据状态" clearable class="w-40">
           <el-option label="全部状态" value="" />
           <el-option label="待审批" value="待审批" />
@@ -162,7 +172,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { Refresh, Right } from '@element-plus/icons-vue'
+import { Refresh, Right, Search } from '@element-plus/icons-vue'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -174,6 +184,7 @@ const currentUserLocationId = ref<number | null>(null)
 
 const filterStatus = ref('')
 const filterLocationId = ref<number | null>(null)
+const filterKeyword = ref('')
 
 const fetchTransfers = async () => {
   loading.value = true
@@ -183,6 +194,7 @@ const fetchTransfers = async () => {
     }
     if (filterStatus.value) params.status = filterStatus.value
     if (filterLocationId.value) params.location_id = filterLocationId.value
+    if (filterKeyword.value) params.keyword = filterKeyword.value
 
     const { data } = await axios.get('/api/transfers/', { params })
     transfers.value = data
@@ -210,7 +222,7 @@ onMounted(() => {
   fetchTransfers()
 })
 
-watch([filterStatus, filterLocationId], () => {
+watch([filterStatus, filterLocationId, filterKeyword], () => {
   fetchTransfers()
 })
 
@@ -250,7 +262,8 @@ const handleApprove = (row: any) => {
 const handleReject = (row: any) => {
   ElMessageBox.prompt('请输入拒绝原因', '审批拒绝', {
     inputPlaceholder: '由于...'
-  }).then(async ({ value }) => {
+  }).then(async (data: any) => {
+    const { value } = data
     await axios.put(`/api/transfers/${row.id}`, { status: '已拒绝', memo: value })
     ElMessage.info('已拒绝调拨申请')
     fetchTransfers()
@@ -295,9 +308,21 @@ const handleReceive = (row: any) => {
     confirmButtonText: '确认签收',
     type: 'success'
   }).then(async () => {
-    await axios.put(`/api/transfers/${row.id}`, { status: '已完成' })
-    ElMessage.success('签收完成，资产已入库新归属地')
-    fetchTransfers()
+    try {
+      await axios.put(`/api/transfers/${row.id}`, { status: '已完成' })
+      ElMessage.success('签收完成，资产已入库新归属地')
+      fetchTransfers()
+    } catch (err: any) {
+      let msg = '签收失败，请联系管理员'
+      if (err.response?.data?.detail) {
+        msg = typeof err.response.data.detail === 'string' 
+          ? err.response.data.detail 
+          : JSON.stringify(err.response.data.detail)
+      }
+      ElMessage.error(msg)
+    }
+  }).catch(() => {
+    // 用户取消操作，无需额外反馈
   })
 }
 

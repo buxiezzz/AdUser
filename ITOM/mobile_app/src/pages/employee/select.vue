@@ -105,7 +105,7 @@ onMounted(() => {
   .cancel-text {
     margin-left: 12px;
     font-size: 14px;
-    color: #1677ff;
+    color: #e51923;
   }
 }
 
@@ -159,7 +159,7 @@ onMounted(() => {
 
 .emp-account {
   font-size: 12px;
-  color: #1677ff;
+  color: #e51923;
   background: #e6f0ff;
   padding: 4px 8px;
   border-radius: 4px;

@@ -58,7 +58,7 @@
     .title {
       font-size: 15px;
       font-weight: bold;
-      color: #007aff;
+      color: #e51923;
       margin-bottom: 8px;
       display: block;
     }

@@ -128,7 +128,7 @@ onShow(() => {
     position: absolute;
     right: 15px;
     font-size: 14px;
-    color: #1677ff;
+    color: #e51923;
     font-weight: 500;
   }
 }
@@ -184,7 +184,7 @@ onShow(() => {
       margin-bottom: 6px;
       font-size: 12px;
       .progress-text { color: #666; }
-      .progress-percent { color: #1677ff; font-weight: bold; }
+      .progress-percent { color: #e51923; font-weight: bold; }
     }
     .progress-bar-bg {
       height: 6px;
@@ -193,7 +193,7 @@ onShow(() => {
       overflow: hidden;
       .progress-bar-inner {
         height: 100%;
-        background: linear-gradient(90deg, #1677ff, #4fa3ff);
+        background: linear-gradient(90deg, #e51923, #b91c1c);
         transition: width 0.3s ease;
       }
     }
@@ -206,7 +206,7 @@ onShow(() => {
     border-top: 1px solid #f9f9f9;
     padding-top: 12px;
     .time { font-size: 11px; color: #ccc; }
-    .action { font-size: 13px; color: #1677ff; font-weight: 500; }
+    .action { font-size: 13px; color: #e51923; font-weight: 500; }
   }
 }
 

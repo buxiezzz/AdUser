@@ -321,7 +321,7 @@ onUnmounted(() => {
   .section-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1677ff;
+    color: #e51923;
     padding: 14px 0 10px;
     border-bottom: 1px solid #f0f0f0;
     margin-bottom: 4px;
@@ -389,7 +389,7 @@ onUnmounted(() => {
   
   .submit-btn {
     height: 48px;
-    background: #1677ff;
+    background: #e51923;
     border-radius: 24px;
     display: flex;
     align-items: center;

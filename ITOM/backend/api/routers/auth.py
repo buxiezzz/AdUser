@@ -31,7 +31,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     if not is_valid:
         from ldap3 import Server, Connection, Tls
         import ssl
-        config = load_config()
+        config = load_config(user.location_id)
         dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
         domain_name = config.get('DOMAIN_NAME', '')
         
@@ -44,6 +44,26 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
                 conn = Connection(server, user=upn, password=form_data.password, auto_bind=True)
                 if conn.bound:
                     is_valid = True
+                    # 同步获取用户姓名 (displayName)
+                    try:
+                        search_base = config.get('SEARCH_BASE', '')
+                        if not search_base and domain_name:
+                            # 自动根据域名推导搜索基准路径，例如 sk1.net.cn -> DC=sk1,DC=net,DC=cn
+                            search_base = ",".join([f"DC={part}" for part in domain_name.split('.')])
+                        
+                        if search_base:
+                            conn.search(
+                                search_base=search_base,
+                                search_filter=f"(sAMAccountName={form_data.username})",
+                                attributes=['displayName']
+                            )
+                            if conn.entries:
+                                ad_display_name = str(conn.entries[0].displayName)
+                                if ad_display_name and ad_display_name != user.display_name:
+                                    user.display_name = ad_display_name
+                                    db.commit()
+                    except Exception as se:
+                        print(f"Fetch AD DisplayName error: {se}")
                 conn.unbind()
             except Exception as e:
                 print(f"AD Auth Fallback Error: {e}")
@@ -63,7 +83,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 
 @router.post("/register", response_model=UserResponse)
 def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
-    config_data = load_config()
+    config_data = load_config(None)
     if not config_data.get("ALLOW_REGISTRATION", True):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

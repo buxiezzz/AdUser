@@ -78,6 +78,7 @@
           <span class="text-sm text-blue-700 font-semibold">已选 {{ selectedAssets.length }} 项资产</span>
           <el-divider direction="vertical" />
           <el-button size="small" type="primary" plain @click="printBatchLabels()">批量打印</el-button>
+          <el-button size="small" type="success" plain @click="openBatchTransferDialog">批量调拨</el-button>
           <el-button size="small" type="danger" plain @click="doBatchDelete">批量删除</el-button>
           <el-button size="small" plain @click="doClearSelection">取消选择</el-button>
         </div>
@@ -85,14 +86,20 @@
 
       <el-table ref="tableRef" :data="rawAssets" style="width: 100%" v-loading="loading" border stripe @selection-change="handleSelectionChange" @sort-change="handleSortChange" @row-click="handleRowClick" row-class-name="cursor-pointer">
          <el-table-column type="selection" width="55" fixed="left" />
-         <el-table-column prop="status" label="资产状态" width="110" sortable="custom">
-           <template #default="{ row }">
-             <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
-           </template>
+         <el-table-column prop="status" label="资产状态" width="130" sortable="custom">
+            <template #default="{ row }">
+              <div class="flex flex-col items-center gap-1">
+                <el-tag :type="getStatusType(row.status)" size="default">{{ row.status }}</el-tag>
+                <el-tag v-if="row.transfer_status" type="warning" size="small" effect="plain" class="border-dashed">
+                  <el-icon class="mr-0.5"><Timer /></el-icon>
+                  {{ row.transfer_status }}
+                </el-tag>
+              </div>
+            </template>
          </el-table-column>
          <el-table-column prop="asset_code" label="资产编码" width="180" sortable="custom">
             <template #default="{ row }">
-              <span class="font-mono font-medium text-indigo-600">
+              <span class="font-mono font-medium text-indigo-600 cursor-pointer hover:underline">
                 {{ row.asset_code || '未分配编号' }}
               </span>
             </template>
@@ -577,6 +584,35 @@
         <el-button type="primary" :loading="transferSubmitting" @click="submitTransfer">提交调拨申请</el-button>
       </template>
     </el-dialog>
+
+    <!-- 批量调拨申请弹窗 -->
+    <el-dialog v-model="batchTransferDialogVisible" title="批量发起资产跨归属地调拨" width="500px" append-to-body>
+      <div class="mb-4 p-3 bg-blue-50 rounded border border-blue-100 text-sm text-blue-700">
+        您已选中 <span class="font-bold">{{ selectedAssets.length }}</span> 项资产。
+        <div v-if="selectedAssets.filter(a => a.status !== '闲置').length > 0" class="mt-1 text-red-500 font-bold">
+          警告：其中 {{ selectedAssets.filter(a => a.status !== '闲置').length }} 项非“闲置”资产将被系统忽略。
+        </div>
+      </div>
+      <el-form :model="batchTransferForm" label-position="top">
+        <el-form-item label="目标接收归属地" required>
+          <el-select v-model="batchTransferForm.to_location_id" placeholder="请选择目标子公司/分部" class="w-full">
+            <el-option 
+              v-for="loc in locationList" 
+              :key="loc.id" :label="loc.name" :value="loc.id" 
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="批量调拨说明">
+          <el-input v-model="batchTransferForm.memo" type="textarea" :rows="3" placeholder="统一填写调拨原因..." />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="batchTransferDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="transferSubmitting" @click="submitBatchTransfer" :disabled="selectedAssets.filter(a => a.status === '闲置').length === 0">
+          确认提交 {{ selectedAssets.filter(a => a.status === '闲置').length }} 项资产申请
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -627,6 +663,9 @@ const getLocName = (id: number) => {
 }
 
 const openTransferDialog = (asset: any) => {
+    if (asset.status !== '闲置') {
+        return ElMessage.warning(`资产当前状态为“${asset.status}”，只有“闲置”资产才允许发起跨归属地调拨。`)
+    }
     transferForm.value = {
         asset_id: asset.id,
         asset_code: asset.asset_code,
@@ -660,6 +699,44 @@ const submitTransfer = async () => {
     }
 }
 
+// 批量调拨逻辑
+const batchTransferDialogVisible = ref(false)
+const batchTransferForm = ref({
+    to_location_id: undefined,
+    memo: ''
+})
+
+const openBatchTransferDialog = () => {
+    batchTransferForm.value = {
+        to_location_id: undefined,
+        memo: ''
+    }
+    batchTransferDialogVisible.value = true
+}
+
+const submitBatchTransfer = async () => {
+    const idleAssets = selectedAssets.value.filter(a => a.status === '闲置')
+    if (idleAssets.length === 0) return ElMessage.error('当前选中的资产中没有符合调拨条件的（必须为闲置状态）')
+    if (!batchTransferForm.value.to_location_id) return ElMessage.warning('请选择目标归属地')
+    
+    transferSubmitting.value = true
+    try {
+        await axios.post('/api/transfers/batch/', {
+            asset_ids: idleAssets.map(a => a.id),
+            to_location_id: batchTransferForm.value.to_location_id,
+            memo: batchTransferForm.value.memo
+        })
+        ElMessage.success(`成功为 ${idleAssets.length} 项资产发起调拨申请`)
+        batchTransferDialogVisible.value = false
+        doClearSelection()
+        fetchAssets()
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.detail || '批量调拨失败')
+    } finally {
+        transferSubmitting.value = false
+    }
+}
+
 // 归属地相关
 const locationList = ref<any[]>([])
 const isGroupAdmin = ref(false)
@@ -686,15 +763,15 @@ const resetFilters = () => {
 
 const fetchGlobals = async () => {
     try {
-        const [catRes, empRes, settingsRes, locRes, userRes] = await Promise.all([
+        const [catRes, settingsRes, locRes, userRes] = await Promise.all([
             axios.get('/api/assets/categories'),
-            axios.get('/api/assets/employees', { params: { keyword: '' }}),
             axios.get('/api/settings/'),
             axios.get('/api/locations/'),
             axios.get('/api/auth/me')
         ])
         categories.value = catRes.data || []
-        employees.value = empRes.data || []
+        // 不再预加载全量员工列表，改为远程搜索模式以提升详情抽屉弹出速度
+        employees.value = []
         
         if (settingsRes.data && settingsRes.data.PRINT_TEMPLATE) {
             printConfig.value = { ...printConfig.value, ...settingsRes.data.PRINT_TEMPLATE }
@@ -1085,7 +1162,7 @@ const exportExcel = async () => {
         }
 
         // 2. 转换数据逻辑
-        const rows = allAssets.map(a => {
+        const rows = allAssets.map((a: any) => {
             const baseRow: any = {
                 '资产状态': a.status,
                 '资产编码': a.asset_code,
@@ -1129,8 +1206,8 @@ const handleSelectionChange = (val: any[]) => {
 
 const handleRowClick = (row: any, column: any) => {
     if (!column) return;
-    // 如果点击的是复选框列、或者点击了资产编码呼出气泡，都不触发抽屉弹出
-    if (column.type === 'selection' || column.property === 'asset_code') {
+    // 如果点击的是复选框列，不触发抽屉弹出
+    if (column.type === 'selection') {
         return;
     }
     openManageDrawer(row);
@@ -1320,8 +1397,8 @@ const saveTemplateToSystem = async () => {
 
 // ------ 导入功能 ------
 const downloadTemplate = () => {
-    const headers = ['资产状态', '资产编码', '资产分类', '规格型号', '计量单位', '入库日期', '所属组织', '使用人', '序列号', '备注']
-    const exampleRow = ['在库', 'IT-PC-2023001', '笔记本', 'ThinkPad T14', '台', '2023-10-01', '研发中心', '张三', 'PF123456', '全新设备']
+    const headers = ['资产状态', '资产编码', '归属地', '资产分类', '规格型号', '计量单位', '入库日期', '所属组织', '使用人', '序列号', '备注']
+    const exampleRow = ['在库', 'IT-PC-2023001', '武汉分部', '笔记本', 'ThinkPad T14', '台', '2023-10-01', '研发中心', '张三', 'PF123456', '全新设备']
     const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow])
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, '导入模板')

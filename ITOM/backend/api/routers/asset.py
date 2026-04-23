@@ -10,7 +10,7 @@ from database import get_db
 from crud import asset as crud_asset
 import schemas.asset
 from schemas.asset import AssetResponse, AssetCreate, CategoryResponse, CategoryCreate, EmployeeResponse, EmployeeCreate
-from api.deps import get_current_active_user
+from api.deps import get_current_active_user, get_device_source
 from models.user import User
 from models.asset import Employee, Category, Asset, AssetLog
 from core.ad_utils import search_ad_users, extract_department
@@ -75,9 +75,9 @@ def read_categories(skip: int = 0, limit: int = 10000, db: Session = Depends(get
     return crud_asset.get_categories(db, skip=skip, limit=limit)
 
 @router.post("/categories", response_model=CategoryResponse)
-def create_category(category: CategoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def create_category(category: CategoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     db_cat = crud_asset.create_category(db, category=category)
-    log_action(db, current_user.username, 'asset', 'CREATE_CATEGORY', category.name)
+    log_action(db, (current_user.display_name or current_user.username), 'asset', 'CREATE_CATEGORY', category.name, device_source=device)
     return db_cat
 
 @router.put("/categories/{category_id}", response_model=CategoryResponse)
@@ -88,7 +88,7 @@ def update_category(category_id: int, category_in: schemas.asset.CategoryUpdate,
     return db_cat
 
 @router.delete("/categories/{category_id}")
-def delete_category(category_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def delete_category(category_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     db_cat = db.query(Category).filter(Category.id == category_id).first()
     if not db_cat:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -103,18 +103,18 @@ def delete_category(category_id: int, db: Session = Depends(get_db), current_use
     if not success:
         raise HTTPException(status_code=404, detail="Category not found")
     
-    log_action(db, current_user.username, 'asset', 'DELETE_CATEGORY', cat_name)
+    log_action(db, (current_user.display_name or current_user.username), 'asset', 'DELETE_CATEGORY', cat_name, device_source=device)
     return {"message": "Category deleted successfully"}
 
 # --- Employees ---
 @router.get("/employees", response_model=List[EmployeeResponse])
 def read_employees(keyword: str = "", skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     # 优先从 AD 拉取名单包装成假 Employee 结构供前端下拉使用
-    config = load_config()
+    config = load_config(current_user.location_id)
     sys_bind_user = config.get('BIND_USERNAME', '')
     sys_bind_pass = config.get('BIND_PASSWORD', '')
     
-    ad_users = search_ad_users(sys_bind_user, sys_bind_pass, keyword)
+    ad_users = search_ad_users(sys_bind_user, sys_bind_pass, keyword, location_id=current_user.location_id)
     results = []
     
     for au in ad_users:
@@ -131,14 +131,29 @@ def read_employees(keyword: str = "", skip: int = 0, limit: int = 10000, db: Ses
                 name=name,
                 department=department,
                 email=email,
-                ad_account=ad_account
+                ad_account=ad_account,
+                location_id=current_user.location_id # 自动关联到当前管理员的归属地
             )
             db.add(db_emp)
             db.commit()
             db.refresh(db_emp)
         else:
-            # 如果信息有变动，也可以选择在这里更新 db_emp
-            pass
+            # 核心修复：如果 AD 中的信息（姓名、部门、邮箱）有变动，实时更新本地缓存
+            has_changed = False
+            if db_emp.name != name:
+                db_emp.name = name
+                has_changed = True
+            if db_emp.department != department:
+                db_emp.department = department
+                has_changed = True
+            if db_emp.email != email:
+                db_emp.email = email
+                has_changed = True
+            
+            if has_changed:
+                db.add(db_emp)
+                db.commit()
+                db.refresh(db_emp)
             
         results.append(db_emp)
         
@@ -150,7 +165,7 @@ def create_employee(employee: EmployeeCreate, db: Session = Depends(get_db), cur
 
 # --- Excel Import ---
 @router.post("/import")
-async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Invalid file format. Please upload an Excel file.")
 
@@ -195,7 +210,7 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
     errors = []
 
     # Prepare AD configuration for employee matching (if needed)
-    config = load_config()
+    config = load_config(current_user.location_id)
     sys_bind_user = config.get('BIND_USERNAME', '')
     sys_bind_pass = config.get('BIND_PASSWORD', '')
 
@@ -246,7 +261,7 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
                 if not employee:
                     # 本地没找到，尝试从 AD 精准匹配
                     try:
-                        ad_users = search_ad_users(sys_bind_user, sys_bind_pass, owner_name)
+                        ad_users = search_ad_users(sys_bind_user, sys_bind_pass, owner_name, location_id=current_user.location_id)
                         if ad_users:
                             # 权重识别：如果返回多个结果，比对部门名
                             final_ad_user = None
@@ -391,12 +406,12 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
             errors.append(f"Row {row_num}: {str(row_error)}")
             continue
 
+    log_action(db, (current_user.display_name or current_user.username), 'asset', 'IMPORT_EXCEL', f"成功:{success_count}, 失败:{len(errors)}", {"errors": errors[:10]}, device_source=device)
     return {
         "message": f"Import completed. Success: {success_count}, Errors: {len(errors)}",
         "success": success_count,
         "errors": errors
     }
-    log_action(db, current_user.username, 'asset', 'IMPORT_EXCEL', f"成功:{success_count}, 失败:{len(errors)}", {"errors": errors[:10]})
 
 # --- Batch Operations ---
 from pydantic import BaseModel as PydanticBase
@@ -414,7 +429,7 @@ class BatchCopyBody(PydanticBase):
     asset_ids: List[str]
 
 @router.post("/batch-delete")
-def batch_delete_assets(body: BatchDeleteBody, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def batch_delete_assets(body: BatchDeleteBody, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     """彻底删除（硬删除）选中的多个资产"""
     results = []
     for id_str in body.asset_ids:
@@ -425,7 +440,7 @@ def batch_delete_assets(body: BatchDeleteBody, db: Session = Depends(get_db), cu
         except Exception as e:
             pass
     
-    log_action(db, current_user.username, 'asset', 'BATCH_DELETE_HARD', f"数量: {len(results)}", {"ids": results})
+    log_action(db, (current_user.display_name or current_user.username), 'asset', 'BATCH_DELETE_HARD', f"数量: {len(results)}", {"ids": results}, device_source=device)
     return {"deleted": len(results), "ids": results}
 
 @router.put("/batch-update")
@@ -443,7 +458,7 @@ def batch_update_assets(body: BatchUpdateBody, db: Session = Depends(get_db), cu
             if not update_data:
                 continue
             asset_in = sa.AssetUpdate(**update_data)
-            result = crud_asset.update_asset(db, asset_id=_UUID(id_str), asset_in=asset_in, current_user_id=current_user.id)
+            result = crud_asset.update_asset(db, asset_id=_UUID(id_str), asset_in=asset_in, current_location_id=current_user.location_id)
             if result:
                 updated += 1
         except Exception:
@@ -451,7 +466,7 @@ def batch_update_assets(body: BatchUpdateBody, db: Session = Depends(get_db), cu
     return {"updated": updated}
 
 @router.post("/batch-copy")
-def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     """复制选中资产，生成新的资产编码（原编码 + -COPY-N）"""
     import uuid as _uuid
     created = 0
@@ -485,7 +500,7 @@ def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), curren
             created += 1
         except Exception as e:
             db.rollback()
-    log_action(db, current_user.username, 'asset', 'BATCH_COPY', f"数量: {created}")
+    log_action(db, (current_user.display_name or current_user.username), 'asset', 'BATCH_COPY', f"数量: {created}", device_source=device)
     return {"created": created}
 
 # --- Assets ---
@@ -525,9 +540,9 @@ def read_assets(
     return crud_asset.get_assets(db, skip=skip, limit=limit, keyword=keyword, status=status, sort_by=sort_by, order=order, location_id=effective_location_id)
 
 @router.post("/", response_model=AssetResponse)
-def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     res = crud_asset.create_asset(db, asset=asset, current_user_id=current_user.id)
-    log_action(db, current_user.username, 'asset', 'CREATE', asset.asset_code)
+    log_action(db, (current_user.display_name or current_user.username), 'asset', 'CREATE', asset.asset_code, device_source=device)
     return res
 
 @router.get("/{asset_id}", response_model=AssetResponse)
@@ -538,24 +553,61 @@ def read_asset(asset_id: str, db: Session = Depends(get_db), current_user: User 
     return db_asset
 
 @router.put("/{asset_id}", response_model=AssetResponse)
-def update_asset(asset_id: str, asset_in: schemas.asset.AssetUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def update_asset(asset_id: str, asset_in: schemas.asset.AssetUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     try:
+        # 获取更新前的资产状态
+        db_asset_old = crud_asset.get_asset(db, asset_id=asset_id)
+        if not db_asset_old:
+            raise HTTPException(status_code=404, detail="Asset not found")
+        
+        old_status = db_asset_old.status
+        old_owner = db_asset_old.owner.name if db_asset_old.owner else "空"
+        old_loc = db_asset_old.location.name if db_asset_old.location else "空"
+        old_category = db_asset_old.category.name if db_asset_old.category else "空"
+        old_dyn = dict(db_asset_old.dynamic_attributes or {})
+        
+        # 执行更新操作
         db_asset = crud_asset.update_asset(db, asset_id=asset_id, asset_in=asset_in, current_user_id=current_user.id)
         if not db_asset:
             raise HTTPException(status_code=404, detail="Asset not found")
         
-        log_action(db, current_user.username, 'asset', 'UPDATE', db_asset.asset_code, asset_in.dict(exclude_unset=True))
+        # 获取更新后的资产状态
+        new_status = db_asset.status
+        new_owner = db_asset.owner.name if db_asset.owner else "空"
+        new_loc = db_asset.location.name if db_asset.location else "空"
+        new_category = db_asset.category.name if db_asset.category else "空"
+        new_dyn = db_asset.dynamic_attributes or {}
+        
+        # 构建变更差异明细
+        diff_details = {}
+        if old_status != new_status:
+            diff_details["status"] = {"old": old_status, "new": new_status}
+        if old_owner != new_owner:
+            diff_details["owner_id"] = {"old": old_owner, "new": new_owner}
+        if old_loc != new_loc:
+            diff_details["location_id"] = {"old": old_loc, "new": new_loc}
+        if old_category != new_category:
+            diff_details["category_id"] = {"old": old_category, "new": new_category}
+            
+        for k, v in new_dyn.items():
+            old_v = old_dyn.get(k)
+            if old_v != v:
+                diff_details[k] = {"old": old_v or "空", "new": v or "空"}
+        
+        if diff_details:
+            log_action(db, (current_user.display_name or current_user.username), 'asset', 'UPDATE', db_asset.asset_code, diff_details, device_source=device)
+            
         return db_asset
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{asset_id}", response_model=AssetResponse)
-def delete_asset(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def delete_asset(asset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
     db_asset = crud_asset.delete_asset(db, asset_id=asset_id, current_user_id=current_user.id)
     if not db_asset:
         raise HTTPException(status_code=404, detail="Asset not found")
     
-    log_action(db, current_user.username, 'asset', 'DELETE_SOFT', db_asset.asset_code)
+    log_action(db, (current_user.display_name or current_user.username), 'asset', 'DELETE_SOFT', db_asset.asset_code, device_source=device)
     return db_asset
 
 @router.delete("/hard/{asset_id}")

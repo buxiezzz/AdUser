@@ -453,7 +453,7 @@ onUnmounted(() => {
     right: 16px;
     bottom: 12px;
     font-size: 14px;
-    color: #1677ff;
+    color: #e51923;
     font-weight: 500;
   }
 }
@@ -504,7 +504,7 @@ onUnmounted(() => {
     
     .refresh-icon {
       font-size: 20px;
-      color: #1677ff;
+      color: #e51923;
     }
   }
 }
@@ -535,11 +535,11 @@ onUnmounted(() => {
       
       .sort-text {
         font-size: 12px;
-        color: #1677ff;
+        color: #e51923;
       }
       .sort-arrow {
         font-size: 10px;
-        color: #1677ff;
+        color: #e51923;
       }
     }
     
@@ -588,13 +588,13 @@ onUnmounted(() => {
     
     .tab-line {
       height: 2px;
-      background: #1677ff;
+      background: #e51923;
       border-radius: 2px;
       margin-top: 8px;
     }
     
     &.active .tab-text {
-      color: #1677ff;
+      color: #e51923;
       font-weight: 600;
     }
   }
@@ -640,7 +640,7 @@ onUnmounted(() => {
       font-weight: 500;
       
       &.status-active { color: #f5222d; }
-      &.status-idle   { color: #1677ff; }
+      &.status-idle   { color: #e51923; }
       &.status-borrow { color: #fa8c16; }
       &.status-repair { color: #faad14; }
       &.status-scrap  { color: #999; }
@@ -704,7 +704,7 @@ onUnmounted(() => {
       
       .action-text {
         font-size: 13px;
-        color: #1677ff;
+        color: #e51923;
       }
       
       &.btn-hover {
@@ -759,7 +759,7 @@ onUnmounted(() => {
       
       .btn-text {
         font-size: 12px;
-        color: #1677ff;
+        color: #e51923;
         font-weight: 600;
       }
     }
@@ -771,7 +771,7 @@ onUnmounted(() => {
       
       .op-link {
         font-size: 13px;
-        color: #1677ff;
+        color: #e51923;
         font-weight: 600;
         
         &.cancel { color: #ff4d4f; }
@@ -784,7 +784,7 @@ onUnmounted(() => {
       }
       
       .print-trigger-btn {
-        background: #1677ff;
+        background: #e51923;
         padding: 4px 12px;
         border-radius: 100px;
         box-shadow: 0 2px 8px rgba(22, 119, 255, 0.3);
@@ -811,7 +811,7 @@ onUnmounted(() => {
   align-items: stretch;
   
   &.is-selected {
-    border: 2px solid #1677ff;
+    border: 2px solid #e51923;
     box-shadow: 0 4px 12px rgba(22, 119, 255, 0.15);
   }
 }
@@ -835,8 +835,8 @@ onUnmounted(() => {
     transition: all 0.2s;
     
     &.checked {
-      background: #1677ff;
-      border-color: #1677ff;
+      background: #e51923;
+      border-color: #e51923;
     }
     
     .check-icon {
@@ -855,7 +855,7 @@ onUnmounted(() => {
 
 .bottom-btn {
   &.primary .bottom-text {
-    color: #1677ff;
+    color: #e51923;
     font-weight: 700;
   }
   &.cancel .bottom-text {

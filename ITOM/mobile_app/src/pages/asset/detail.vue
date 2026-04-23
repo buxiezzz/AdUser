@@ -396,7 +396,7 @@ onUnmounted(() => {
   
   .retry-btn {
     margin-top: 8px;
-    background: #1677ff;
+    background: #e51923;
     border-radius: 20px;
     padding: 8px 24px;
     
@@ -405,7 +405,7 @@ onUnmounted(() => {
 }
 
 .header-card {
-  background: #007aff;
+  background: #e51923;
   color: #fff;
   padding: 30px 20px 40px;
   border-bottom-left-radius: 20px;
@@ -455,7 +455,7 @@ onUnmounted(() => {
     margin-right: 15px;
     
     &.active {
-      color: #007aff;
+      color: #e51923;
       font-weight: 600;
       
       &::after {
@@ -465,7 +465,7 @@ onUnmounted(() => {
         left: 30%;
         width: 40%;
         height: 3px;
-        background: #007aff;
+        background: #e51923;
         border-radius: 2px;
       }
     }
@@ -489,7 +489,7 @@ onUnmounted(() => {
     font-weight: bold;
     color: #333;
     margin-bottom: 16px;
-    border-left: 3px solid #007aff;
+    border-left: 3px solid #e51923;
     padding-left: 8px;
   }
   
@@ -555,7 +555,7 @@ onUnmounted(() => {
       .log-dot {
         width: 10px;
         height: 10px;
-        background: #007aff;
+        background: #e51923;
         border-radius: 50%;
         margin-top: 5px;
         border: 2px solid #e6f1ff;
@@ -622,7 +622,7 @@ onUnmounted(() => {
     &::after { border: none; }
     
     &.primary {
-      background: #007aff;
+      background: #e51923;
       color: #fff;
     }
     

@@ -78,7 +78,7 @@ onMounted(() => {
     
     .action-btn {
       font-size: 13px;
-      color: #007aff;
+      color: #e51923;
     }
   }
   
@@ -96,7 +96,7 @@ onMounted(() => {
       .tag {
         font-size: 12px;
         background: #f0f8ff;
-        color: #007aff;
+        color: #e51923;
         padding: 4px 8px;
         border-radius: 4px;
         margin-right: 8px;

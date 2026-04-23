@@ -1,10 +1,10 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 pb-20">
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">职位、岗位与全域参数配置</h1>
+      <h1 class="text-2xl font-bold text-gray-800 tracking-tight">参数配置</h1>
       <el-button type="primary" :loading="saving" @click="saveTemplates">
         <el-icon class="mr-1"><Check /></el-icon>
-        保存所有模板配置
+        保存所有配置
       </el-button>
     </div>
 
@@ -136,6 +136,89 @@
           </div>
         </div>
       </el-tab-pane>
+
+      <!-- 地区过滤器整合 -->
+      <el-tab-pane label="地区过滤器" name="region_filter">
+        <div class="space-y-6 mt-4">
+          <div class="flex justify-between items-end">
+            <div class="space-y-1">
+              <div class="text-sm font-bold text-gray-700">物理地区锁定</div>
+              <div class="text-xs text-gray-400">选择一个当前工作的物理地区。系统将在创建账号时自动过滤 OU。</div>
+            </div>
+            <el-button :icon="Setting" size="small" @click="openManage">
+              地区字典库管理
+            </el-button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- “全域视图”卡片 -->
+            <div 
+              class="relative cursor-pointer transition-all duration-300"
+              @click="selectRegion('all')"
+            >
+              <div 
+                :class="[
+                  'p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center space-y-2',
+                  activeRegionCode === 'all' 
+                    ? 'border-primary bg-indigo-50/30' 
+                    : 'border-gray-100 bg-white hover:border-indigo-100'
+                ]"
+              >
+                <div :class="['p-3 rounded-xl', activeRegionCode === 'all' ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400']">
+                  <el-icon :size="24"><Monitor /></el-icon>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-900 text-sm">全域策略视图</h4>
+                  <p class="text-[10px] text-gray-400 mt-1 line-clamp-2">展示完整的 AD 原始数据。</p>
+                </div>
+                <div v-if="activeRegionCode === 'all'" class="absolute top-1 right-1">
+                  <el-icon class="text-primary" :size="16"><CircleCheckFilled /></el-icon>
+                </div>
+              </div>
+            </div>
+
+            <!-- 动态地区卡片 -->
+            <div 
+              v-for="region in regions" 
+              :key="region.code"
+              class="relative cursor-pointer transition-all duration-300"
+              @click="selectRegion(region.code)"
+            >
+              <div 
+                :class="[
+                  'p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center space-y-2',
+                  activeRegionCode === region.code 
+                    ? 'border-emerald-500 bg-emerald-50/30' 
+                    : 'border-gray-100 bg-white hover:border-emerald-100'
+                ]"
+              >
+                <div :class="['p-3 rounded-xl', activeRegionCode === region.code ? 'bg-emerald-500 text-white' : 'bg-gray-50 text-gray-400']">
+                  <el-icon :size="24"><Location /></el-icon>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-900 text-sm">{{ region.name }}</h4>
+                  <div class="flex flex-wrap justify-center gap-1 mt-1">
+                    <el-tag 
+                      v-for="kw in region.keywords" 
+                      :key="kw" 
+                      size="small" 
+                      class="px-1 scale-75 origin-center"
+                      :effect="activeRegionCode === region.code ? 'dark' : 'plain'"
+                      :type="activeRegionCode === region.code ? 'success' : 'info'"
+                    >
+                      {{ kw }}
+                    </el-tag>
+                  </div>
+                </div>
+                <div v-if="activeRegionCode === region.code" class="absolute top-1 right-1">
+                  <el-icon class="text-emerald-500" :size="16"><CircleCheckFilled /></el-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </el-tab-pane>
     </el-tabs>
 
     <!-- 添加 OU 映射弹窗 -->
@@ -162,13 +245,64 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 地区字典管理弹窗 -->
+    <el-dialog 
+      v-model="manageVisible" 
+      title="地区字典库管理" 
+      width="700px" 
+      destroy-on-close
+    >
+      <div class="space-y-6">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-gray-500 text-sm">定义业务覆盖的物理地区及其自动匹配关键词。</span>
+          <el-button type="primary" :icon="Plus" @click="handleAdd" circle />
+        </div>
+
+        <el-table :data="regionsList" border stripe>
+          <el-table-column label="地区名称" width="150">
+            <template #default="{ row }">
+              <el-input v-model="row.name" placeholder="如: 北京" class="font-bold" />
+            </template>
+          </el-table-column>
+          <el-table-column label="识别码" width="130">
+            <template #default="{ row }">
+              <el-input v-model="row.code" placeholder="如: beijing" />
+            </template>
+          </el-table-column>
+          <el-table-column label="关键词 (以逗号分隔)">
+            <template #default="{ row }">
+              <el-input v-model="row.keywordStr" placeholder="匹配 AD 路径的关键字" @blur="syncKeywords(row)" />
+            </template>
+          </el-table-column>
+          <el-table-column fixed="right" label="操作" width="80" align="center">
+            <template #default="{ $index }">
+              <el-button :icon="Delete" type="danger" link @click="removeRegion($index)" />
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <div class="bg-orange-50 p-4 rounded-xl flex items-start space-x-3">
+          <el-icon class="text-orange-400 mt-0.5"><InfoFilled /></el-icon>
+          <p class="text-xs text-orange-800 leading-relaxed">
+            注意：删除一个正在使用的地区会导致全系统过滤器回退到“全域视图”。请在删除前确保已解除该地区的关联。
+          </p>
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <el-button @click="manageVisible = false">取消</el-button>
+          <el-button type="primary" :loading="updatingList" @click="saveRegionOptions">保存字典库</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Check, Delete, Lock, Key } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { Check, Delete, Lock, Key, Monitor, Location, CircleCheckFilled, Setting, Plus, InfoFilled } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
 
 const activeTab = ref('ou_groups')
@@ -184,6 +318,28 @@ const ouList = ref<{dn: string, name: string}[]>([])
 const ouTableData = ref<Array<{dn: string, name: string, default_groups: string[], prefix: string}>>([])
 const positionList = ref<Array<{name: string, suffix: string, default_groups: string[]}>>([])
 const defaultPassword = ref('')
+
+// 地区过滤器数据状态
+interface Region {
+  code: string
+  name: string
+  keywords: string[]
+  keywordStr?: string // 临时字段
+}
+const regions = ref<Region[]>([])
+const activeRegionCode = ref('all')
+const manageVisible = ref(false)
+const updatingList = ref(false)
+const regionsList = ref<Region[]>([])
+
+// activeRegionLabel 被识别为已声明但未读取，且在模板中未被引用，故移除以通过编译
+/*
+const activeRegionLabel = computed(() => {
+  if (activeRegionCode.value === 'all') return '全域策略视图'
+  const match = regions.value.find(r => r.code === activeRegionCode.value)
+  return match ? match.name : activeRegionCode.value
+})
+*/
 
 // 对话框控制
 const addOUDialogVisible = ref(false)
@@ -237,6 +393,16 @@ const fetchData = async () => {
       })
     })
 
+    // 4. 初始化地区配置
+    regions.value = config.REGION_OPTIONS || []
+    activeRegionCode.value = config.ACTIVE_REGION_CODE || 'all'
+    
+    // 初始化字典库管理副本
+    regionsList.value = JSON.parse(JSON.stringify(regions.value)).map((r: Region) => ({
+      ...r,
+      keywordStr: r.keywords.join(', ')
+    }))
+
     ouTableData.value = formattedData
 
   } catch (err: any) {
@@ -268,7 +434,13 @@ const confirmAddOU = () => {
 }
 
 const removeOUMapping = (index: number) => {
-  ouTableData.value.splice(index, 1)
+  ElMessageBox.confirm('确定要删除此 OU 映射配置吗？此操作在保存前不会提交到后端。', '删除提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    ouTableData.value.splice(index, 1)
+  }).catch(() => {})
 }
 
 const addPosition = () => {
@@ -276,7 +448,72 @@ const addPosition = () => {
 }
 
 const removePosition = (index: number) => {
-  positionList.value.splice(index, 1)
+  ElMessageBox.confirm('确定要删除此职位配置吗？', '删除提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    positionList.value.splice(index, 1)
+  }).catch(() => {})
+}
+
+// ---- 地区过滤器方法 ----
+const selectRegion = (code: string) => {
+  activeRegionCode.value = code
+}
+
+const openManage = () => {
+  manageVisible.value = true
+}
+
+const handleAdd = () => {
+  regionsList.value.push({
+    name: '新地区',
+    code: 'new_region',
+    keywords: [],
+    keywordStr: ''
+  })
+}
+
+const removeRegion = (index: number) => {
+  ElMessageBox.confirm('确定要从字典库中移除此地区吗？', '删除提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    regionsList.value.splice(index, 1)
+  }).catch(() => {})
+}
+
+const syncKeywords = (row: Region) => {
+  if (row.keywordStr) {
+    row.keywords = row.keywordStr.split(/[,，]/).map(s => s.trim()).filter(s => !!s)
+  } else {
+    row.keywords = []
+  }
+}
+
+const saveRegionOptions = async () => {
+  updatingList.value = true
+  try {
+    const cleanList = regionsList.value.map(r => ({
+      name: r.name,
+      code: r.code,
+      keywords: r.keywords
+    }))
+    
+    const payload = { region_options: cleanList }
+    const { data } = await axios.post('/api/settings/', payload)
+    if (data.success) {
+      ElMessage.success('地区字典库更新成功')
+      manageVisible.value = false
+      await fetchData() // 刷新列表
+    }
+  } catch (err: any) {
+    ElMessage.error('更新失败')
+  } finally {
+    updatingList.value = false
+  }
 }
 
 const saveTemplates = async () => {
@@ -299,7 +536,8 @@ const saveTemplates = async () => {
       positions: positionList.value,
       ou_group_mapping: mappingToSave,
       ou_prefix_mapping: prefixToSave,
-      default_user_password: defaultPassword.value
+      default_user_password: defaultPassword.value,
+      active_region_code: activeRegionCode.value
     }
 
     const { data } = await axios.post('/api/settings/', payload)

@@ -91,6 +91,7 @@ class AssetResponse(AssetBase):
     owner: Optional[EmployeeResponse] = None
     category: Optional[CategoryResponse] = None
     location: Optional[LocationResponse] = None
+    transfer_status: Optional[str] = None # 用于标记资产是否正在调拨中
 
     class Config:
         from_attributes = True
@@ -142,9 +143,13 @@ class AssetTransferResponse(AssetTransferBase):
     asset: Optional[AssetResponse] = None
     from_location: Optional[LocationResponse] = None
     to_location: Optional[LocationResponse] = None
-    # 注意：这里可能需要 UserResponse，如果 main.py 已经有了可以引用，或者简化显示名称
     applicant_name: Optional[str] = None
     approver_name: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+class AssetTransferBatchCreate(BaseModel):
+    asset_ids: List[str]
+    to_location_id: int
+    memo: Optional[str] = None

@@ -73,6 +73,7 @@ class Asset(Base):
     category = relationship("Category", back_populates="assets")
     location = relationship("Location")
     logs = relationship("AssetLog", back_populates="asset")
+    transfers = relationship("AssetTransfer", back_populates="asset")
 
 class AssetLog(Base):
     __tablename__ = "asset_logs"

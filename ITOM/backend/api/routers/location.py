@@ -5,7 +5,7 @@ from typing import List, Any
 from database import get_db
 from crud import location as crud_location
 from schemas.asset import LocationCreate, LocationUpdate, LocationResponse
-from api.deps import get_current_active_user, get_current_admin_user
+from api.deps import get_current_active_user, get_current_admin_user, get_device_source
 from crud.audit import log_action
 
 router = APIRouter()
@@ -38,7 +38,8 @@ def read_location(
 def create_location(
     location: LocationCreate,
     db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    device: str = Depends(get_device_source)
 ):
     """创建新归属地（仅集团超管）"""
     if not current_user.is_group_admin:
@@ -50,7 +51,7 @@ def create_location(
         raise HTTPException(status_code=400, detail=f"归属地编码 '{location.code}' 已存在")
 
     db_loc = crud_location.create_location(db, location)
-    log_action(db, current_user.username, 'system', 'CREATE_LOCATION', db_loc.name)
+    log_action(db, (current_user.display_name or current_user.username), 'system', 'CREATE_LOCATION', db_loc.name, device_source=device)
     return db_loc
 
 
@@ -59,7 +60,8 @@ def update_location(
     location_id: int,
     location_in: LocationUpdate,
     db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    device: str = Depends(get_device_source)
 ):
     """更新归属地信息（仅集团超管）"""
     if not current_user.is_group_admin:
@@ -69,7 +71,7 @@ def update_location(
     if not db_loc:
         raise HTTPException(status_code=404, detail="归属地不存在")
 
-    log_action(db, current_user.username, 'system', 'UPDATE_LOCATION', db_loc.name)
+    log_action(db, (current_user.display_name or current_user.username), 'system', 'UPDATE_LOCATION', db_loc.name, device_source=device)
     return db_loc
 
 
@@ -77,7 +79,8 @@ def update_location(
 def delete_location(
     location_id: int,
     db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    device: str = Depends(get_device_source)
 ):
     """删除归属地（软删除，仅集团超管）"""
     if not current_user.is_group_admin:
@@ -96,5 +99,5 @@ def delete_location(
     if not success:
         raise HTTPException(status_code=404, detail="归属地不存在")
 
-    log_action(db, current_user.username, 'system', 'DELETE_LOCATION', f"ID:{location_id}")
+    log_action(db, (current_user.display_name or current_user.username), 'system', 'DELETE_LOCATION', f"ID:{location_id}", device_source=device)
     return {"message": "归属地已停用"}

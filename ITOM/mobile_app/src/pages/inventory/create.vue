@@ -109,7 +109,7 @@ const submitTask = async () => {
 }
 
 .submit-btn {
-  background: #1677ff;
+  background: #e51923;
   color: #fff;
   border-radius: 25px;
   height: 50px;

@@ -232,9 +232,12 @@ const fetchAssetStats = async () => {
       if (!stats[asset.location_id]) {
         stats[asset.location_id] = { total: 0, in_use: 0, idle: 0 }
       }
-      stats[asset.location_id].total++
-      if (asset.status === '在用') stats[asset.location_id].in_use++
-      if (asset.status === '闲置') stats[asset.location_id].idle++
+      const s = stats[asset.location_id]
+      if (s) {
+        s.total++
+        if (asset.status === '在用') s.in_use++
+        if (asset.status === '闲置') s.idle++
+      }
     }
 
     assetStats.value = stats

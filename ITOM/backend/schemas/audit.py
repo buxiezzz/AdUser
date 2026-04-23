@@ -9,6 +9,7 @@ class AuditLogBase(BaseModel):
     target: str
     details: Optional[str] = None
     ip_address: Optional[str] = None
+    device_source: Optional[str] = None
 
 class AuditLog(AuditLogBase):
     id: int

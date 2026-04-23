@@ -11,7 +11,7 @@ from models import asset as asset_model
 from models import audit as audit_model
 from crud.user import get_user_by_username, create_user
 from schemas.user import UserCreate
-from api.routers import auth, asset, ad, settings, audit, inventory, location, transfer, user as user_router
+from api.routers import auth, asset, ad, settings, audit, inventory, location, transfer, user as user_router, stats
 
 # Create database tables (For production use Alembic migrations instead)
 user_model.Base.metadata.create_all(bind=engine)
@@ -73,6 +73,18 @@ try:
             conn.execute(sa_text("ALTER TABLE sys_users ADD COLUMN is_group_admin BOOLEAN DEFAULT 0"))
             conn.commit()
             print("✅ 自动追加字段: sys_users.is_group_admin")
+        if "display_name" not in user_columns:
+            conn.execute(sa_text("ALTER TABLE sys_users ADD COLUMN display_name VARCHAR(100)"))
+            conn.commit()
+            print("✅ 自动追加字段: sys_users.display_name")
+
+        # 检查 sys_audit_logs 表是否有 device_source 字段
+        result = conn.execute(sa_text("PRAGMA table_info(sys_audit_logs)"))
+        audit_columns = [row[1] for row in result.fetchall()]
+        if "device_source" not in audit_columns:
+            conn.execute(sa_text("ALTER TABLE sys_audit_logs ADD COLUMN device_source VARCHAR(20)"))
+            conn.commit()
+            print("✅ 自动追加字段: sys_audit_logs.device_source")
 except Exception as e:
     print(f"⚠️ 数据库迁移警告: {e}")
 
@@ -100,6 +112,7 @@ app.include_router(inventory.router, prefix="/api/inventory", tags=["Inventory M
 app.include_router(location.router, prefix="/api/locations", tags=["Location Management"])
 app.include_router(transfer.router, prefix="/api/transfers", tags=["Asset Transfer Management"])
 app.include_router(user_router.router, prefix="/api/users", tags=["User Management"])
+app.include_router(stats.router, prefix="/api/stats", tags=["Statistics"])
 
 @app.on_event("startup")
 def create_default_admin():

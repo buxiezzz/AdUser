@@ -3,9 +3,23 @@ from sqlalchemy import String, cast
 from uuid import UUID
 import uuid
 
-from models.asset import Asset, Category, Employee, AssetLog, Location
+from models.asset import Asset, Category, Employee, AssetLog, Location, AssetTransfer
 from models.user import User
 from schemas.asset import AssetCreate, AssetUpdate, CategoryCreate, CategoryUpdate, EmployeeCreate
+
+def _check_asset_transfer_lock(db: Session, asset_id: str):
+    """
+    检查资产是否处于调拨锁定状态
+    """
+    # 待审批, 待发货, 运输中 状态的调拨单会锁定资产
+    active_transfer = db.query(AssetTransfer).filter(
+        AssetTransfer.asset_id == asset_id,
+        AssetTransfer.status.in_(["待审批", "待发货", "运输中"])
+    ).first()
+    
+    if active_transfer:
+        raise ValueError(f"资产当前正处于跨区调拨流程中(状态:{active_transfer.status})，暂不可变更状态或所属人。")
+    return False
 
 # ====== Employee CRUD ======
 def get_asset_by_qr_token(db: Session, token: str):
@@ -38,6 +52,9 @@ def update_asset_status(db: Session, asset_id: str, status: str, user_id: int):
     db_asset = get_asset(db, str(asset_id))
     if not db_asset:
         return None
+        
+    # 调拨锁定检查
+    _check_asset_transfer_lock(db, db_asset.id)
         
     # [业务红线]：变为“在用”必须有人员，否则报错
     if status == "在用" and not db_asset.owner_id:
@@ -80,34 +97,50 @@ def reassign_asset(db: Session, asset_id: str, new_owner_id: int, user_id: int):
     if not db_asset:
         return None
     
+    # 调拨锁定检查
+    _check_asset_transfer_lock(db, db_asset.id)
+    
+    # [业务红线]：快速调拨必须指派有效的使用人，禁止指向空或不存在的人员
+    if not new_owner_id:
+        raise ValueError("调拨失败：必须选择一个有效的新使用人。")
+    
+    new_owner = db.query(Employee).filter(Employee.id == new_owner_id).first()
+    if not new_owner:
+        raise ValueError("调拨失败：指定的人员在系统中不存在。")
+    
     old_owner_name = db_asset.owner.name if db_asset.owner else "无"
     old_owner_id = db_asset.owner_id
+    new_owner_name = new_owner.name
     
-    # fetch new owner name for log
-    new_owner = db.query(Employee).filter(Employee.id == new_owner_id).first()
-    new_owner_name = new_owner.name if new_owner else "无"
-    
-    # 方案 A 联动：如果资产是闲置状态，分配人员后自动变为“在用”
-    if db_asset.status == "闲置":
-        db_asset.status = "在用"
-        
+    # 方案 A 联动：只要分配了人员，资产状态强制设为“在用”
+    db_asset.status = "在用"
     db_asset.owner_id = new_owner_id
+    
+    # 同步更新动态属性中的“所属组织”字段，确保台账信息同步
+    if new_owner.department:
+        new_attrs = dict(db_asset.dynamic_attributes or {})
+        new_attrs["所属组织"] = new_owner.department
+        db_asset.dynamic_attributes = new_attrs
     
     log_entry = AssetLog(
         asset_id=db_asset.id,
         operated_by=user_id,
-        action="Reassign",
+        action="快速调拨",
         previous_owner_id=old_owner_id,
         new_owner_id=new_owner_id,
-        memo=f"通过移动端快速调拨: [ {old_owner_name} ] -> [ {new_owner_name} ]"
+        memo=f"通过移动端执行划拨: [ {old_owner_name} ] -> [ {new_owner_name} ]"
     )
     db.add(log_entry)
     db.commit()
     db.refresh(db_asset)
     return db_asset
 
-def get_employees(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""):
-    return db.query(Employee).offset(skip).limit(limit).all()
+def get_employees(db: Session, skip: int = 0, limit: int = 50, keyword: str = ""):
+    query = db.query(Employee)
+    if keyword:
+        search = f"%{keyword}%"
+        query = query.filter((Employee.name.ilike(search)) | (Employee.ad_account.ilike(search)))
+    return query.offset(skip).limit(limit).all()
 
 def create_employee(db: Session, employee: EmployeeCreate):
     db_emp = Employee(**employee.dict())
@@ -176,8 +209,13 @@ def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""
     query = _build_asset_query(db, keyword, status, location_id).options(
         joinedload(Asset.category),
         joinedload(Asset.owner),
-        joinedload(Asset.location)
+        joinedload(Asset.location),
+        joinedload(Asset.transfers)
     )
+    
+    # ... 排序逻辑 ...
+    # (保持原有排序逻辑不变)
+
     
     # 动态排序逻辑
     sort_mapping = {
@@ -203,17 +241,35 @@ def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""
     else:
         query = query.order_by(sort_col.desc())
         
-    return query.offset(skip).limit(limit).all()
+    assets = query.offset(skip).limit(limit).all()
+    
+    # 手动计算活跃调拨状态并挂载
+    for asset in assets:
+        active = [t for t in asset.transfers if t.status in ["待审批", "待发货", "运输中"]]
+        if active:
+            # 挂载到一个临时属性，Pydantic Schema 会自动识别
+            asset.transfer_status = active[0].status
+    
+    return assets
 
 def count_assets(db: Session, keyword: str = "", status: str = "", location_id: int = None):
     return _build_asset_query(db, keyword, status, location_id).count()
 
 def get_asset(db: Session, asset_id: str):
     asset_id_hex = asset_id.replace('-', '')
-    return db.query(Asset).options(
+    db_asset = db.query(Asset).options(
         joinedload(Asset.category),
-        joinedload(Asset.owner)
+        joinedload(Asset.owner),
+        joinedload(Asset.location),
+        joinedload(Asset.transfers)
     ).filter((Asset.id == asset_id) | (Asset.id == asset_id_hex)).first()
+    
+    if db_asset:
+        active = [t for t in db_asset.transfers if t.status in ["待审批", "待发货", "运输中"]]
+        if active:
+            db_asset.transfer_status = active[0].status
+            
+    return db_asset
 
 def create_asset(db: Session, asset: AssetCreate, current_user_id: int):
     # 生成安全的 QR 鉴权 Token
@@ -250,6 +306,14 @@ def update_asset(db: Session, asset_id: str, asset_in: AssetUpdate, current_user
     # 检测拥有者变更或状态变更记录志
     old_owner_id = db_asset.owner_id
     old_status = db_asset.status
+    
+    # 核心变更项检测
+    new_status = update_data.get("status", old_status)
+    new_owner_id = update_data.get("owner_id", old_owner_id)
+    
+    if new_status != old_status or new_owner_id != old_owner_id:
+        # 涉及状态或负责人变更，启用调拨锁定检查
+        _check_asset_transfer_lock(db, db_asset.id)
     
     # 强制归还逻辑：如果状态变更为闲置或报废，清空使用人和部门
     new_status = update_data.get("status", old_status)
@@ -337,6 +401,9 @@ def hard_delete_asset(db: Session, asset_id: str):
     if not db_asset:
         return False
         
+    # 同时清理所有相关的调拨记录，防止产生“孤儿”僵尸单据
+    db.query(AssetTransfer).filter(AssetTransfer.asset_id == db_asset.id).delete()
+    
     # Cascade logs deletion manually if needed, or rely on cascading in models
     db.query(AssetLog).filter(AssetLog.asset_id == db_asset.id).delete()
     db.delete(db_asset)

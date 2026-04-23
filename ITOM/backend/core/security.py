@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 # 密钥与算法配置
 SECRET_KEY = os.getenv("ITOM_SECRET_KEY", "your-super-secret-jwt-key")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # Token 有效期设长一些（1个月），适合扫码场景
+ACCESS_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60  # Token 有效期设为 7 天，显著提升移动端连续使用体验
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

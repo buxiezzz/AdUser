@@ -1,10 +1,11 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col font-sans">
     <!-- Top Header for Mobile Navigation -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white sticky top-0 z-50 px-4 py-3 flex items-center shadow-md">
+    <div class="bg-gradient-to-r from-red-600 to-red-700 text-white sticky top-0 z-50 px-4 py-3 flex items-center shadow-lg border-b border-red-500/20">
       <el-icon v-if="!isHome" class="mr-3 text-xl cursor-pointer" @click="goBack">
         <ArrowLeft />
       </el-icon>
+      <img v-else :src="logo" class="h-8 w-auto mr-3 filter brightness-0 invert" alt="SK" />
       <h1 class="text-lg font-bold flex-1 truncate">{{ currentTitle }}</h1>
     </div>
 
@@ -19,6 +20,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
+import logo from '@/assets/logo.png'
 
 const route = useRoute()
 const router = useRouter()

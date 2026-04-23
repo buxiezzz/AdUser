@@ -221,7 +221,7 @@ const handleLogout = () => {
         }
         
         &.btn-ok {
-          background-color: #007aff;
+          background-color: #e51923;
           color: #fff;
         }
       }

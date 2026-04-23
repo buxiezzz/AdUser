@@ -7,7 +7,7 @@ from typing import Optional
 from database import get_db
 from crud import user as crud_user
 from schemas.user import UserCreate, UserResponse
-from api.deps import get_current_active_user
+from api.deps import get_current_active_user, get_device_source
 from crud.audit import log_action
 
 router = APIRouter()
@@ -41,7 +41,8 @@ def get_users_list(
 def create_new_user(
     user_in: UserCreate,
     db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    device: str = Depends(get_device_source)
 ):
     """创建新用户（分配归属地账号）"""
     if not current_user.is_group_admin:
@@ -52,7 +53,7 @@ def create_new_user(
         raise HTTPException(status_code=400, detail="登录名已存在")
         
     db_user = crud_user.create_user(db, user_in)
-    log_action(db, current_user.username, 'system', 'CREATE_ACCOUNT', db_user.username)
+    log_action(db, (current_user.display_name or current_user.username), 'system', 'CREATE_ACCOUNT', db_user.username, device_source=device)
     
     if db_user.location_id and db_user.location:
         db_user.location_name = db_user.location.name
@@ -63,7 +64,8 @@ def update_existing_user(
     user_id: int,
     user_in: UserUpdateParams,
     db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    device: str = Depends(get_device_source)
 ):
     """修改用户信息及所属地"""
     if not current_user.is_group_admin:
@@ -76,7 +78,7 @@ def update_existing_user(
     update_data = user_in.dict(exclude_unset=True)
     db_user = crud_user.update_user(db, user_id, update_data)
     
-    log_action(db, current_user.username, 'system', 'UPDATE_ACCOUNT', db_user.username)
+    log_action(db, (current_user.display_name or current_user.username), 'system', 'UPDATE_ACCOUNT', db_user.username, device_source=device)
     
     if db_user.location_id and db_user.location:
         db_user.location_name = db_user.location.name
@@ -89,7 +91,8 @@ def update_existing_user(
 def delete_existing_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    device: str = Depends(get_device_source)
 ):
     """删除账号"""
     if not current_user.is_group_admin:
@@ -103,6 +106,6 @@ def delete_existing_user(
         raise HTTPException(status_code=400, detail="系统默认超管不可删除")
         
     crud_user.delete_user(db, user_id)
-    log_action(db, current_user.username, 'system', 'DELETE_ACCOUNT', db_user.username)
+    log_action(db, (current_user.display_name or current_user.username), 'system', 'DELETE_ACCOUNT', db_user.username, device_source=device)
     
     return {"message": "账号已删除"}

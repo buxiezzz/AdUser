@@ -2,9 +2,10 @@
   <view class="container">
     <!-- 顶部 Banner -->
     <view class="header">
+      <image src="/static/logo.png" class="header-logo" mode="heightFix"></image>
       <view class="header-text">
-        <text class="hello">ITOM 管理平台</text>
-        <text class="subtitle">IT 资产运营管理系统</text>
+        <text class="hello">SK 先惠 ITOM</text>
+        <text class="subtitle">运维中枢管理平台</text>
       </view>
     </view>
 
@@ -219,10 +220,18 @@ onMounted(() => {
 }
 
 .header {
-  background: linear-gradient(135deg, #1677ff, #4fa3ff);
+  background: linear-gradient(135deg, #e51923, #b91c1c);
   padding: 50px 20px 24px;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
+  display: flex;
+  align-items: center;
+  
+  .header-logo {
+    height: 48px;
+    margin-right: 15px;
+    filter: brightness(0) invert(1);
+  }
   
   .hello {
     display: block;
@@ -293,7 +302,7 @@ onMounted(() => {
     .stat-num { font-size: 20px; font-weight: 700; color: #fff; }
     .stat-label { font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 4px; }
     
-    &.blue-card   { background: #1677ff; }
+    &.blue-card   { background: #e51923; }
     &.green-card  { background: #52c41a; }
     &.orange-card { background: #fa8c16; }
     &.gray-card   { background: #8c8c8c; }

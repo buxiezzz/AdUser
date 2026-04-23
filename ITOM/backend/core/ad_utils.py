@@ -53,7 +53,7 @@ def create_ou_if_not_exists(conn, ou_dn, domain_name):
 
 
 def create_ad_user(domain_controller_ip, bind_username, bind_password, username, display_name, password, ou_path,
-                   domain_name, position_name=None, groups_to_add=None, conn_external=None):
+                   domain_name, position_name=None, groups_to_add=None, conn_external=None, location_id: int = None):
     """在 AD 中创建新用户的核心函数。"""
     conn = conn_external
     try:
@@ -88,7 +88,7 @@ def create_ad_user(domain_controller_ip, bind_username, bind_password, username,
             return False, f"错误: 用户姓名 '{display_name}' 已存在于此组织单元中。"
 
         # --- 规则应用逻辑 (自动生成 Description) ---
-        config = load_config()
+        config = load_config(location_id)
         ou_prefix_mapping = config.get("OU_PREFIX_MAPPING", {})
         positions = config.get("POSITIONS", [])
 
@@ -172,13 +172,13 @@ def create_ad_user(domain_controller_ip, bind_username, bind_password, username,
             conn.unbind()
 
 
-def get_ou_list(bind_username: str, bind_password: str):
+def get_ou_list(bind_username: str, bind_password: str, location_id: int = None, apply_filter: bool = False):
     """从 AD 获取所有组织单元 (OU) 列表"""
     ou_list = []
     conn = None
     if not bind_username or not bind_password: return []
     
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     domain_name = config.get('DOMAIN_NAME', '')
     
@@ -201,7 +201,7 @@ def get_ou_list(bind_username: str, bind_password: str):
     # 查找匹配的配置项
     selected_region_config = next((item for item in config.get('REGION_OPTIONS', []) if item.get("code") == region_filter), None)
 
-    if selected_region_config and selected_region_config.get('keywords'):
+    if apply_filter and selected_region_config and selected_region_config.get('keywords'):
         keywords = selected_region_config['keywords']
         # 只要 DN 中包含任意一个关键词即保留
         ou_list = [dn for dn in ou_list if any(k in dn for k in keywords)]
@@ -209,13 +209,13 @@ def get_ou_list(bind_username: str, bind_password: str):
     return sorted(list(set(ou_list)))
 
 
-def get_group_list(bind_username: str, bind_password: str):
+def get_group_list(bind_username: str, bind_password: str, location_id: int = None):
     """从 AD 获取所有安全组列表"""
     group_list = []
     conn = None
     if not bind_username or not bind_password: return []
     
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     domain_name = config.get('DOMAIN_NAME', '')
     
@@ -233,24 +233,17 @@ def get_group_list(bind_username: str, bind_password: str):
     finally:
         if conn and conn.bound: conn.unbind()
         
-    # 同步增加地区过滤器支持
-    region_filter = config.get('ACTIVE_REGION_CODE', 'all')
-    selected_region_config = next((item for item in config.get('REGION_OPTIONS', []) if item.get("code") == region_filter), None)
-
-    if selected_region_config and selected_region_config.get('keywords'):
-        keywords = selected_region_config['keywords']
-        group_list = [dn for dn in group_list if any(k in dn for k in keywords)]
-
+    # 已移除全局地区过滤器支持，改由调用方决定是否过滤 (目前组列表不启用过滤)
     return sorted(list(set(group_list)))
 
 
-def search_ad_users(bind_username: str, bind_password: str, keyword: str = ""):
+def search_ad_users(bind_username: str, bind_password: str, keyword: str = "", location_id: int = None):
     """从 AD 检索用户列表，支持按显示名或账号过滤"""
     users = []
     conn = None
     if not bind_username or not bind_password: return []
     
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     domain_name = config.get('DOMAIN_NAME', '')
     
@@ -304,23 +297,13 @@ def search_ad_users(bind_username: str, bind_password: str, keyword: str = ""):
     finally:
         if conn and conn.bound: conn.unbind()
     
-    # --- 增加地区过滤器逻辑 ---
-    region_filter = config.get('ACTIVE_REGION_CODE', 'all')
-    if region_filter != 'all':
-        # 查找匹配的配置项
-        selected_region_config = next((item for item in config.get('REGION_OPTIONS', []) if item.get("code") == region_filter), None)
-        if selected_region_config and selected_region_config.get('keywords'):
-            keywords = selected_region_config['keywords']
-            # 只要 DN 中包含任意一个关键词即保留
-            users = [u for u in users if any(k.lower() in u.get('dn', '').lower() for k in keywords)]
-    # --- 过滤器逻辑结束 ---
-        
+    # 已移除全局地区过滤器支持，用户搜索应当显示所有地区
     return users
 
 
-def get_ad_user_detail(bind_username: str, bind_password: str, sAMAccountName: str):
+def get_ad_user_detail(bind_username: str, bind_password: str, sAMAccountName: str, location_id: int = None):
     """获取单个域用户的详细信息，包括他所在的 memberOf 安全组"""
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     domain_name = config.get('DOMAIN_NAME', '')
     
@@ -360,9 +343,9 @@ def get_ad_user_detail(bind_username: str, bind_password: str, sAMAccountName: s
     finally:
         if conn and conn.bound: conn.unbind()
 
-def change_user_password(bind_username: str, bind_password: str, user_dn: str, new_password: str):
+def change_user_password(bind_username: str, bind_password: str, user_dn: str, new_password: str, location_id: int = None):
     """强制重置目标用户的密码"""
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     
     conn = None
@@ -385,9 +368,9 @@ def change_user_password(bind_username: str, bind_password: str, user_dn: str, n
     finally:
         if conn and conn.bound: conn.unbind()
 
-def move_user_ou(bind_username: str, bind_password: str, user_dn: str, new_ou_dn: str):
+def move_user_ou(bind_username: str, bind_password: str, user_dn: str, new_ou_dn: str, location_id: int = None):
     """转移用户到新的 OU"""
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     
     conn = None
@@ -412,9 +395,9 @@ def move_user_ou(bind_username: str, bind_password: str, user_dn: str, new_ou_dn
         if conn and conn.bound: conn.unbind()
 
 from ldap3 import MODIFY_DELETE
-def update_user_groups(bind_username: str, bind_password: str, user_dn: str, old_groups: list, new_groups: list):
+def update_user_groups(bind_username: str, bind_password: str, user_dn: str, old_groups: list, new_groups: list, location_id: int = None):
     """差异化更新用户的安全组"""
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     
     conn = None
@@ -450,9 +433,9 @@ def update_user_groups(bind_username: str, bind_password: str, user_dn: str, old
         if conn and conn.bound: conn.unbind()
 
 
-def get_group_members(bind_username: str, bind_password: str, group_dn: str):
+def get_group_members(bind_username: str, bind_password: str, group_dn: str, location_id: int = None):
     """获取指定安全组的成员"""
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     
     conn = None
@@ -478,9 +461,9 @@ def get_group_members(bind_username: str, bind_password: str, group_dn: str):
     finally:
         if conn and conn.bound: conn.unbind()
 
-def update_group_members(bind_username: str, bind_password: str, group_dn: str, old_members: list, new_members: list):
+def update_group_members(bind_username: str, bind_password: str, group_dn: str, old_members: list, new_members: list, location_id: int = None):
     """批量调整安全组内成员，自动分担移除和新增操作"""
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     
     conn = None
@@ -515,9 +498,9 @@ def update_group_members(bind_username: str, bind_password: str, group_dn: str, 
     finally:
         if conn and conn.bound: conn.unbind()
 
-def toggle_ad_user_status(bind_username: str, bind_password: str, user_dn: str, enabled: bool):
+def toggle_ad_user_status(bind_username: str, bind_password: str, user_dn: str, enabled: bool, location_id: int = None):
     """启用或禁用 AD 用户"""
-    config = load_config()
+    config = load_config(location_id)
     dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
     
     conn = None

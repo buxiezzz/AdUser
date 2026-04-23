@@ -1,32 +1,35 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-800">
+  <div 
+    class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
+    :style="{ backgroundImage: `url(${loginBg})` }"
+  >
     
     <div class="sm:mx-auto sm:w-full sm:max-w-md mt-[-5%] mb-4 text-center">
-      <div class="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-2xl mb-4">
-        <el-icon :size="48" class="text-white"><Monitor /></el-icon>
+      <div class="inline-flex items-center justify-center p-8 bg-white rounded-3xl shadow-xl border border-gray-100 mb-8">
+        <img :src="logo" alt="Logo" class="h-24 w-auto" />
       </div>
-      <h2 class="text-center text-3xl font-extrabold text-white tracking-tight">
+      <h2 class="text-center text-3xl font-extrabold text-gray-900 tracking-tight">
         ITOM 运维中枢平台
       </h2>
-      <p class="mt-2 text-center text-sm text-indigo-200">
+      <p class="mt-2 text-center text-sm text-gray-500 font-medium">
         登录以访问资产与统一身份管理基座
       </p>
     </div>
 
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white/95 backdrop-blur-xl py-8 px-4 shadow-2xl ring-1 ring-gray-900/5 sm:rounded-2xl sm:px-10">
+      <div class="bg-white/60 backdrop-blur-2xl py-10 px-4 shadow-2xl border border-white/80 sm:rounded-3xl sm:px-10">
         
         <!-- Toggle Login/Register -->
         <div class="flex border-b border-gray-200 mb-8" v-if="allowRegistration">
           <button 
             @click="isLoginMode = true"
-            :class="['flex-1 pb-4 text-sm font-medium transition-colors', isLoginMode ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-700']"
+            :class="['flex-1 pb-4 text-sm font-bold transition-colors', isLoginMode ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-400 hover:text-gray-700']"
           >
             系统登入
           </button>
           <button 
             @click="isLoginMode = false"
-            :class="['flex-1 pb-4 text-sm font-medium transition-colors', !isLoginMode ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-700']"
+            :class="['flex-1 pb-4 text-sm font-bold transition-colors', !isLoginMode ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-400 hover:text-gray-700']"
           >
             注册管理员
           </button>
@@ -45,6 +48,7 @@
               placeholder="请输入系统账号" 
               size="large"
               :prefix-icon="User"
+              class="glass-input"
             />
           </el-form-item>
 
@@ -56,6 +60,7 @@
               size="large"
               show-password
               :prefix-icon="Lock"
+              class="glass-input"
             />
           </el-form-item>
           
@@ -71,7 +76,7 @@
               <el-checkbox v-model="rememberMe" label="记住我" size="small" />
             </div>
             <div class="text-sm">
-              <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
+              <a href="#" class="font-bold text-red-600 hover:text-red-700">
                 忘记密码?
               </a>
             </div>
@@ -83,7 +88,7 @@
             size="large"
             :loading="loading"
             @click="handleSubmit"
-            style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); border: none;"
+            style="background: linear-gradient(135deg, #e51923 0%, #b91c1c 100%); border: none;"
           >
             {{ isLoginMode ? '验证并登入' : '提交注册' }}
           </el-button>
@@ -94,13 +99,40 @@
   </div>
 </template>
 
+<style scoped>
+.glass-input :deep(.el-input__wrapper) {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05) inset !important;
+  backdrop-filter: blur(5px);
+}
+.glass-input :deep(.el-input__inner) {
+  color: #1a1a1a !important;
+}
+.glass-input :deep(.el-input__inner::placeholder) {
+  color: #9ca3af !important;
+}
+:deep(.el-form-item__label) {
+  color: #374151 !important;
+  font-weight: 600;
+}
+:deep(.el-checkbox__label) {
+  color: #4b5563 !important;
+}
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: #e51923 !important;
+  border-color: #e51923 !important;
+}
+</style>
+
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { User, Lock, Monitor } from '@element-plus/icons-vue'
+import { User, Lock } from '@element-plus/icons-vue'
 import axios from 'axios'
+import logo from '@/assets/logo.png'
+import loginBg from '@/assets/login-bg.png'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
