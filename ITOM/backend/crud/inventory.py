@@ -19,7 +19,7 @@ def create_inventory_task(db: Session, task_in: InventoryTaskCreate):
     db.flush()
 
     # 2. 筛选资产范围 (如果有特定列表则按列表，否则默认为全部在册资产)
-    query = db.query(Asset).filter(Asset.status.notin_(["报废", "下账"]))
+    query = db.query(Asset).filter(Asset.status.notin_(["下账"]))
     if task_in.asset_ids:
         query = query.filter(Asset.id.in_([str(aid) for aid in task_in.asset_ids]))
     
@@ -44,11 +44,22 @@ def get_inventory_tasks(db: Session, skip: int = 0, limit: int = 20):
 
 def submit_inventory_record(db: Session, task_id: str, asset_code: str, operator_id: int):
     # 1. 查找资产并定位该任务下的记录
-    asset = db.query(Asset).filter(Asset.asset_code == asset_code).first()
-    if not asset:
-        return None, "资产编码不存在"
+    from sqlalchemy import cast, String
     
-    if asset.status in ["报废", "下账"]:
+    # 首先尝试通过资产编码直接查找（精确匹配，性能最高）
+    asset = db.query(Asset).filter(Asset.asset_code == asset_code).first()
+    
+    # 如果没找到，将 JSON 动态属性转成字符串后模糊搜索序列号
+    # 这与 get_assets 中的关键词搜索逻辑保持一致，在 SQLite/Postgres 下均可用
+    if not asset:
+        asset = db.query(Asset).filter(
+            cast(Asset.dynamic_attributes, String).contains(asset_code)
+        ).first()
+    
+    if not asset:
+        return None, "找不到匹配的资产编码或序列号"
+    
+    if asset.status == "下账":
         return None, f"该资产处于【{asset.status}】状态，禁止盘点"
     
     record = db.query(InventoryRecord).filter(

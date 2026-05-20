@@ -36,7 +36,7 @@ def record_inventory_check(db: Session, asset_id: str, user_id: int):
     if not db_asset:
         raise ValueError("资产不存在")
         
-    if db_asset.status in ["报废", "下账"]:
+    if db_asset.status == "下账":
         raise ValueError(f"资产当前为【{db_asset.status}】状态，禁止盘点")
     log_entry = AssetLog(
         asset_id=db_asset.id,

@@ -1,79 +1,41 @@
 INFO:     Will watch for changes in these directories: ['/Users/long/Desktop/1230/AdUser/ITOM/backend']
 INFO:     Uvicorn running on http://0.0.0.0:18000 (Press CTRL+C to quit)
-INFO:     Started reloader process [14491] using StatReload
-INFO:     Started server process [14494]
+INFO:     Started reloader process [3392] using StatReload
+INFO:     Started server process [3395]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:62936 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62948 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62957 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62976 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62988 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63010 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63012 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63014 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63018 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63019 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63020 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63026 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63031 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63033 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63044 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63043 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63045 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63047 - "PUT /api/transfers/2b0dd262-6685-41ea-b8b3-c7a4d3511543 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63049 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63051 - "PUT /api/transfers/ab15ff7c-8341-464e-9b7b-3bbaeb275db3 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63053 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63058 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63073 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63075 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63080 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63079 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63081 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63095 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52272 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 401 Unauthorized
-INFO:     10.20.133.88:52278 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52278 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52278 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52278 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52278 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52278 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52284 - "GET /api/assets/?keyword=SKWHLC210813053&limit=1 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52284 - "GET /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52290 - "PUT /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52290 - "GET /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e/logs HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52290 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52290 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52290 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52290 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52290 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63219 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63218 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [14494]
-INFO:     Started server process [14669]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:63336 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63350 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63349 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63382 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63423 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63422 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52300 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52300 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52300 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52300 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52300 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52300 - "GET /api/assets/?keyword=SKWHLC210813053&limit=1 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52300 - "GET /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52304 - "GET /api/assets/employees?keyword=j HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52302 - "GET /api/assets/employees?keyword= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52306 - "PUT /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:59470 - "GET /api/settings/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59479 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59491 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59490 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59493 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59495 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59508 - "GET /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/export HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:59516 - "GET /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/records HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59788 - "GET /api/settings/config HTTP/1.1" 404 Not Found
+INFO:     10.20.133.228:59799 - "GET /api/assets/?skip=0&limit=20&sort_by=updated_at&order=desc HTTP/1.1" 401 Unauthorized
+INFO:     10.20.133.228:59800 - "GET /api/assets/count HTTP/1.1" 401 Unauthorized
+INFO:     10.20.133.228:59801 - "GET /api/assets/count HTTP/1.1" 401 Unauthorized
+INFO:     10.20.133.228:59802 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59805 - "OPTIONS /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59806 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59810 - "OPTIONS /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59811 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59812 - "OPTIONS /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59813 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59814 - "OPTIONS /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59815 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59816 - "OPTIONS /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59817 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59837 - "OPTIONS /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59838 - "GET /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59843 - "OPTIONS /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59844 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59845 - "OPTIONS /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/records HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59846 - "GET /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/records HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59873 - "OPTIONS /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/export?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTMTIxMDEwMTgiLCJleHAiOjE3Nzg2NTMzOTF9.aWhdDXzaKuXQHzxnV8I70J9wzqit-nawmFQMy6drxew HTTP/1.1" 200 OK
+INFO:     10.20.133.228:59874 - "GET /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/export?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTMTIxMDEwMTgiLCJleHAiOjE3Nzg2NTMzOTF9.aWhdDXzaKuXQHzxnV8I70J9wzqit-nawmFQMy6drxew HTTP/1.1" 500 Internal Server Error
 ERROR:    Exception in ASGI application
 Traceback (most recent call last):
   File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
@@ -88,7 +50,9 @@ Traceback (most recent call last):
     raise exc
   File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/errors.py", line 164, in __call__
     await self.app(scope, receive, _send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/cors.py", line 87, in __call__
+  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/cors.py", line 95, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/cors.py", line 153, in simple_response
     await self.app(scope, receive, send)
   File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
@@ -124,569 +88,47 @@ Traceback (most recent call last):
     return await future
   File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 986, in run
     result = context.run(func, *args)
-  File "/Users/long/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 584, in update_asset
-    new_owner_name = db_asset.owner.display_name if db_asset.owner else (db_asset.owner.username if db_asset.owner else "无")
-AttributeError: 'Employee' object has no attribute 'display_name'
-INFO:     10.20.133.88:52304 - "GET /api/assets/employees?keyword= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52304 - "GET /api/assets/employees?keyword= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52308 - "GET /api/assets/employees?keyword=S HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52304 - "GET /api/assets/employees?keyword=S121010 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52304 - "GET /api/assets/employees?keyword=S12101018 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52312 - "GET /api/assets/employees?keyword=J HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52310 - "GET /api/assets/employees?keyword= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52316 - "GET /api/assets/employees?keyword=j HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52318 - "GET /api/assets/employees?keyword=jx HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52314 - "GET /api/assets/employees?keyword= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52316 - "GET /api/assets/employees?keyword=jxg HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52314 - "GET /api/assets/employees?keyword=jxgy HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52320 - "GET /api/assets/employees?keyword= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52322 - "GET /api/assets/employees?keyword=J HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52320 - "GET /api/assets/employees?keyword=Jxgy HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52324 - "GET /api/assets/employees?keyword=Jxgy0 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52324 - "GET /api/assets/employees?keyword=Jxgy01 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52324 - "GET /api/assets/employees?keyword=Jxgy011 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52326 - "PUT /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 500 Internal Server Error
-ERROR:    Exception in ASGI application
-Traceback (most recent call last):
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
-    result = await app(  # type: ignore[func-returns-value]
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
-    return await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/applications.py", line 1160, in __call__
-    await super().__call__(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/applications.py", line 107, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/errors.py", line 186, in __call__
-    raise exc
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/cors.py", line 87, in __call__
-    await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
-    await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/routing.py", line 716, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/routing.py", line 736, in app
-    await route.handle(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/routing.py", line 290, in handle
-    await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 122, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 108, in app
-    response = await f(request)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 532, in app
-    raw_response = await run_endpoint_function(
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
-    return await run_in_threadpool(dependant.call, **values)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
-    return await anyio.to_thread.run_sync(func)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/anyio/to_thread.py", line 63, in run_sync
-    return await get_async_backend().run_sync_in_worker_thread(
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
-    return await future
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 986, in run
-    result = context.run(func, *args)
-  File "/Users/long/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 565, in update_asset
-    "owner_name": old_asset.owner.display_name if old_asset.owner else (old_asset.owner.username if old_asset.owner else "无"),
-AttributeError: 'Employee' object has no attribute 'display_name'
-INFO:     10.20.133.88:52328 - "PUT /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 500 Internal Server Error
-ERROR:    Exception in ASGI application
-Traceback (most recent call last):
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
-    result = await app(  # type: ignore[func-returns-value]
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
-    return await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/applications.py", line 1160, in __call__
-    await super().__call__(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/applications.py", line 107, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/errors.py", line 186, in __call__
-    raise exc
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/cors.py", line 87, in __call__
-    await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
-    await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/routing.py", line 716, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/routing.py", line 736, in app
-    await route.handle(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/routing.py", line 290, in handle
-    await self.app(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 122, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 108, in app
-    response = await f(request)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 532, in app
-    raw_response = await run_endpoint_function(
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
-    return await run_in_threadpool(dependant.call, **values)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
-    return await anyio.to_thread.run_sync(func)
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/anyio/to_thread.py", line 63, in run_sync
-    return await get_async_backend().run_sync_in_worker_thread(
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
-    return await future
-  File "/Users/long/miniconda_itom/envs/itom/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 986, in run
-    result = context.run(func, *args)
-  File "/Users/long/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 565, in update_asset
-    "owner_name": old_asset.owner.display_name if old_asset.owner else (old_asset.owner.username if old_asset.owner else "无"),
-AttributeError: 'Employee' object has no attribute 'display_name'
-INFO:     127.0.0.1:63533 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63534 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63532 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63535 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63536 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63538 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63572 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63574 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63576 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63575 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63577 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63579 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63581 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63593 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63599 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63602 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63600 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63601 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63603 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63605 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+  File "/Users/long/Desktop/1230/AdUser/ITOM/backend/api/routers/inventory.py", line 85, in export_records
+    .options(joinedload(InventoryRecord.asset).joinedload(Asset.category))\
+NameError: name 'joinedload' is not defined
+WARNING:  StatReload detected changes in 'api/routers/inventory.py'. Reloading...
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [14669]
-INFO:     Started server process [14711]
+INFO:     Finished server process [3395]
+INFO:     Started server process [3675]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:63709 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63710 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63711 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63713 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63712 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63715 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63717 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63719 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63726 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63727 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63728 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63724 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63729 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63731 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+WARNING:  StatReload detected changes in 'api/deps.py'. Reloading...
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [14711]
-INFO:     Started server process [14724]
+INFO:     Finished server process [3675]
+INFO:     Started server process [3697]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:63749 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63752 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63750 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63751 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63753 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63755 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63757 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63759 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63767 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63769 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63765 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63768 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63766 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63771 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+WARNING:  StatReload detected changes in 'api/routers/inventory.py'. Reloading...
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [14724]
-INFO:     Started server process [14735]
+INFO:     Finished server process [3697]
+INFO:     Started server process [3703]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:63783 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63785 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63784 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63786 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63787 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63789 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63791 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63794 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63799 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63801 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63802 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63803 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63804 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63806 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63814 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63815 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63812 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63816 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63817 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63819 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63821 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63832 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63831 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63829 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63834 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63833 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63836 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63838 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63863 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63867 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63869 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63875 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63897 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63899 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63900 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63901 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63902 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63904 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63906 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52330 - "PUT /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52330 - "GET /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e/logs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63980 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64075 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+INFO:     127.0.0.1:59968 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59973 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60132 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60133 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60134 - "GET /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/export?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTMTIxMDEwMTgiLCJleHAiOjE3Nzg2NTMyODJ9.saLR-QMtNaQAkIa4k9EWDULfOzpdf_4czhA81rK_bng HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60136 - "GET /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/export?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTMTIxMDEwMTgiLCJleHAiOjE3Nzg2NTMyODJ9.saLR-QMtNaQAkIa4k9EWDULfOzpdf_4czhA81rK_bng HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60924 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60923 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     10.20.133.228:60928 - "OPTIONS /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     10.20.133.228:60930 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
+INFO:     10.20.133.228:60931 - "OPTIONS /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/records HTTP/1.1" 200 OK
+INFO:     10.20.133.228:60932 - "GET /api/inventory/tasks/22d80cf2-d884-4cf8-be6d-167dca6576d0/records HTTP/1.1" 200 OK
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [14735]
-INFO:     Started server process [14768]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:64103 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64118 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64117 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52332 - "GET /api/assets/employees?keyword= HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52332 - "PUT /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52332 - "GET /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e/logs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64126 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64141 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64140 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64193 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64194 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64195 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64201 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64205 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64204 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64206 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64207 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64209 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64215 - "GET /api/assets/b79dcaac-cd02-4f68-9a78-2ffcc27ba98e/logs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64231 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64235 - "GET /api/ad/groups HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64239 - "GET /api/ad/ous HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'core/device.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [14768]
-WARNING:  StatReload detected changes in 'core/device.py'. Reloading...
-INFO:     Started server process [14810]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [14810]
-WARNING:  StatReload detected changes in 'core/device.py'. Reloading...
-INFO:     Started server process [14812]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [14812]
-INFO:     Started server process [14813]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:64299 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65503 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.88:52334 - "GET /api/settings/config HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49829 - "GET /api/settings/public HTTP/1.1" 200 OK
-AD Auth Fallback Error: automatic bind not successful - invalidCredentials
-INFO:     127.0.0.1:49895 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:49899 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49901 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50422 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50446 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50566 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50600 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50603 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50718 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50774 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50816 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50819 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50820 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50818 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50821 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50823 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50833 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50839 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50840 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50841 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50849 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50855 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50864 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50866 - "GET /api/ad/groups HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50871 - "GET /api/ad/ous HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50875 - "GET /api/ad/groups HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50876 - "GET /api/ad/users?keyword= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50935 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50933 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50934 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50932 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50936 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50938 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50940 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50950 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50951 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50953 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50952 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50954 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50956 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50960 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50976 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50977 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50991 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50990 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51006 - "GET /api/ad/ous?apply_filter=true HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51010 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51012 - "GET /api/ad/groups HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51017 - "GET /api/ad/ous HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51018 - "GET /api/ad/groups HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51025 - "GET /api/ad/groups HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51036 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51026 - "GET /api/ad/users?keyword= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51038 - "GET /api/ad/groups HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51044 - "GET /api/ad/ous HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51052 - "GET /api/audit/?module=ad&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51168 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51187 - "GET /api/inventory/tasks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51194 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51193 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51195 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51201 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51814 - "GET /api/asset/count HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51815 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51825 - "GET /api/asset/count HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51900 - "GET /api/asset/count HTTP/1.1" 404 Not Found
-WARNING:  StatReload detected changes in 'main.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [14813]
-INFO:     Started server process [15907]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:51926 - "GET /api/asset/count HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51931 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51932 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51934 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51956 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51958 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51960 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52009 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52011 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52013 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52050 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52063 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52071 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52070 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52073 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52075 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52139 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52141 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52143 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'api/routers/stats.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [15907]
-INFO:     Started server process [15949]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:52150 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52151 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52153 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52186 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52187 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52188 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52192 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52199 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52203 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52202 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52205 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52207 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52216 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52215 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52217 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52220 - "PUT /api/transfers/2b0dd262-6685-41ea-b8b3-c7a4d3511543 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52222 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52224 - "PUT /api/transfers/ab15ff7c-8341-464e-9b7b-3bbaeb275db3 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52226 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52228 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52230 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52232 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52245 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52246 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52247 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52250 - "GET /api/settings/public HTTP/1.1" 200 OK
-AD Auth Fallback Error: automatic bind not successful - invalidCredentials
-INFO:     127.0.0.1:52256 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:52260 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52268 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52267 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52270 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52272 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52283 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52285 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52284 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52286 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52282 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52288 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52293 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52292 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52294 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52296 - "PUT /api/transfers/2b0dd262-6685-41ea-b8b3-c7a4d3511543 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52298 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52300 - "PUT /api/transfers/ab15ff7c-8341-464e-9b7b-3bbaeb275db3 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52302 - "GET /api/transfers/?limit=100 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52310 - "GET /api/locations/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52307 - "GET /api/assets/categories HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52309 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52311 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52312 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52314 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52316 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52318 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52320 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52374 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52375 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52377 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52444 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52446 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52448 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52481 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52483 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52485 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'api/routers/stats.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [15949]
-INFO:     Started server process [16008]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:52561 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52563 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52565 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52569 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52570 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52572 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52591 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52593 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52595 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52645 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52647 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52649 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52661 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52663 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52665 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52697 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52698 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52700 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52724 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52726 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52728 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52737 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52739 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52741 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52793 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52792 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52794 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52795 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52832 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52932 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52931 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52979 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52978 - "GET /api/audit/?module=asset&skip=0&limit=20&target= HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53172 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 401 Unauthorized
-INFO:     10.20.133.228:53186 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53186 - "OPTIONS /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53186 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53186 - "OPTIONS /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53196 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53196 - "OPTIONS /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53186 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53186 - "OPTIONS /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53196 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53196 - "OPTIONS /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53186 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53341 - "OPTIONS /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53341 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53341 - "OPTIONS /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53342 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53342 - "OPTIONS /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53341 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53341 - "OPTIONS /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53342 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53342 - "OPTIONS /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53341 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "OPTIONS /api/assets/?skip=0&limit=20&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53450 - "OPTIONS /api/assets/count HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53451 - "GET /api/assets/count HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "GET /api/assets/?skip=0&limit=20&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53451 - "GET /api/assets/count HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53451 - "OPTIONS /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53439 - "GET /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53688 - "OPTIONS /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53688 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53688 - "OPTIONS /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53689 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53689 - "OPTIONS /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53688 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53688 - "OPTIONS /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53689 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53689 - "OPTIONS /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:53688 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
-INFO:     10.20.133.228:54178 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 401 Unauthorized
+INFO:     Finished server process [3703]
+INFO:     Stopping reloader process [3392]

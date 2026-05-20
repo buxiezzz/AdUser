@@ -4,7 +4,7 @@ from typing import List
 from uuid import UUID
 
 from database import get_db
-from api.deps import get_current_active_user, get_device_source
+from api.deps import get_current_active_user, get_device_source, get_current_user_optional_query
 from models.user import User
 import schemas.inventory as schemas
 import crud.inventory as crud
@@ -69,8 +69,9 @@ def delete_task(task_id: str, db: Session = Depends(get_db), current_user: User 
     return {"message": "任务已成功删除"}
 
 @router.get("/tasks/{task_id}/export")
-def export_records(task_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def export_records(task_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_optional_query)):
     from models.asset import InventoryRecord, Asset, InventoryTask
+    from sqlalchemy.orm import joinedload
     import pandas as pd
     import io
     from fastapi.responses import StreamingResponse

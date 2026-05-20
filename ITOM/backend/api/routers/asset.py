@@ -541,6 +541,10 @@ def read_assets(
 
 @router.post("/", response_model=AssetResponse)
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
+    # 自动归档逻辑：如果请求中未显式指定归属地，且当前操作员非集团超管（属于区域管理员），则自动将其归入其名下
+    if asset.location_id is None and not current_user.is_group_admin and current_user.location_id:
+        asset.location_id = current_user.location_id
+        
     res = crud_asset.create_asset(db, asset=asset, current_user_id=current_user.id)
     log_action(db, (current_user.display_name or current_user.username), 'asset', 'CREATE', asset.asset_code, device_source=device)
     return res

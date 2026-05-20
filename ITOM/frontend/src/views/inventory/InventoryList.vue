@@ -52,8 +52,23 @@
     <el-card v-if="expandedId" shadow="never" class="detail-card" v-loading="detailLoading">
       <template #header>
         <div class="detail-header">
-          <span>📋 资产核对明细  —  {{ expandedName }}</span>
-          <el-button link @click="expandedId = ''">关闭</el-button>
+          <div class="header-left">
+            <span>📋 资产核对明细  —  {{ expandedName }}</span>
+          </div>
+          <div class="header-right">
+            <el-input 
+              v-model="manualAssetCode" 
+              placeholder="输入资产编码或序列号进行核对" 
+              size="small" 
+              style="width: 250px; margin-right: 10px;"
+              @keyup.enter="handleManualCheck"
+            >
+              <template #append>
+                <el-button @click="handleManualCheck">核对入账</el-button>
+              </template>
+            </el-input>
+            <el-button link @click="expandedId = ''">关闭明细</el-button>
+          </div>
         </div>
       </template>
       <el-table :data="currentRecords" size="small" border stripe>
@@ -115,6 +130,7 @@ const submitting = ref(false)
 const expandedId = ref('')
 const expandedName = ref('')
 const detailLoading = ref(false)
+const manualAssetCode = ref('')
 const taskRecords = ref<Record<string, any[]>>({})
 
 const createForm = ref({ name: '', description: '' })
@@ -158,6 +174,21 @@ async function toggleDetail(row: any) {
   }
 }
 
+const handleManualCheck = async () => {
+  if (!manualAssetCode.value) return ElMessage.warning('请输入资产编码')
+  try {
+    await axios.post(`/api/inventory/tasks/${expandedId.value}/submit`, { asset_code: manualAssetCode.value })
+    ElMessage.success('核对成功')
+    manualAssetCode.value = ''
+    // 刷新明细和任务列表（更新进度）
+    const res = await axios.get(`/api/inventory/tasks/${expandedId.value}/records`)
+    taskRecords.value[expandedId.value] = res.data
+    fetchTasks()
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.detail || '核对失败')
+  }
+}
+
 const fetchTasks = async () => {
   loading.value = true
   try {
@@ -187,7 +218,8 @@ const submitCreate = async () => {
 }
 
 const handleExport = (task: any) => {
-  window.open(`/api/inventory/tasks/${task.id}/export`, '_blank')
+  const token = localStorage.getItem('itom_token')
+  window.open(`/api/inventory/tasks/${task.id}/export?token=${token}`, '_blank')
 }
 
 const handleDelete = async (task: any) => {
@@ -224,6 +256,7 @@ onMounted(fetchTasks)
 
 .detail-card { margin-top: 16px; border-radius: 8px; }
 .detail-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+.header-right { display: flex; align-items: center; }
 
 .empty-detail { padding: 30px; text-align: center; color: #999; font-size: 13px; }
 </style>

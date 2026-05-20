@@ -25,11 +25,22 @@
       </view>
     </view>
 
-    <!-- 扫码区域 -->
+    <!-- 扫码与手动输入区域 -->
     <view class="action-zone">
       <view class="scan-visual" :class="{ 'scanning-glow': isScanning }" @click="openCamera">
         <text class="scan-icon">📡</text>
         <text class="scan-text">{{ isScanning ? '处理中...' : '请按 PDA 扫描键 或 点击此处扫码' }}</text>
+      </view>
+      
+      <view class="manual-input-box">
+        <input 
+          class="manual-input" 
+          v-model="manualCode" 
+          placeholder="手动输入资产编码或序列号" 
+          confirm-type="send"
+          @confirm="handleManualSubmit"
+        />
+        <button class="manual-btn" @click="handleManualSubmit">核对</button>
       </view>
     </view>
 
@@ -80,6 +91,7 @@ const totalCount = ref(0)
 const finishedCount = ref(0)
 const isScanning = ref(false)
 const errorMsg = ref('')
+const manualCode = ref('')
 const recentSuccess = ref<any[]>([])
 // 动态计算列表高度：屏幕高度 - 顶部导航 - 进度条 - 扫码区域 - 标题
 const listHeight = ref(300)
@@ -210,6 +222,12 @@ const openCamera = () => {
   })
 }
 
+const handleManualSubmit = () => {
+  if (!manualCode.value) return uni.showToast({ title: '请输入编码', icon: 'none' })
+  handleBarcode(manualCode.value)
+  manualCode.value = ''
+}
+
 const goBack = () => uni.navigateBack()
 
 onShow(() => {
@@ -277,6 +295,31 @@ onUnload(() => stopPDAListener())
     &.scanning-glow { border-color: #e51923; background: #e6f7ff; }
     .scan-icon { font-size: 36px; }
     .scan-text { font-size: 13px; color: #666; }
+  }
+
+  .manual-input-box {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+    .manual-input {
+      flex: 1;
+      height: 44px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 0 15px;
+      font-size: 14px;
+      border: 1px solid #e0e0e0;
+    }
+    .manual-btn {
+      width: 80px;
+      height: 44px;
+      line-height: 44px;
+      background: #333;
+      color: #fff;
+      font-size: 14px;
+      border-radius: 8px;
+      &::after { border: none; }
+    }
   }
 }
 
