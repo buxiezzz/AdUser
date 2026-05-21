@@ -13,6 +13,7 @@ def create_inventory_task(db: Session, task_in: InventoryTaskCreate):
         name=task_in.name,
         description=task_in.description,
         start_time=task_in.start_time,
+        location_id=task_in.location_id,
         status="进行中"
     )
     db.add(db_task)
@@ -20,6 +21,9 @@ def create_inventory_task(db: Session, task_in: InventoryTaskCreate):
 
     # 2. 筛选资产范围 (如果有特定列表则按列表，否则默认为全部在册资产)
     query = db.query(Asset).filter(Asset.status.notin_(["下账"]))
+    if task_in.location_id is not None:
+        query = query.filter(Asset.location_id == task_in.location_id)
+        
     if task_in.asset_ids:
         query = query.filter(Asset.id.in_([str(aid) for aid in task_in.asset_ids]))
     
@@ -37,10 +41,25 @@ def create_inventory_task(db: Session, task_in: InventoryTaskCreate):
     
     db.commit()
     db.refresh(db_task)
+    if db_task.location:
+        db_task.location_name = db_task.location.name
+    else:
+        db_task.location_name = "所有归属地"
     return db_task
 
-def get_inventory_tasks(db: Session, skip: int = 0, limit: int = 20):
-    return db.query(InventoryTask).order_by(InventoryTask.created_at.desc()).offset(skip).limit(limit).all()
+def get_inventory_tasks(db: Session, skip: int = 0, limit: int = 20, location_id: Optional[int] = None):
+    from sqlalchemy.orm import joinedload
+    query = db.query(InventoryTask).options(joinedload(InventoryTask.location))
+    if location_id is not None:
+        query = query.filter(InventoryTask.location_id == location_id)
+        
+    tasks = query.order_by(InventoryTask.created_at.desc()).offset(skip).limit(limit).all()
+    for t in tasks:
+        if t.location:
+            t.location_name = t.location.name
+        else:
+            t.location_name = "所有归属地"
+    return tasks
 
 def submit_inventory_record(db: Session, task_id: str, asset_code: str, operator_id: int):
     # 1. 查找资产并定位该任务下的记录

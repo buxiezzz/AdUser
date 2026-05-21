@@ -2,18 +2,28 @@
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold text-gray-800 tracking-tight">标签打印模板配置</h1>
-      <el-button type="primary" :loading="saving" @click="saveTemplate">
+      <el-button type="primary" :loading="saving" @click="saveTemplate" :disabled="!isSuperAdmin">
         <el-icon class="mr-1"><Check /></el-icon>
         保存打印模板
       </el-button>
     </div>
+
+    <!-- 非 admin 用户提示 -->
+    <el-alert
+      v-if="!isSuperAdmin && userLoaded"
+      title="标签打印模板仅限 admin 管理员账号修改。如需变更，请联系总管理员。"
+      type="warning"
+      show-icon
+      :closable="false"
+      class="border border-amber-200"
+    />
 
     <!-- 基础设置 -->
     <el-card shadow="never" class="border-gray-100 mb-6">
       <template #header>
         <div class="font-bold text-gray-700">全局纸张设置</div>
       </template>
-      <el-form :inline="true" :model="template.paper" class="flex flex-wrap gap-4" v-loading="loading">
+      <el-form :inline="true" :model="template.paper" class="flex flex-wrap gap-4" v-loading="loading" :disabled="!isSuperAdmin">
         <el-form-item label="纸张宽度 (mm)" class="mb-0">
           <el-input-number v-model="template.paper.width" :min="10" :max="200" />
         </el-form-item>
@@ -55,25 +65,25 @@
         <div class="flex justify-between items-center">
           <div class="font-bold text-gray-700">模板内容元素</div>
           <div>
-            <el-button type="warning" plain size="small" @click="loadFourRowTemplate">
+            <el-button type="warning" plain size="small" @click="loadFourRowTemplate" :disabled="!isSuperAdmin">
               <el-icon><Grid /></el-icon> 导入(图一)四行带码模板
             </el-button>
-            <el-button type="warning" plain size="small" @click="loadTableTemplate">
+            <el-button type="warning" plain size="small" @click="loadTableTemplate" :disabled="!isSuperAdmin">
               <el-icon><Grid /></el-icon> 导入(旧版)六行模板
             </el-button>
-            <el-button type="success" plain size="small" style="margin-left:8px" @click="addTextElement">
+            <el-button type="success" plain size="small" style="margin-left:8px" @click="addTextElement" :disabled="!isSuperAdmin">
               <el-icon><Plus /></el-icon> 文本
             </el-button>
-            <el-button type="primary" plain size="small" @click="addQrcodeElement">
+            <el-button type="primary" plain size="small" @click="addQrcodeElement" :disabled="!isSuperAdmin">
               <el-icon><CopyDocument /></el-icon> 二维码
             </el-button>
-            <el-button type="info" plain size="small" @click="addLineElement">
-              <el-icon><Minus /></el-icon> 横线
+            <el-button type="info" plain size="small" @click="addLineElement" :disabled="!isSuperAdmin">
+              <el-icon><Minus /></el-icon> 线条
             </el-button>
-            <el-button type="info" plain size="small" @click="addVLineElement">
+            <el-button type="info" plain size="small" @click="addVLineElement" :disabled="!isSuperAdmin">
               <el-icon><Minus style="transform: rotate(90deg)" /></el-icon> 竖线
             </el-button>
-            <el-button type="info" plain size="small" @click="addRectElement">
+            <el-button type="info" plain size="small" @click="addRectElement" :disabled="!isSuperAdmin">
               <el-icon><FullScreen /></el-icon> 矩形 
             </el-button>
           </div>
@@ -92,9 +102,9 @@
         <el-table-column label="位置 X/Y (mm)" width="160">
           <template #default="{ row }">
             <div class="flex items-center space-x-2">
-              <el-input-number v-model="row.x" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" />
+              <el-input-number v-model="row.x" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" :disabled="!isSuperAdmin" />
               <span class="text-gray-400">,</span>
-              <el-input-number v-model="row.y" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" />
+              <el-input-number v-model="row.y" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" :disabled="!isSuperAdmin" />
             </div>
           </template>
         </el-table-column>
@@ -102,37 +112,37 @@
         <el-table-column label="大小 W/H (mm)" width="160">
           <template #default="{ row }">
             <div class="flex items-center space-x-2">
-              <el-input-number v-model="row.width" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" />
+              <el-input-number v-model="row.width" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" :disabled="!isSuperAdmin" />
               <span class="text-gray-400" v-if="row.type !== 'qrcode'">,</span>
-              <el-input-number v-model="row.height" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" v-if="row.type !== 'qrcode'" />
+              <el-input-number v-model="row.height" :min="0" :step="1" size="small" controls-position="right" style="width: 65px" v-if="row.type !== 'qrcode'" :disabled="!isSuperAdmin" />
             </div>
           </template>
         </el-table-column>
 
         <el-table-column label="字号/线宽(H/LW)" width="125">
           <template #default="{ row }">
-            <el-input-number v-model="row.fontHeight" :min="1" :step="0.5" size="small" controls-position="right" style="width: 90px" v-if="row.type === 'text'" />
-            <el-input-number v-model="row.lineWidth" :min="0.1" :step="0.1" size="small" controls-position="right" style="width: 90px" v-else-if="row.type === 'line' || row.type === 'rect'" />
+            <el-input-number v-model="row.fontHeight" :min="1" :step="0.5" size="small" controls-position="right" style="width: 90px" v-if="row.type === 'text'" :disabled="!isSuperAdmin" />
+            <el-input-number v-model="row.lineWidth" :min="0.1" :step="0.1" size="small" controls-position="right" style="width: 90px" v-else-if="row.type === 'line' || row.type === 'rect'" :disabled="!isSuperAdmin" />
             <span v-else class="text-gray-300">-</span>
           </template>
         </el-table-column>
 
         <el-table-column label="文本前缀 (选填)">
           <template #default="{ row }">
-            <el-input v-model="row.prefix" v-if="row.type === 'text'" placeholder="如: 资产名称: " size="small" />
+            <el-input v-model="row.prefix" v-if="row.type === 'text'" placeholder="如: 资产名称: " size="small" :disabled="!isSuperAdmin" />
             <span v-else class="text-gray-300">-</span>
           </template>
         </el-table-column>
 
         <el-table-column label="动态映射字段 / 固定值">
           <template #default="{ row }">
-            <el-input v-model="row.field" v-if="row.type !== 'text' || !row.value" placeholder="如: category.name" size="small" class="mb-1">
+            <el-input v-model="row.field" v-if="row.type !== 'text' || !row.value" placeholder="如: category.name" size="small" class="mb-1" :disabled="!isSuperAdmin">
                <template #prepend v-if="row.type === 'qrcode'">URL</template>
             </el-input>
-            <el-input v-model="row.value" v-if="row.type === 'text' && !row.field" placeholder="如果是固定文本 (如公司名)" size="small">
+            <el-input v-model="row.value" v-if="row.type === 'text' && !row.field" placeholder="如果是固定文本 (如公司名)" size="small" :disabled="!isSuperAdmin">
               <template #prepend>固定</template>
             </el-input>
-            <div class="text-[10px] text-gray-400 mt-1" v-if="row.type === 'text'">
+            <div class="text-[10px] text-gray-400 mt-1" v-if="row.type === 'text' && isSuperAdmin">
               <span class="cursor-pointer hover:text-primary" @click="row.field=''; row.value='公司名称'">设为固定值</span> | 
               <span class="cursor-pointer hover:text-primary" @click="row.field='asset_code'; row.value=''">设为动态字段</span>
             </div>
@@ -141,7 +151,7 @@
 
         <el-table-column label="操作" width="80" align="center">
           <template #default="{ $index }">
-            <el-button type="danger" circle size="small" @click="removeElement($index)">
+            <el-button type="danger" circle size="small" @click="removeElement($index)" :disabled="!isSuperAdmin">
               <el-icon><Delete /></el-icon>
             </el-button>
           </template>
@@ -245,6 +255,19 @@ import axios from 'axios'
 
 const loading = ref(false)
 const saving = ref(false)
+const isSuperAdmin = ref(false)
+const userLoaded = ref(false)
+
+const fetchUserRole = async () => {
+  try {
+    const { data } = await axios.get('/api/auth/me')
+    isSuperAdmin.value = data.username === 'admin'
+  } catch {
+    isSuperAdmin.value = false
+  } finally {
+    userLoaded.value = true
+  }
+}
 
 // 模板数据结构
 const template = ref({
@@ -398,6 +421,7 @@ const removeElement = (index: number) => {
 const previewScale = 4.5;
 
 onMounted(() => {
+  fetchUserRole()
   fetchData()
 })
 </script>

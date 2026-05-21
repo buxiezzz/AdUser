@@ -335,6 +335,11 @@ async def import_assets(file: UploadFile = File(...), db: Session = Depends(get_
                 if loc_name:
                     from models.asset import Location
                     db_loc = db.query(Location).filter(Location.name == loc_name).first()
+                    # 智能容错匹配：如果未能精确匹配，去除常见后缀（分部、分公司、总部）进行模糊匹配
+                    if not db_loc:
+                        clean_name = loc_name.replace("分部", "").replace("分公司", "").replace("总部", "").strip()
+                        if clean_name:
+                            db_loc = db.query(Location).filter(Location.name.like(f"%{clean_name}%")).first()
                     if db_loc:
                         location_id = db_loc.id
             

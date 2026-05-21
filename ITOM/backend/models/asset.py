@@ -99,9 +99,11 @@ class InventoryTask(Base):
     status = Column(String(20), default="进行中")  # 进行中, 已完成, 已取消
     total_count = Column(Integer, default=0)
     finished_count = Column(Integer, default=0)
+    location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)  # 盘点归属地
     created_at = Column(DateTime, default=get_beijing_time)
     
     records = relationship("InventoryRecord", back_populates="task")
+    location = relationship("Location")
 
 class InventoryRecord(Base):
     __tablename__ = "inventory_records"

@@ -85,6 +85,14 @@ try:
             conn.execute(sa_text("ALTER TABLE sys_audit_logs ADD COLUMN device_source VARCHAR(20)"))
             conn.commit()
             print("✅ 自动追加字段: sys_audit_logs.device_source")
+
+        # 检查 inventory_tasks 表是否有 location_id 字段
+        result = conn.execute(sa_text("PRAGMA table_info(inventory_tasks)"))
+        task_columns = [row[1] for row in result.fetchall()]
+        if "location_id" not in task_columns:
+            conn.execute(sa_text("ALTER TABLE inventory_tasks ADD COLUMN location_id INTEGER REFERENCES locations(id)"))
+            conn.commit()
+            print("✅ 自动追加字段: inventory_tasks.location_id")
 except Exception as e:
     print(f"⚠️ 数据库迁移警告: {e}")
 

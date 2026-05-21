@@ -27,12 +27,15 @@ class InventoryTaskBase(BaseModel):
 class InventoryTaskCreate(InventoryTaskBase):
     # 创建任务时可以选择的范围逻辑（简单起见，目前支持全量或按列表）
     asset_ids: Optional[List[UUID4]] = None
+    location_id: Optional[int] = None
 
 class InventoryTaskResponse(InventoryTaskBase):
     id: UUID4
     status: str  # 进行中, 已完成, 已取消
     total_count: int
     finished_count: int
+    location_id: Optional[int] = None
+    location_name: Optional[str] = None
     created_at: datetime
     
     class Config:

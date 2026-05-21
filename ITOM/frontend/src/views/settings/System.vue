@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold text-gray-800 tracking-tight">系统设置</h1>
-      <div class="flex space-x-2">
+      <div class="flex space-x-2" v-if="isSuperAdmin">
         <el-button type="default" @click="exportConfig">导出备份</el-button>
         <el-button type="default" @click="triggerImport">导入配置</el-button>
         <el-button type="primary" :icon="DocumentChecked" @click="saveConfig">保存全局设定</el-button>
@@ -18,9 +18,20 @@
       </div>
     </div>
 
+    <!-- 非 admin 用户提示 -->
+    <el-alert
+      v-if="!isSuperAdmin && userLoaded"
+      title="系统配置仅限 admin 管理员账号修改。如需变更域控连接参数或全局安全策略，请联系总管理员。"
+      type="warning"
+      show-icon
+      :closable="false"
+      class="border border-amber-200"
+    />
+
     <!-- 顶部状态提示 -->
     <el-alert
-      title="此页面替代了您旧版 Python 中的 config.json 和 positions.json。这套新架构意味着未来你的主控密码、AD连接配置和规则，都会安全地存放于数据库或核心引擎层，而不再是散落的文本文档。"
+      v-if="isSuperAdmin"
+      title="此页面的配置将全局统一应用于所有区域（上海、武汉、长沙）。修改域控连接参数后，所有分公司将同步生效。"
       type="info"
       show-icon
       :closable="false"
@@ -35,21 +46,22 @@
           <div class="flex items-center text-gray-800 font-semibold">
             <el-icon class="mr-2 text-primary"><Connection /></el-icon>
             Active Directory 主连接参数
+            <el-tag v-if="!isSuperAdmin" size="small" type="info" class="ml-2">只读</el-tag>
           </div>
         </template>
         
         <el-form label-position="top" class="mt-2">
           <el-form-item label="域控制器 IP (Domain Controller)">
-            <el-input v-model="settings.dc_ip" placeholder="例如: 10.0.0.5" />
+            <el-input v-model="settings.dc_ip" placeholder="例如: 10.0.0.5" :disabled="!isSuperAdmin" />
           </el-form-item>
           <el-form-item label="系统级通讯服务账号 (Bind Username)">
-            <el-input v-model="settings.bind_username" placeholder="系统用来代理创建用户的管理员账号" />
+            <el-input v-model="settings.bind_username" placeholder="系统用来代理创建用户的管理员账号" :disabled="!isSuperAdmin" />
             <div class="text-xs text-gray-400 mt-1">这解决了以前需要每个操作员输自己高权限账号的安全隐患。</div>
           </el-form-item>
           <el-form-item label="服务账号密码 (Bind Password)">
-            <el-input v-model="settings.bind_password" type="password" show-password />
+            <el-input v-model="settings.bind_password" type="password" show-password :disabled="!isSuperAdmin" />
           </el-form-item>
-          <el-form-item>
+          <el-form-item v-if="isSuperAdmin">
             <el-button type="info" plain :icon="Refresh" @click="testAdConnection" :loading="testingConnection">测试并连通 AD</el-button>
           </el-form-item>
         </el-form>
@@ -65,7 +77,7 @@
           <div class="ml-4 flex-1">
             <h3 class="text-lg font-bold text-gray-800">关于您关心的注册漏洞问题</h3>
             <p class="text-sm text-gray-600 mt-2 leading-relaxed">
-              为了演示和测试方便，目前登录页的“注册”按钮是开放的。但在生产环境中，**我们将默认关闭新用户自主注册**，或者要求通过审批。<br/>
+              为了演示和测试方便，目前登录页的"注册"按钮是开放的。但在生产环境中，**我们将默认关闭新用户自主注册**，或者要求通过审批。<br/>
               管理员还可以通过这里的控制台动态切换全局的安全模式：
             </p>
             <div class="mt-4 flex items-center space-x-6">
@@ -74,11 +86,13 @@
                 size="large"
                 active-text="开放自主注册"
                 inactive-text="仅内部分发账号"
+                :disabled="!isSuperAdmin"
               />
               <el-switch
                 v-model="settings.audit_log"
                 size="large"
                 active-text="记录极客级操作审计日志"
+                :disabled="!isSuperAdmin"
               />
             </div>
           </div>
@@ -96,6 +110,8 @@ import { ElMessage } from 'element-plus'
 import axios from 'axios'
 
 const testingConnection = ref(false)
+const isSuperAdmin = ref(false)
+const userLoaded = ref(false)
 
 const settings = reactive({
   dc_ip: '',
@@ -106,6 +122,17 @@ const settings = reactive({
 })
 
 const fileInput = ref<HTMLInputElement | null>(null)
+
+const fetchUserRole = async () => {
+  try {
+    const { data } = await axios.get('/api/auth/me')
+    isSuperAdmin.value = data.username === 'admin'
+  } catch {
+    isSuperAdmin.value = false
+  } finally {
+    userLoaded.value = true
+  }
+}
 
 const exportConfig = async () => {
   try {
@@ -232,7 +259,7 @@ const saveConfig = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (data.success) {
-      ElMessage.success('全局底座配置已向核心引擎下发完成。')
+      ElMessage.success('全局配置已更新并同步至所有区域。')
     }
   } catch(err: any) {
     ElMessage.error(err.response?.data?.detail || '保存配置失败')
@@ -240,6 +267,7 @@ const saveConfig = async () => {
 }
 
 onMounted(() => {
+  fetchUserRole()
   fetchConfig()
 })
 </script>

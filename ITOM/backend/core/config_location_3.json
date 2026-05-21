@@ -1,7 +1,7 @@
 {
   "DOMAIN_CONTROLLER_IP": "10.20.108.100",
   "DOMAIN_NAME": "sk1.net.cn",
-  "DEFAULT_USER_PASSWORD": "Aa111111#",
+  "DEFAULT_USER_PASSWORD": "Aa111114#",
   "REGION_OPTIONS": [
     {
       "name": "上海",

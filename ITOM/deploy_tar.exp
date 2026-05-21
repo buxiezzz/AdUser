@@ -2,7 +2,7 @@
 set password "Zmkhjjg@123"
 set timeout -1
 
-spawn scp -o StrictHostKeyChecking=no itom_pack.tar.gz root@10.20.108.159:/opt/itom/
+spawn scp -o StrictHostKeyChecking=no itom_pack.tar.gz root@10.10.102.160:/opt/itom/
 expect {
     "*assword:*" {
         send "$password\r"

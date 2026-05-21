@@ -516,14 +516,17 @@
               </table>
               <div v-if="isDragging" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:999; cursor: crosshair;"></div>
             </div>
-       </div>
+        </div>
 
        <template #footer>
           <div class="dialog-footer flex justify-between items-center">
-            <div>
-               <el-button type="warning" plain @click="saveTemplateToSystem" :loading="savingTemplate">保存为默认模板</el-button>
-               <span class="text-xs text-gray-400 ml-2">保存后下次打印将默认使用此排版</span>
-            </div>
+             <div>
+                <el-button type="warning" plain @click="saveTemplateToSystem" :loading="savingTemplate" :disabled="!isSuperAdmin">保存为默认模板</el-button>
+                <span class="text-xs text-gray-400 ml-2">
+                  <template v-if="isSuperAdmin">保存后下次打印将默认使用此排版</template>
+                  <template v-else><span class="text-amber-500 font-semibold">仅超管 admin 可修改保存默认模板</span></template>
+                </span>
+             </div>
             <div>
               <el-button @click="printConfigVisible = false">取消</el-button>
               <el-button type="primary" @click="executePrint">应用排版并系统打印 (批量)</el-button>
@@ -740,6 +743,7 @@ const submitBatchTransfer = async () => {
 // 归属地相关
 const locationList = ref<any[]>([])
 const isGroupAdmin = ref(false)
+const isSuperAdmin = ref(false)
 const userLocationId = ref<number | null>(null)
 
 // 从当前数据中提炼唯一的部门列表供下拉选择
@@ -780,6 +784,7 @@ const fetchGlobals = async () => {
         // 归属地和用户信息
         locationList.value = locRes.data || []
         isGroupAdmin.value = userRes.data?.is_group_admin || false
+        isSuperAdmin.value = userRes.data?.username === 'admin'
         userLocationId.value = userRes.data?.location_id || null
     } catch {
         ElMessage.warning('拉取分类、人员或全局配置数据失败')
@@ -1398,7 +1403,7 @@ const saveTemplateToSystem = async () => {
 // ------ 导入功能 ------
 const downloadTemplate = () => {
     const headers = ['资产状态', '资产编码', '归属地', '资产分类', '规格型号', '计量单位', '入库日期', '所属组织', '使用人', '序列号', '备注']
-    const exampleRow = ['在库', 'IT-PC-2023001', '武汉分部', '笔记本', 'ThinkPad T14', '台', '2023-10-01', '研发中心', '张三', 'PF123456', '全新设备']
+    const exampleRow = ['在库', 'IT-PC-2023001', '武汉分公司', '笔记本', 'ThinkPad T14', '台', '2023-10-01', '研发中心', '张三', 'PF123456', '全新设备']
     const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow])
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, '导入模板')

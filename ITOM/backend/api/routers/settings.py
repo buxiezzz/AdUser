@@ -16,6 +16,19 @@ from crud.audit import log_action
 
 router = APIRouter()
 
+# 全局统一字段：所有区域共享，只能由 admin 修改，以 config.json 为唯一真实来源
+GLOBAL_KEYS = {
+    "DOMAIN_CONTROLLER_IP", "DOMAIN_NAME", "BIND_USERNAME", "BIND_PASSWORD",
+    "DEFAULT_USER_PASSWORD", "ALLOW_REGISTRATION", "AUDIT_LOG", "REGION_OPTIONS",
+    "PRINT_TEMPLATE"
+}
+
+# 区域独立字段：每个分公司可拥有自己的配置
+LOCAL_KEYS = {
+    "POSITIONS", "OU_GROUP_MAPPING", "OU_PREFIX_MAPPING",
+    "ACTIVE_REGION_CODE", "DEFAULT_USER_PASSWORD"
+}
+
 def get_base_data_dir() -> str:
     if os.path.exists("/app"):
         return "/app/data"
@@ -27,6 +40,10 @@ def get_config_path(location_id=None) -> str:
     if location_id:
         return os.path.join(base_dir, f"config_location_{location_id}.json")
     return os.path.join(base_dir, "config.json")
+
+def is_super_admin(user) -> bool:
+    """判断是否为系统超级管理员（仅 admin 账号）"""
+    return user.username == 'admin'
 
 
 
@@ -45,53 +62,128 @@ class SettingsUpdateSchema(BaseModel):
     ou_prefix_mapping: Dict[str, str] | None = None
     print_template: dict | None = None
 
-def load_config(location_id=None) -> Dict[str, Any]:
-    config_path = get_config_path(location_id)
-    if location_id and not os.path.exists(config_path):
-        # Fallback to default if location specific config doesn't exist yet
-        config_path = get_config_path(None)
-
-        
-    if not os.path.exists(config_path):
-        return {
-            "DOMAIN_CONTROLLER_IP": "",
-            "DOMAIN_NAME": "your_domain.com",
-            "BIND_USERNAME": "",
-            "BIND_PASSWORD": "",
-            "DEFAULT_USER_PASSWORD": "ChangeMePlease123!",
-            "ALLOW_REGISTRATION": True,
-            "AUDIT_LOG": True,
-            "POSITIONS": [
-                {"name": "Developer", "suffix": "dev", "default_groups": []},
-                {"name": "Manager", "suffix": "mgr", "default_groups": []}
-            ],
-            "OU_GROUP_MAPPING": {},
-            "OU_PREFIX_MAPPING": {},
-            "REGION_OPTIONS": [],
-            "ACTIVE_REGION_CODE": "all",
-            "PRINT_TEMPLATE": {
-                "width": 70,
-                "height": 50,
-                "padding": 2,
-                "border": 2,
-                "company_name": "先惠自动化技术(武汉)有限责任公司",
-                "rows": {
-                    "r1": 12, "r2": 8, "r3": 8, "r4": 8, "r5": 6, "r6": 6
-                },
-                "fonts": {
-                    "title": 15, "code": 13, "name": 13, "spec": 13, "serial": 13, "date": 13
-                },
-                "leftColWidth": 62,
-                "qrSize": 62
-            }
-        }
-    with open(config_path, 'r', encoding='utf-8') as f:
+def _read_json_file(path: str) -> Dict[str, Any]:
+    """安全读取 JSON 配置文件"""
+    if not os.path.exists(path):
+        return {}
+    with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
+
+def _default_config() -> Dict[str, Any]:
+    """系统出厂默认配置"""
+    return {
+        "DOMAIN_CONTROLLER_IP": "",
+        "DOMAIN_NAME": "your_domain.com",
+        "BIND_USERNAME": "",
+        "BIND_PASSWORD": "",
+        "DEFAULT_USER_PASSWORD": "ChangeMePlease123!",
+        "ALLOW_REGISTRATION": True,
+        "AUDIT_LOG": True,
+        "POSITIONS": [
+            {"name": "Developer", "suffix": "dev", "default_groups": []},
+            {"name": "Manager", "suffix": "mgr", "default_groups": []}
+        ],
+        "OU_GROUP_MAPPING": {},
+        "OU_PREFIX_MAPPING": {},
+        "REGION_OPTIONS": [],
+        "ACTIVE_REGION_CODE": "all",
+        "PRINT_TEMPLATE": {
+            "width": 70,
+            "height": 50,
+            "padding": 2,
+            "border": 2,
+            "company_name": "先惠自动化技术(武汉)有限责任公司",
+            "rows": {
+                "r1": 12, "r2": 8, "r3": 8, "r4": 8, "r5": 6, "r6": 6
+            },
+            "fonts": {
+                "title": 15, "code": 13, "name": 13, "spec": 13, "serial": 13, "date": 13
+            },
+            "leftColWidth": 62,
+            "qrSize": 62
+        }
+    }
+
+def load_config(location_id=None) -> Dict[str, Any]:
+    """
+    合并加载配置：
+    - 全局字段（域控IP、绑定账号等）始终从 config.json 读取，保证全局统一
+    - 区域独立字段（岗位、OU映射等）从 config_location_X.json 覆盖
+    """
+    global_path = get_config_path(None)
+    global_data = _read_json_file(global_path)
+    
+    if not global_data:
+        global_data = _default_config()
+    
+    # 无区域或就是全局请求，直接返回
+    if not location_id:
+        return global_data
+    
+    # 有区域：读取区域文件，用区域独立字段覆盖全局基准
+    local_path = get_config_path(location_id)
+    local_data = _read_json_file(local_path)
+    
+    if not local_data:
+        # 区域文件不存在，回退到全局配置
+        return global_data
+    
+    # 合并策略：以全局文件的全局字段为准，区域字段用区域文件覆盖
+    merged = dict(global_data)  # 以全局为底
+    for key in LOCAL_KEYS:
+        if key in local_data:
+            merged[key] = local_data[key]
+    
+    return merged
 
 def save_config(config_data: Dict[str, Any], location_id=None):
     config_path = get_config_path(location_id)
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=2, ensure_ascii=False)
+
+def sync_global_to_all_locations(global_data: Dict[str, Any]):
+    """
+    将全局字段同步写入所有已存在的区域配置文件。
+    保留每个区域文件自身的区域独立字段不变。
+    """
+    base_dir = get_base_data_dir()
+    for fname in os.listdir(base_dir):
+        if fname.startswith('config_location_') and fname.endswith('.json'):
+            loc_path = os.path.join(base_dir, fname)
+            try:
+                loc_data = _read_json_file(loc_path)
+                if not loc_data:
+                    continue
+                # 用最新的全局字段覆盖区域文件中的对应字段
+                for key in GLOBAL_KEYS:
+                    if key in global_data:
+                        loc_data[key] = global_data[key]
+                with open(loc_path, 'w', encoding='utf-8') as f:
+                    json.dump(loc_data, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                print(f"⚠️ 同步全局配置到 {fname} 失败: {e}")
+
+
+def sync_local_to_all_locations(local_data: Dict[str, Any]):
+    """
+    将 admin 在全局修改的区域独立字段，强制同步广播写入所有已存在的区域配置文件中。
+    """
+    base_dir = get_base_data_dir()
+    for fname in os.listdir(base_dir):
+        if fname.startswith('config_location_') and fname.endswith('.json'):
+            loc_path = os.path.join(base_dir, fname)
+            try:
+                loc_data = _read_json_file(loc_path)
+                if not loc_data:
+                    continue
+                # 用最新的区域字段覆盖区域文件中的对应字段
+                for key in LOCAL_KEYS:
+                    if key in local_data:
+                        loc_data[key] = local_data[key]
+                with open(loc_path, 'w', encoding='utf-8') as f:
+                    json.dump(loc_data, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                print(f"⚠️ 同步区域配置到 {fname} 失败: {e}")
 
 
 
@@ -120,57 +212,104 @@ def update_settings(
     current_user: Any = Depends(get_current_active_user),
     device: str = Depends(get_device_source)
 ):
-    """更新系统级配置"""
-    if current_user.role != 'admin':  # 只有超管可配
+    """
+    更新系统配置（分层权限）：
+    - 全局字段（域控IP、绑定账号等）：仅 admin 账号可修改
+    - 区域独立字段（岗位、OU映射等）：admin 角色用户均可修改（写入各自区域文件）
+    """
+    if current_user.role != 'admin':
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="权限不足，仅超级管理员可修改全局系统设定"
+            detail="权限不足，仅管理员可修改系统配置"
         )
-        
-    config_data = load_config(current_user.location_id)
-
     
-    if settings.domain_controller_ip is not None:
-        config_data["DOMAIN_CONTROLLER_IP"] = settings.domain_controller_ip
-    if settings.domain_name is not None:
-        config_data["DOMAIN_NAME"] = settings.domain_name
-    if settings.bind_username is not None:
-        config_data["BIND_USERNAME"] = settings.bind_username
-    if settings.bind_password is not None:
-        config_data["BIND_PASSWORD"] = settings.bind_password
-    if settings.default_user_password is not None:
-         config_data["DEFAULT_USER_PASSWORD"] = settings.default_user_password   
-         
-    # Registration Security Toggle
-    if settings.allow_registration is not None:
-        config_data["ALLOW_REGISTRATION"] = settings.allow_registration
-    if settings.audit_log is not None:
-        config_data["AUDIT_LOG"] = settings.audit_log
-        
-    # Positions and Rules
-    if settings.positions is not None:
-        config_data["POSITIONS"] = settings.positions
-    if settings.region_options is not None:
-        config_data["REGION_OPTIONS"] = settings.region_options
-    if settings.active_region_code is not None:
-        config_data["ACTIVE_REGION_CODE"] = settings.active_region_code
-    if settings.ou_group_mapping is not None:
-        config_data["OU_GROUP_MAPPING"] = settings.ou_group_mapping
-    if settings.ou_prefix_mapping is not None:
-        config_data["OU_PREFIX_MAPPING"] = settings.ou_prefix_mapping
-    if settings.print_template is not None:
-        config_data["PRINT_TEMPLATE"] = settings.print_template
-        
-    save_config(config_data, current_user.location_id)
-    log_action(db, (current_user.display_name or current_user.username), 'settings', 'UPDATE_SETTINGS', '全局系统配置', device_source=device)
+    # 检测本次请求是否包含全局字段的修改
+    has_global_changes = any([
+        settings.domain_controller_ip is not None,
+        settings.domain_name is not None,
+        settings.bind_username is not None,
+        settings.bind_password is not None,
+        settings.allow_registration is not None,
+        settings.audit_log is not None,
+        settings.region_options is not None,
+        settings.print_template is not None,
+    ])
     
-    return {"success": True, "message": "全局配置更新成功", "data": config_data}
+    # 全局字段修改：仅限 admin 账号
+    if has_global_changes and not is_super_admin(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="域控连接参数、标签打印模板等全局配置仅限 admin 管理员账号修改，如需变更请联系总管理员"
+        )
+    
+    # ========== 处理全局字段（写入 config.json + 同步广播）==========
+    if has_global_changes:
+        global_data = _read_json_file(get_config_path(None)) or _default_config()
+        
+        if settings.domain_controller_ip is not None:
+            global_data["DOMAIN_CONTROLLER_IP"] = settings.domain_controller_ip
+        if settings.domain_name is not None:
+            global_data["DOMAIN_NAME"] = settings.domain_name
+        if settings.bind_username is not None:
+            global_data["BIND_USERNAME"] = settings.bind_username
+        if settings.bind_password is not None:
+            global_data["BIND_PASSWORD"] = settings.bind_password
+        if settings.allow_registration is not None:
+            global_data["ALLOW_REGISTRATION"] = settings.allow_registration
+        if settings.audit_log is not None:
+            global_data["AUDIT_LOG"] = settings.audit_log
+        if settings.region_options is not None:
+            global_data["REGION_OPTIONS"] = settings.region_options
+        if settings.print_template is not None:
+            global_data["PRINT_TEMPLATE"] = settings.print_template
+        
+        # 保存全局配置并同步广播到所有区域文件
+        save_config(global_data, None)
+        sync_global_to_all_locations(global_data)
+    
+    # ========== 处理区域独立字段（写入对应区域文件）==========
+    has_local_changes = any([
+        settings.positions is not None,
+        settings.active_region_code is not None,
+        settings.ou_group_mapping is not None,
+        settings.ou_prefix_mapping is not None,
+        settings.default_user_password is not None,
+    ])
+    
+    if has_local_changes:
+        # 确定写入目标：admin 超管写入全局文件，区域管理员写入自己的区域文件
+        target_location_id = None if is_super_admin(current_user) else current_user.location_id
+        target_path = get_config_path(target_location_id)
+        target_data = _read_json_file(target_path) or _default_config()
+        
+        if settings.positions is not None:
+            target_data["POSITIONS"] = settings.positions
+        if settings.active_region_code is not None:
+            target_data["ACTIVE_REGION_CODE"] = settings.active_region_code
+        if settings.ou_group_mapping is not None:
+            target_data["OU_GROUP_MAPPING"] = settings.ou_group_mapping
+        if settings.ou_prefix_mapping is not None:
+            target_data["OU_PREFIX_MAPPING"] = settings.ou_prefix_mapping
+        if settings.default_user_password is not None:
+            target_data["DEFAULT_USER_PASSWORD"] = settings.default_user_password
+        
+        save_config(target_data, target_location_id)
+        if is_super_admin(current_user):
+            sync_local_to_all_locations(target_data)
+    
+    # 审计日志
+    action_desc = '全局系统配置（已同步至所有区域）' if has_global_changes else '区域参数配置'
+    log_action(db, (current_user.display_name or current_user.username), 'settings', 'UPDATE_SETTINGS', action_desc, device_source=device)
+    
+    # 返回合并后的最新配置
+    merged_config = load_config(current_user.location_id)
+    return {"success": True, "message": "配置更新成功", "data": merged_config}
 
 @router.get("/export")
 def export_settings(current_user: Any = Depends(get_current_active_user)):
     """导出系统配置文件与数据库包"""
-    if current_user.role != 'admin':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限导出")
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限导出，仅限 admin 账号")
     
     base_dir = get_base_data_dir()
     default_config_path = get_config_path(None)
@@ -204,8 +343,8 @@ def import_settings(
     current_user: Any = Depends(get_current_active_user)
 ):
     """导入系统配置文件或全量备份包，并立即生效"""
-    if current_user.role != 'admin':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限导入")
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限导入，仅限 admin 账号")
     
     if not (file.filename.endswith('.json') or file.filename.endswith('.zip')):
         raise HTTPException(status_code=400, detail="请上传 .json 或 .zip 格式的备份文件")
@@ -263,8 +402,8 @@ def test_ad_connection_live(
     current_user: Any = Depends(get_current_active_user)
 ):
     """测试真实的 AD 域控连通性"""
-    if current_user.role != 'admin':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权进行AD测试")
+    if not is_super_admin(current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权进行AD测试，仅限 admin 账号")
     
     try:
         tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)

@@ -14,6 +14,7 @@
     <el-card shadow="never" class="list-card">
       <el-table :data="tasks" v-loading="loading" style="width: 100%">
         <el-table-column prop="name" label="任务名称" min-width="180" />
+        <el-table-column prop="location_name" label="归属地" width="130" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === '已完成' ? 'success' : 'primary'">{{ row.status }}</el-tag>
@@ -99,11 +100,16 @@
         <el-form-item label="盘点项目名称" required>
           <el-input v-model="createForm.name" placeholder="例如：2024年Q2例行盘点" />
         </el-form-item>
+        <el-form-item label="盘点归属地" v-if="isGroupAdmin">
+          <el-select v-model="createForm.location_id" placeholder="选择特定归属地进行独立盘点 (不选则为所有归属地)" clearable style="width: 100%">
+            <el-option v-for="loc in locations" :key="loc.id" :label="loc.name" :value="loc.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="任务描述">
           <el-input v-model="createForm.description" type="textarea" placeholder="备注盘点范围或执行要求" />
         </el-form-item>
         <el-alert
-          title="说明：此盘点将默认包含系统中所有在册状态的固定资产。"
+          title="说明：此盘点将默认包含系统中所选属地所有在册状态的固定资产。"
           type="info"
           :closable="false"
           show-icon
@@ -133,7 +139,12 @@ const detailLoading = ref(false)
 const manualAssetCode = ref('')
 const taskRecords = ref<Record<string, any[]>>({})
 
-const createForm = ref({ name: '', description: '' })
+// 元数据状态
+const locations = ref<any[]>([])
+const isGroupAdmin = ref(false)
+const currentUserLocationId = ref<number | null>(null)
+
+const createForm = ref({ name: '', description: '', location_id: null as number | null })
 
 // 当前展开任务的记录
 const currentRecords = computed(() => {
@@ -201,6 +212,20 @@ const fetchTasks = async () => {
   }
 }
 
+const fetchMetadata = async () => {
+  try {
+    const [locRes, userRes] = await Promise.all([
+      axios.get('/api/locations/'),
+      axios.get('/api/auth/me')
+    ])
+    locations.value = locRes.data
+    isGroupAdmin.value = userRes.data.is_group_admin
+    currentUserLocationId.value = userRes.data.location_id
+  } catch (e) {
+    console.error('Failed to load user metadata', e)
+  }
+}
+
 const submitCreate = async () => {
   if (!createForm.value.name) return ElMessage.warning('请输入项目名称')
   submitting.value = true
@@ -208,7 +233,7 @@ const submitCreate = async () => {
     await axios.post('/api/inventory/tasks', createForm.value)
     ElMessage.success('盘点任务已发起')
     showCreateDialog.value = false
-    createForm.value = { name: '', description: '' }
+    createForm.value = { name: '', description: '', location_id: null }
     fetchTasks()
   } catch {
     ElMessage.error('发起盘点失败')
@@ -233,7 +258,10 @@ const handleDelete = async (task: any) => {
   }
 }
 
-onMounted(fetchTasks)
+onMounted(() => {
+  fetchMetadata()
+  fetchTasks()
+})
 </script>
 
 <style scoped>

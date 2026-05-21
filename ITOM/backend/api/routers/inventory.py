@@ -14,16 +14,28 @@ router = APIRouter()
 
 @router.post("/tasks", response_model=schemas.InventoryTaskResponse)
 def create_task(task_in: schemas.InventoryTaskCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
+    if not current_user.is_group_admin:
+        # 如果不是集团超管，强行将盘点任务的归属地设为当前用户所属归属地
+        task_in.location_id = current_user.location_id
     res = crud.create_inventory_task(db, task_in)
     log_action(db, (current_user.display_name or current_user.username), 'inventory', 'INVENTORY_TASK_CREATE', task_in.name, device_source=device)
     return res
 
 @router.get("/tasks", response_model=List[schemas.InventoryTaskResponse])
 def list_tasks(skip: int = 0, limit: int = 20, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    return crud.get_inventory_tasks(db, skip, limit)
+    loc_id = None if current_user.is_group_admin else current_user.location_id
+    return crud.get_inventory_tasks(db, skip, limit, location_id=loc_id)
 
 @router.post("/tasks/{task_id}/submit", response_model=schemas.InventoryRecordResponse)
 def submit_record(task_id: str, submit_in: schemas.InventorySubmit, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    # 归属地边界越权校验
+    from models.asset import InventoryTask
+    task = db.query(InventoryTask).filter(InventoryTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if not current_user.is_group_admin and task.location_id != current_user.location_id:
+        raise HTTPException(status_code=403, detail="您无权操作其他归属地的盘点任务")
+
     record, result_msg = crud.submit_inventory_record(db, task_id, submit_in.asset_code, current_user.id)
     if not record:
         raise HTTPException(status_code=400, detail=result_msg)
@@ -35,8 +47,15 @@ def submit_record(task_id: str, submit_in: schemas.InventorySubmit, db: Session 
 
 @router.get("/tasks/{task_id}/records", response_model=List[schemas.InventoryRecordResponse])
 def get_records(task_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    # 归属地边界越权校验
+    from models.asset import InventoryTask, InventoryRecord, Asset
+    task = db.query(InventoryTask).filter(InventoryTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if not current_user.is_group_admin and task.location_id != current_user.location_id:
+        raise HTTPException(status_code=403, detail="您无权查看其他归属地的盘点任务")
+
     # 简单实现，获取该任务下所有记录
-    from models.asset import InventoryRecord, Asset, Category
     from sqlalchemy.orm import joinedload
     
     # 联表查询 Asset 和 Category
@@ -58,6 +77,8 @@ def delete_task(task_id: str, db: Session = Depends(get_db), current_user: User 
     task = db.query(InventoryTask).filter(InventoryTask.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
+    if not current_user.is_group_admin and task.location_id != current_user.location_id:
+        raise HTTPException(status_code=403, detail="您无权删除其他归属地的盘点任务")
     
     # 删除关联的记录
     db.query(InventoryRecord).filter(InventoryRecord.task_id == task_id).delete()
@@ -80,6 +101,9 @@ def export_records(task_id: str, db: Session = Depends(get_db), current_user: Us
     task = db.query(InventoryTask).filter(InventoryTask.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
+
+    if current_user and not current_user.is_group_admin and task.location_id != current_user.location_id:
+        raise HTTPException(status_code=403, detail="您无权导出其他归属地的盘点报告")
 
     results = db.query(InventoryRecord)\
         .join(Asset)\

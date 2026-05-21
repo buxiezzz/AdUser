@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 set password "Zmkhjjg@123"
 set timeout -1
-spawn ssh -o StrictHostKeyChecking=no root@10.20.108.159 "ls -l /opt/itom/backend/data/itom.db"
+spawn ssh -o StrictHostKeyChecking=no root@10.10.102.160 "ls -l /opt/itom/backend/data/itom.db"
 expect {
     "*assword:*" {
         send "$password\r"

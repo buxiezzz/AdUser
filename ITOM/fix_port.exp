@@ -2,7 +2,7 @@
 set password "Zmkhjjg@123"
 set timeout -1
 
-spawn ssh -o StrictHostKeyChecking=no root@10.20.108.159 "cd /opt/itom && sed -i 's/8000:8000/9000:8000/g' docker-compose.yml && docker compose up -d"
+spawn ssh -o StrictHostKeyChecking=no root@10.10.102.160 "cd /opt/itom && sed -i 's/8000:8000/9000:8000/g' docker-compose.yml && docker compose up -d"
 expect {
     "*assword:*" {
         send "$password\r"

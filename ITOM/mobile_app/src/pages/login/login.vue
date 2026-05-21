@@ -19,7 +19,7 @@
           <input
             class="server-input"
             v-model="serverIp"
-            placeholder="例如: 10.20.108.159"
+            placeholder="例如: 10.10.102.160"
             @input="onServerIpInput"
           />
           <text class="port-sep">:</text>

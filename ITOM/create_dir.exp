@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 set password "Zmkhjjg@123"
-spawn ssh -o StrictHostKeyChecking=no root@10.20.108.159 "mkdir -p /opt/itom"
+spawn ssh -o StrictHostKeyChecking=no root@10.10.102.160 "mkdir -p /opt/itom"
 expect {
     "*assword:*" {
         send "$password\r"

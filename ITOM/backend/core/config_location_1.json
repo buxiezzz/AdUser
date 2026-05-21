@@ -1,0 +1,72 @@
+{
+  "DOMAIN_CONTROLLER_IP": "",
+  "DOMAIN_NAME": "your_domain.com",
+  "BIND_USERNAME": "",
+  "BIND_PASSWORD": "",
+  "DEFAULT_USER_PASSWORD": "Aa111112#",
+  "ALLOW_REGISTRATION": true,
+  "AUDIT_LOG": true,
+  "POSITIONS": [],
+  "OU_GROUP_MAPPING": {},
+  "OU_PREFIX_MAPPING": {},
+  "REGION_OPTIONS": [],
+  "ACTIVE_REGION_CODE": "all",
+  "PRINT_TEMPLATE": {
+    "paper": {
+      "width": 70,
+      "height": 50,
+      "orientation": 0,
+      "gapType": 2,
+      "darkness": 8,
+      "speed": 2
+    },
+    "elements": [
+      {
+        "type": "text",
+        "value": "先惠自动化技术有限公司",
+        "x": 5,
+        "y": 5,
+        "fontHeight": 3,
+        "width": 41,
+        "height": 6
+      },
+      {
+        "type": "text",
+        "field": "asset_code",
+        "prefix": "资产编码: ",
+        "x": 5,
+        "y": 13,
+        "fontHeight": 3,
+        "width": 42,
+        "height": 6
+      },
+      {
+        "type": "text",
+        "field": "category.name",
+        "prefix": "名称: ",
+        "x": 5,
+        "y": 21,
+        "fontHeight": 3,
+        "width": 42,
+        "height": 6
+      },
+      {
+        "type": "text",
+        "field": "dynamic_attributes.规格型号",
+        "prefix": "型号: ",
+        "x": 5,
+        "y": 29,
+        "fontHeight": 3,
+        "width": 42,
+        "height": 6
+      },
+      {
+        "type": "qrcode",
+        "field": "qr_code_token",
+        "x": 50,
+        "y": 10,
+        "width": 18
+      }
+    ]
+  }
+}
