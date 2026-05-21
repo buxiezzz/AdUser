@@ -8,10 +8,10 @@
       </el-button>
     </div>
 
-    <!-- 非 admin 用户提示 -->
+    <!-- 非 admin 角色提示 -->
     <el-alert
       v-if="!isSuperAdmin && userLoaded"
-      title="标签打印模板仅限 admin 管理员账号修改。如需变更，请联系总管理员。"
+      title="标签打印模板仅限管理员角色修改。如需变更，请联系系统管理员。"
       type="warning"
       show-icon
       :closable="false"
@@ -261,7 +261,8 @@ const userLoaded = ref(false)
 const fetchUserRole = async () => {
   try {
     const { data } = await axios.get('/api/auth/me')
-    isSuperAdmin.value = data.username === 'admin'
+    // 允许所有管理员角色（admin）修改本分公司的打印模板（因公司名称不同，各分公司需自定义）
+    isSuperAdmin.value = data.role === 'admin'
   } catch {
     isSuperAdmin.value = false
   } finally {

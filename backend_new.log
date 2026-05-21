@@ -727,3 +727,98 @@ INFO:     127.0.0.1:56588 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 20
 INFO:     127.0.0.1:56591 - "GET /api/assets/?skip=0&limit=20&keyword=SKWHPC200817005&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
 INFO:     127.0.0.1:56594 - "GET /api/assets/count?keyword=SKWHPC200817005&status= HTTP/1.1" 200 OK
 INFO:     127.0.0.1:56597 - "GET /api/assets/3441d3c7-a10e-4b4a-819c-74397e8255b9/logs HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'api/routers/settings.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [35548]
+INFO:     Started server process [37397]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:58909 - "GET /api/settings/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59109 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59107 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59106 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59108 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59110 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59116 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59259 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59268 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59267 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59271 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59274 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59286 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59287 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59296 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59297 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59345 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59346 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59347 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59359 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59360 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59361 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59397 - "GET /api/settings/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59406 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59415 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59414 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59418 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59421 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59429 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59430 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59433 - "POST /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59436 - "GET /api/settings/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59442 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59448 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59447 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59451 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59454 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59459 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59460 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59478 - "POST /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59486 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59489 - "GET /api/locations/?include_inactive=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59492 - "GET /api/assets/?limit=99999 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59499 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59500 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59505 - "GET /api/settings/public HTTP/1.1" 200 OK
+AD Auth Fallback Error: automatic bind not successful - invalidCredentials
+INFO:     127.0.0.1:59506 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:59511 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59516 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59520 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59523 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59528 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59529 - "GET /api/users/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:59532 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59535 - "GET /api/locations/?include_inactive=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59538 - "GET /api/assets/?limit=99999 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59549 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59550 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59555 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59556 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59559 - "GET /api/settings/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59562 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59568 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59567 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59571 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59574 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59579 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59580 - "GET /api/users/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:59585 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59586 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59595 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59596 - "GET /api/users/ HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:59603 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59606 - "GET /api/locations/?include_inactive=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59609 - "GET /api/assets/?limit=99999 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59614 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59617 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59620 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59641 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59645 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59647 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59646 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59648 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59651 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59654 - "GET /api/assets/categories HTTP/1.1" 200 OK

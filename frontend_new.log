@@ -114,3 +114,5 @@
       at createDescriptor (file:///Users/long/Desktop/1230/AdUser/ITOM/frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs:54:42)
       at handleHotUpdate (file:///Users/long/Desktop/1230/AdUser/ITOM/frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs:1162:25)
 1:33:00 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:42:09 PM [vite] (client) hmr update /src/views/settings/PrinterTemplate.vue, /src/style.css
+2:42:14 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css

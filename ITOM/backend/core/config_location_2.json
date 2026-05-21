@@ -1,7 +1,7 @@
 {
   "DOMAIN_CONTROLLER_IP": "10.20.108.100",
   "DOMAIN_NAME": "sk1.net.cn",
-  "DEFAULT_USER_PASSWORD": "Aa111113#",
+  "DEFAULT_USER_PASSWORD": "Aa111111#",
   "REGION_OPTIONS": [
     {
       "name": "上海",
@@ -30,130 +30,15 @@
   ],
   "ALLOW_REGISTRATION": false,
   "AUDIT_LOG": true,
-  "POSITIONS": [
-    {
-      "name": "机械工程师",
-      "suffix": "MD",
-      "default_groups": [
-        "CN=Proj-机械部项目资料-RO,OU=Projects-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
-        "CN=WH-MD-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "电气工程师",
-      "suffix": "ED",
-      "default_groups": [
-        "CN=WH-ED-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
-        "CN=ALL-ED-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "钳工/电工",
-      "suffix": "ME",
-      "default_groups": [
-        "CN=WH-ME-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "人事专员",
-      "suffix": "HR",
-      "default_groups": [
-        "CN=WH-HR-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "生产普工",
-      "suffix": "MF",
-      "default_groups": [
-        "CN=WH-MF-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "项目工程师",
-      "suffix": "PM",
-      "default_groups": [
-        "CN=WH-PM-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
-        "CN=ALL-PM-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "前期研发机械工程师",
-      "suffix": "PD",
-      "default_groups": [
-        "CN=ALL-PD-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
-        "CN=Dep-前期研发部-RO,OU=Projects-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
-        "CN=Proj-机械部项目资料-RO,OU=Projects-Group,OU=User Groups,DC=sk1,DC=net,DC=cn",
-        "CN=WH-PD2-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "物流员",
-      "suffix": "LOG",
-      "default_groups": [
-        "CN=WH-LOG-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "采购员",
-      "suffix": "SU",
-      "default_groups": [
-        "CN=WH-SU-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "行政专员",
-      "suffix": "CM",
-      "default_groups": [
-        "CN=WH-CM-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    }
-  ],
+  "POSITIONS": [],
   "BIND_USERNAME": "s12101018@sk1.net.cn",
   "BIND_PASSWORD": "ysyyrps@778",
-  "ACTIVE_REGION_CODE": "WH",
-  "OU_GROUP_MAPPING": {
-    "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": [
-      "CN=WH-联队1营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-    ],
-    "OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": [
-      "CN=WH-联队2营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-    ],
-    "OU=武汉3营,OU=武汉,DC=sk1,DC=net,DC=cn": [
-      "CN=WH-联队3营-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-    ],
-    "OU=武汉EHS部,OU=武汉,DC=sk1,DC=net,DC=cn": [
-      "CN=WH-EHS-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-    ],
-    "OU=武汉IT部,OU=武汉,DC=sk1,DC=net,DC=cn": [
-      "CN=WH-IT-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-    ]
-  },
-  "OU_PREFIX_MAPPING": {
-    "OU=武汉1营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH1",
-    "OU=武汉2营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH2",
-    "OU=武汉3营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH3",
-    "OU=武汉EHS部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉IT部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉人事部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉前期研发二部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉外协部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉总经办,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉物流部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉生产部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉行政部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉采购部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉仿真部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉前期研发电气部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉工程部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉机械研发部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉设施部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉财务部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=武汉质量部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH",
-    "OU=离职人员,OU=武汉,DC=sk1,DC=net,DC=cn": "WH"
-  },
+  "ACTIVE_REGION_CODE": "all",
+  "OU_GROUP_MAPPING": {},
+  "OU_PREFIX_MAPPING": {},
   "PRINT_TEMPLATE": {
     "paper": {
-      "width": 71,
+      "width": 70,
       "height": 50,
       "orientation": 90,
       "gapType": 2,

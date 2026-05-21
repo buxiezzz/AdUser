@@ -19,14 +19,13 @@ router = APIRouter()
 # 全局统一字段：所有区域共享，只能由 admin 修改，以 config.json 为唯一真实来源
 GLOBAL_KEYS = {
     "DOMAIN_CONTROLLER_IP", "DOMAIN_NAME", "BIND_USERNAME", "BIND_PASSWORD",
-    "DEFAULT_USER_PASSWORD", "ALLOW_REGISTRATION", "AUDIT_LOG", "REGION_OPTIONS",
-    "PRINT_TEMPLATE"
+    "DEFAULT_USER_PASSWORD", "ALLOW_REGISTRATION", "AUDIT_LOG", "REGION_OPTIONS"
 }
 
 # 区域独立字段：每个分公司可拥有自己的配置
 LOCAL_KEYS = {
     "POSITIONS", "OU_GROUP_MAPPING", "OU_PREFIX_MAPPING",
-    "ACTIVE_REGION_CODE", "DEFAULT_USER_PASSWORD"
+    "ACTIVE_REGION_CODE", "DEFAULT_USER_PASSWORD", "PRINT_TEMPLATE"
 }
 
 def get_base_data_dir() -> str:
@@ -232,7 +231,6 @@ def update_settings(
         settings.allow_registration is not None,
         settings.audit_log is not None,
         settings.region_options is not None,
-        settings.print_template is not None,
     ])
     
     # 全局字段修改：仅限 admin 账号
@@ -274,6 +272,7 @@ def update_settings(
         settings.ou_group_mapping is not None,
         settings.ou_prefix_mapping is not None,
         settings.default_user_password is not None,
+        settings.print_template is not None,
     ])
     
     if has_local_changes:
@@ -292,6 +291,8 @@ def update_settings(
             target_data["OU_PREFIX_MAPPING"] = settings.ou_prefix_mapping
         if settings.default_user_password is not None:
             target_data["DEFAULT_USER_PASSWORD"] = settings.default_user_password
+        if settings.print_template is not None:
+            target_data["PRINT_TEMPLATE"] = settings.print_template
         
         save_config(target_data, target_location_id)
         if is_super_admin(current_user):

@@ -1,7 +1,7 @@
 {
   "DOMAIN_CONTROLLER_IP": "10.20.108.100",
   "DOMAIN_NAME": "sk1.net.cn",
-  "DEFAULT_USER_PASSWORD": "Aa111114#",
+  "DEFAULT_USER_PASSWORD": "Aa111111#",
   "REGION_OPTIONS": [
     {
       "name": "上海",
@@ -30,30 +30,12 @@
   ],
   "ALLOW_REGISTRATION": false,
   "AUDIT_LOG": true,
-  "POSITIONS": [
-    {
-      "name": "会计",
-      "suffix": "FA",
-      "default_groups": [
-        "CN=WH-FA-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    },
-    {
-      "name": "机械工程师",
-      "suffix": "MD",
-      "default_groups": [
-        "CN=WH-MD-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
-      ]
-    }
-  ],
+  "POSITIONS": [],
   "BIND_USERNAME": "s12101018@sk1.net.cn",
   "BIND_PASSWORD": "ysyyrps@778",
-  "ACTIVE_REGION_CODE": "CS",
+  "ACTIVE_REGION_CODE": "all",
   "OU_GROUP_MAPPING": {},
-  "OU_PREFIX_MAPPING": {
-    "OU=武汉3营,OU=武汉,DC=sk1,DC=net,DC=cn": "WH3",
-    "OU=武汉财务部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH"
-  },
+  "OU_PREFIX_MAPPING": {},
   "PRINT_TEMPLATE": {
     "paper": {
       "width": 70,

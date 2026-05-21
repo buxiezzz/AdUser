@@ -524,7 +524,7 @@
                 <el-button type="warning" plain @click="saveTemplateToSystem" :loading="savingTemplate" :disabled="!isSuperAdmin">保存为默认模板</el-button>
                 <span class="text-xs text-gray-400 ml-2">
                   <template v-if="isSuperAdmin">保存后下次打印将默认使用此排版</template>
-                  <template v-else><span class="text-amber-500 font-semibold">仅超管 admin 可修改保存默认模板</span></template>
+                  <template v-else><span class="text-amber-500 font-semibold">仅管理员可修改保存默认模板</span></template>
                 </span>
              </div>
             <div>
@@ -784,7 +784,7 @@ const fetchGlobals = async () => {
         // 归属地和用户信息
         locationList.value = locRes.data || []
         isGroupAdmin.value = userRes.data?.is_group_admin || false
-        isSuperAdmin.value = userRes.data?.username === 'admin'
+        isSuperAdmin.value = userRes.data?.role === 'admin'
         userLocationId.value = userRes.data?.location_id || null
     } catch {
         ElMessage.warning('拉取分类、人员或全局配置数据失败')
