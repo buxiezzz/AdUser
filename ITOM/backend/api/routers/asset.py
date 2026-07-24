@@ -513,7 +513,12 @@ def batch_copy_assets(body: BatchCopyBody, db: Session = Depends(get_db), curren
 def get_assets_count(
     keyword: str = "", 
     status: str = "",
-    location_id: Optional[int] = None,
+    location_id: Optional[str] = None,
+    category_id: Optional[str] = None,
+    owner: str = "",
+    department: str = "",
+    start_date: str = "",
+    end_date: str = "",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
@@ -523,8 +528,18 @@ def get_assets_count(
     # 非集团超管自动按归属地过滤
     effective_location_id = location_id
     if not current_user.is_group_admin and current_user.location_id:
-        effective_location_id = current_user.location_id
-    return crud_asset.count_assets(db, keyword=keyword, status=status, location_id=effective_location_id)
+        effective_location_id = str(current_user.location_id)
+    return crud_asset.count_assets(
+        db, 
+        keyword=keyword, 
+        status=status, 
+        location_id=effective_location_id,
+        category_id=category_id,
+        owner=owner,
+        department=department,
+        start_date=start_date,
+        end_date=end_date
+    )
 
 @router.get("/", response_model=List[AssetResponse])
 def read_assets(
@@ -534,15 +549,26 @@ def read_assets(
     order: str = "desc", 
     skip: int = 0, 
     limit: int = 10000,
-    location_id: Optional[int] = None,
+    location_id: Optional[str] = None,
+    category_id: Optional[str] = None,
+    owner: str = "",
+    department: str = "",
+    start_date: str = "",
+    end_date: str = "",
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_active_user)
 ):
     # 非集团超管自动按归属地过滤
     effective_location_id = location_id
     if not current_user.is_group_admin and current_user.location_id:
-        effective_location_id = current_user.location_id
-    return crud_asset.get_assets(db, skip=skip, limit=limit, keyword=keyword, status=status, sort_by=sort_by, order=order, location_id=effective_location_id)
+        effective_location_id = str(current_user.location_id)
+    return crud_asset.get_assets(
+        db, skip=skip, limit=limit, keyword=keyword, status=status, 
+        sort_by=sort_by, order=order, location_id=effective_location_id,
+        category_id=category_id, owner=owner, department=department,
+        start_date=start_date, end_date=end_date
+    )
+
 
 @router.post("/", response_model=AssetResponse)
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):

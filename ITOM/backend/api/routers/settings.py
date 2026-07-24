@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.responses import FileResponse, StreamingResponse
-from typing import Any, Dict
+from typing import Any, Dict, Optional, List
 from pydantic import BaseModel
 import json
 import os
@@ -47,19 +47,19 @@ def is_super_admin(user) -> bool:
 
 
 class SettingsUpdateSchema(BaseModel):
-    domain_controller_ip: str | None = None
-    domain_name: str | None = None
-    bind_username: str | None = None
-    bind_password: str | None = None
-    default_user_password: str | None = None
-    allow_registration: bool | None = None
-    audit_log: bool | None = None
-    positions: list[dict] | None = None
-    region_options: list[dict] | None = None
-    active_region_code: str | None = None
-    ou_group_mapping: Dict[str, list[str]] | None = None
-    ou_prefix_mapping: Dict[str, str] | None = None
-    print_template: dict | None = None
+    domain_controller_ip: Optional[str] = None
+    domain_name: Optional[str] = None
+    bind_username: Optional[str] = None
+    bind_password: Optional[str] = None
+    default_user_password: Optional[str] = None
+    allow_registration: Optional[bool] = None
+    audit_log: Optional[bool] = None
+    positions: Optional[List[dict]] = None
+    region_options: Optional[List[dict]] = None
+    active_region_code: Optional[str] = None
+    ou_group_mapping: Optional[Dict[str, List[str]]] = None
+    ou_prefix_mapping: Optional[Dict[str, str]] = None
+    print_template: Optional[dict] = None
 
 def _read_json_file(path: str) -> Dict[str, Any]:
     """安全读取 JSON 配置文件"""

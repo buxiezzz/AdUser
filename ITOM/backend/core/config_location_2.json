@@ -1,5 +1,5 @@
 {
-  "DOMAIN_CONTROLLER_IP": "10.20.108.100",
+  "DOMAIN_CONTROLLER_IP": "10.10.99.100",
   "DOMAIN_NAME": "sk1.net.cn",
   "DEFAULT_USER_PASSWORD": "Aa111111#",
   "REGION_OPTIONS": [
@@ -30,12 +30,26 @@
   ],
   "ALLOW_REGISTRATION": false,
   "AUDIT_LOG": true,
-  "POSITIONS": [],
+  "POSITIONS": [
+    {
+      "name": "IT运维工程师",
+      "suffix": "IT",
+      "default_groups": [
+        "CN=SKWH-SSLvpn-UsersGroup,OU=User Groups,DC=sk1,DC=net,DC=cn"
+      ]
+    }
+  ],
   "BIND_USERNAME": "s12101018@sk1.net.cn",
   "BIND_PASSWORD": "ysyyrps@778",
   "ACTIVE_REGION_CODE": "all",
-  "OU_GROUP_MAPPING": {},
-  "OU_PREFIX_MAPPING": {},
+  "OU_GROUP_MAPPING": {
+    "OU=武汉IT部,OU=武汉,DC=sk1,DC=net,DC=cn": [
+      "CN=WH-IT-Users-Group,OU=WH-Users-Group,OU=User Groups,DC=sk1,DC=net,DC=cn"
+    ]
+  },
+  "OU_PREFIX_MAPPING": {
+    "OU=武汉IT部,OU=武汉,DC=sk1,DC=net,DC=cn": "WH"
+  },
   "PRINT_TEMPLATE": {
     "paper": {
       "width": 70,

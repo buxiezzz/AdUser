@@ -110,8 +110,9 @@ const handleLogin = async () => {
   
   loading.value = true
   try {
+    const requestUrl = config.baseUrl + '/auth/login'
     const res = await uni.request({
-      url: config.baseUrl + '/auth/login',
+      url: requestUrl,
       method: 'POST',
       header: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -130,11 +131,19 @@ const handleLogin = async () => {
         uni.switchTab({ url: '/pages/index/index' })
       }, 1000)
     } else {
-      uni.showToast({ title: data.detail || '登录失败', icon: 'none' })
+      uni.showModal({
+        title: '登录返回错误',
+        content: `服务器响应: ${JSON.stringify(data)}`,
+        showCancel: false
+      })
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Login failed', err)
-    uni.showToast({ title: '连接失败，请检查服务器地址是否正确', icon: 'none', duration: 3000 })
+    uni.showModal({
+      title: '网络连接失败诊断',
+      content: `请求地址: ${config.baseUrl}/auth/login\n错误信息: ${err.message || err.errMsg || JSON.stringify(err)}\n本地缓存: ${uni.getStorageSync('itom_server_url') || '无'}`,
+      showCancel: false
+    })
   } finally {
     loading.value = false
   }

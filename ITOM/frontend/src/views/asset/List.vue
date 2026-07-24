@@ -8,10 +8,22 @@
     <!-- 顶层汇总状态卡片 / 过滤器 -->
     <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl">
       <!-- 第一行：搜索栏 + 操作按鈕 -->
-      <div class="flex flex-wrap gap-3 mb-3">
-        <el-input v-model="searchKeyword" placeholder="检索资产编号、初始关键词..." prefix-icon="Search" class="w-72" clearable />
-        <el-button @click="fetchAssets" :icon="Refresh">刷新台账</el-button>
-        <el-button @click="downloadTemplate" :icon="Download" plain>下载导入模板</el-button>
+      <div class="flex flex-wrap items-start gap-3 mb-3">
+        <div class="relative flex-1 min-w-[320px] max-w-lg">
+          <el-input 
+            v-model="searchKeyword" 
+            type="textarea"
+            :autosize="{ minRows: 1, maxRows: 3 }"
+            placeholder="多条目搜索：输入资产编码/型号/SN/人员 (空格、逗号或换行分隔，按回车检索)" 
+            clearable 
+            @keydown="handleKeydown"
+          />
+          <div v-if="parsedKeywordsCount > 1" class="text-xs text-primary font-medium mt-1">
+            已识别出 <span class="font-bold">{{ parsedKeywordsCount }}</span> 个搜索条件条目
+          </div>
+        </div>
+        <el-button @click="fetchAssets" :icon="Refresh" class="mt-0.5">刷新台账</el-button>
+        <el-button @click="downloadTemplate" :icon="Download" plain class="mt-0.5">下载导入模板</el-button>
         <el-upload
           action="/api/assets/import"
           :show-file-list="false"
@@ -20,16 +32,24 @@
           :on-error="handleUploadError"
           accept=".xlsx,.xls"
           :headers="uploadHeaders"
-          class="inline-block flex-shrink-0"
+          class="inline-block flex-shrink-0 mt-0.5"
         >
           <el-button type="success" plain :loading="uploading">一键导入资产</el-button>
         </el-upload>
-        <el-button type="success" :icon="Download" @click="exportExcel">导出台账(Excel)</el-button>
+        <el-button type="success" :icon="Download" @click="exportExcel" class="mt-0.5">导出台账(Excel)</el-button>
       </div>
 
-      <!-- 第二行：多维度筛选条 -->
+      <!-- 第二行：多维度多选筛选条 -->
       <div class="flex flex-wrap gap-3 items-center pb-4 border-b border-gray-100 mb-4">
-        <el-select v-model="searchStatus" placeholder="资产状态" clearable class="w-32">
+        <el-select 
+          v-model="searchStatus" 
+          multiple 
+          collapse-tags 
+          collapse-tags-tooltip 
+          placeholder="资产状态(可多选)" 
+          clearable 
+          class="w-44"
+        >
           <el-option label="闲置" value="闲置" />
           <el-option label="在用" value="在用" />
           <el-option label="维修" value="维修" />
@@ -37,39 +57,73 @@
           <el-option label="下账" value="下账" />
         </el-select>
 
-        <el-select v-model="searchLocation" placeholder="归属地" clearable class="w-36" v-if="isGroupAdmin">
-          <el-option label="全部归属地" :value="0" />
+        <el-select 
+          v-model="searchLocation" 
+          multiple 
+          collapse-tags 
+          collapse-tags-tooltip 
+          placeholder="归属地(可多选)" 
+          clearable 
+          class="w-44" 
+          v-if="isGroupAdmin"
+        >
           <el-option v-for="loc in locationList" :key="loc.id" :label="loc.name" :value="loc.id" />
         </el-select>
 
-        <el-select v-model="searchCategory" placeholder="设备类型" clearable class="w-36">
+        <el-select 
+          v-model="searchCategory" 
+          multiple 
+          collapse-tags 
+          collapse-tags-tooltip 
+          placeholder="设备类型(可多选)" 
+          clearable 
+          class="w-44"
+        >
           <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
         </el-select>
 
-        <el-input v-model="searchOwner" placeholder="使用人姓名" clearable class="w-36" />
+        <el-input 
+          v-model="searchOwner" 
+          placeholder="使用人(支持多姓名)" 
+          clearable 
+          class="w-40" 
+        />
 
-        <el-select v-model="searchDept" placeholder="所属组织" clearable class="w-44" filterable>
-          <el-option v-for="d in uniqueDepts" :key="d" :label="d" :value="d" />
+        <el-select 
+          v-model="searchDept" 
+          multiple 
+          collapse-tags 
+          collapse-tags-tooltip 
+          placeholder="所属组织(可多选)" 
+          clearable 
+          class="w-52" 
+          filterable
+          allow-create
+          default-first-option
+        >
+          <el-option v-for="d in allDepartments" :key="d" :label="d" :value="d" />
         </el-select>
+
 
         <el-date-picker
           v-model="searchDateRange"
           type="daterange"
-          start-placeholder="入库开始日"
-          end-placeholder="入库结束日"
+          start-placeholder="入库开始"
+          end-placeholder="入库结束"
           value-format="YYYY-MM-DD"
           class="w-64"
           clearable
         />
 
         <el-button
-          v-if="searchStatus || searchCategory || searchOwner || searchDept || searchDateRange || searchLocation"
+          v-if="searchKeyword || (searchStatus && searchStatus.length) || (searchCategory && searchCategory.length) || searchOwner || (searchDept && searchDept.length) || searchDateRange || (searchLocation && searchLocation.length)"
           type="warning" plain size="small"
           @click="resetFilters"
         >重置全部筛选</el-button>
 
-        <span class="text-xs text-gray-400 ml-auto">{{ totalAssets }} 条匹配资产</span>
+        <span class="text-xs text-gray-400 ml-auto">符合条件资产共 <span class="font-bold text-primary">{{ totalAssets }}</span> 条</span>
       </div>
+
 
       <!-- 批量操作浮动栏（勾选>0时展示） -->
       <transition name="el-fade-in-linear">
@@ -127,7 +181,7 @@
          </el-table-column>
          <el-table-column prop="created_at" label="入库日期" width="160" sortable="custom">
             <template #default="{ row }">
-              <span class="text-gray-600 text-sm">{{ new Date(row.created_at).toLocaleDateString() }}</span>
+              <span class="text-gray-600 text-sm">{{ formatDate(row) }}</span>
             </template>
          </el-table-column>
          <el-table-column prop="department" label="所属组织" min-width="120" show-overflow-tooltip sortable="custom">
@@ -360,7 +414,7 @@
              </td>
           </tr>
           <tr>
-             <td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">使用日期: {{ new Date(asset.created_at).toISOString().split('T')[0] }}</td>
+             <td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">使用日期: {{ formatDate(asset) }}</td>
           </tr>
           </tbody>
         </table>
@@ -509,7 +563,7 @@
                 <tr>
                    <td @mousedown.stop="selectElement('date')"
                        :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'date' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">
-                      使用日期: {{ new Date(assetsToPrint[0].created_at).toISOString().split('T')[0] }}
+                      使用日期: {{ formatDate(assetsToPrint[0]) }}
                    </td>
                 </tr>
                 </tbody>
@@ -640,13 +694,26 @@ const empLoading = ref(false)
 
 
 const searchKeyword = ref('')
-const searchStatus = ref('')
-const searchCategory = ref<number | ''>('')
+const searchStatus = ref<string[]>([])
+const searchCategory = ref<number[]>([])
 const searchOwner = ref('')
-const searchDept = ref('')
+const searchDept = ref<string[]>([])
 const searchDateRange = ref<string[] | null>(null)
-const searchLocation = ref<number | ''>(0)
+const searchLocation = ref<number[]>([])
 const savingTemplate = ref(false)
+
+const parsedKeywordsCount = computed(() => {
+  if (!searchKeyword.value) return 0
+  return searchKeyword.value.split(/[,;\s\n\r]+/).filter(k => k.trim()).length
+})
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    fetchAssets()
+  }
+}
+
 
 // 调拨相关
 const transferDialogVisible = ref(false)
@@ -746,24 +813,61 @@ const isGroupAdmin = ref(false)
 const isSuperAdmin = ref(false)
 const userLocationId = ref<number | null>(null)
 
-// 从当前数据中提炼唯一的部门列表供下拉选择
-const uniqueDepts = computed(() => {
-    const depts = new Set<string>()
-    rawAssets.value.forEach(a => {
+const formatDate = (assetOrDate: any) => {
+    if (!assetOrDate) return '-'
+    
+    // 如果传入的是完整资产对象，优先提取入库日期，如果没有再备选 created_at 等
+    let dateVal = assetOrDate
+    if (typeof assetOrDate === 'object' && !(assetOrDate instanceof Date)) {
+        dateVal = assetOrDate.dynamic_attributes?.['入库日期'] || assetOrDate.dynamic_attributes?.['登记日期'] || assetOrDate.dynamic_attributes?.['购入日期'] || assetOrDate.created_at || assetOrDate.dynamic_attributes?.['创建日期']
+    }
+    
+    if (!dateVal) return '-'
+    const s = String(dateVal).trim()
+    if (!s || s === 'null' || s === 'undefined') return '-'
+    
+    // 匹配 YYYY-MM-DD 或 YYYY/MM/DD 或 ISO 时间开头的字符串
+    if (/^\d{4}[-/]\d{2}[-/]\d{2}/.test(s)) {
+        return s.slice(0, 10).replace(/\//g, '-')
+    }
+    
+    try {
+        const d = new Date(typeof dateVal === 'string' ? dateVal.replace(' ', 'T') : dateVal)
+        if (!isNaN(d.getTime())) {
+            const yyyy = d.getFullYear()
+            const mm = String(d.getMonth() + 1).padStart(2, '0')
+            const dd = String(d.getDate()).padStart(2, '0')
+            return `${yyyy}-${mm}-${dd}`
+        }
+    } catch {
+        // ignore
+    }
+    return s.slice(0, 10) || '-'
+}
+
+
+// 保持全量累积的部门列表，防止过滤后选项收缩导致无法继续多选其他部门
+const allDepartments = ref<string[]>([])
+const updateAllDepartments = (assetsList: any[]) => {
+    const depts = new Set<string>(allDepartments.value)
+    assetsList.forEach(a => {
         const dept = a.owner ? a.owner.department : (a.dynamic_attributes?.['所属组织'] || '')
         if (dept) depts.add(dept)
     })
-    return Array.from(depts).sort((a, b) => a.localeCompare(b, 'zh-CN'))
-})
+    allDepartments.value = Array.from(depts).sort((a, b) => a.localeCompare(b, 'zh-CN'))
+}
+
 
 const resetFilters = () => {
-    searchStatus.value = ''
-    searchCategory.value = ''
+    searchKeyword.value = ''
+    searchStatus.value = []
+    searchCategory.value = []
     searchOwner.value = ''
-    searchDept.value = ''
+    searchDept.value = []
     searchDateRange.value = null
-    searchLocation.value = 0
+    searchLocation.value = []
 }
+
 
 const fetchGlobals = async () => {
     try {
@@ -805,33 +909,52 @@ const totalAssets = ref(0)
 const sortProp = ref('updated_at')
 const sortOrder = ref('desc')
 
+const buildQueryParams = () => {
+    const params: any = {
+        skip: (currentPage.value - 1) * pageSize.value,
+        limit: pageSize.value,
+        keyword: searchKeyword.value,
+        status: Array.isArray(searchStatus.value) ? searchStatus.value.join(',') : searchStatus.value,
+        sort_by: sortProp.value,
+        order: sortOrder.value === 'ascending' ? 'asc' : 'desc'
+    }
+    
+    if (Array.isArray(searchCategory.value) && searchCategory.value.length > 0) {
+        params.category_id = searchCategory.value.join(',')
+    }
+    if (searchOwner.value) params.owner = searchOwner.value
+    if (Array.isArray(searchDept.value) && searchDept.value.length > 0) {
+        params.department = searchDept.value.join(',')
+    }
+    if (searchDateRange.value && searchDateRange.value.length === 2) {
+        params.start_date = searchDateRange.value[0]
+        params.end_date = searchDateRange.value[1]
+    }
+    if (isGroupAdmin.value && Array.isArray(searchLocation.value) && searchLocation.value.length > 0) {
+        params.location_id = searchLocation.value.filter(id => id !== 0).join(',')
+    }
+    return params
+}
+
 // 获取资产列表 (服务端驱动)
 const fetchAssets = async () => {
     loading.value = true
     try {
-        const params: any = {
-            skip: (currentPage.value - 1) * pageSize.value,
-            limit: pageSize.value,
-            keyword: searchKeyword.value,
-            status: searchStatus.value,
-            sort_by: sortProp.value,
-            order: sortOrder.value === 'ascending' ? 'asc' : 'desc'
-        }
-        
-        // 归属地过滤：集团超管可手动切换，普通用户由后端自动过滤
-        if (isGroupAdmin.value && searchLocation.value && searchLocation.value !== 0) {
-            params.location_id = searchLocation.value
-        }
+        const params = buildQueryParams()
         
         // 主数据请求：独立执行，绝对不能因 count 失败而被拖垮
         const dataRes = await axios.get('/api/assets/', { params })
         rawAssets.value = dataRes.data || []
+        updateAllDepartments(rawAssets.value)
+
         
         // 总数请求：独立执行，失败了只影响页码显示，不影响列表
-        const countParams: any = { keyword: searchKeyword.value, status: searchStatus.value }
-        if (isGroupAdmin.value && searchLocation.value && searchLocation.value !== 0) {
-            countParams.location_id = searchLocation.value
-        }
+        const countParams = { ...params }
+        delete countParams.skip
+        delete countParams.limit
+        delete countParams.sort_by
+        delete countParams.order
+
         axios.get('/api/assets/count', { 
             params: countParams
         }).then(countRes => {
@@ -847,6 +970,7 @@ const fetchAssets = async () => {
         loading.value = false
     }
 }
+
 
 // 监听筛选条件，增加防抖，避免频繁请求
 let timer: any = null
@@ -1149,14 +1273,12 @@ const exportExcel = async () => {
 
     try {
         // 1. 获取全量数据 (不再受分页限制)
-        const params: any = {
+        const params = {
+            ...buildQueryParams(),
             skip: 0,
-            limit: 100000, // 给一个足够大的数值模拟全量
-            keyword: searchKeyword.value,
-            status: searchStatus.value,
-            sort_by: sortProp.value,
-            order: sortOrder.value === 'ascending' ? 'asc' : 'desc'
+            limit: 100000 // 给一个足够大的数值模拟全量
         }
+
         
         const res = await axios.get('/api/assets/', { params })
         const allAssets = res.data || []

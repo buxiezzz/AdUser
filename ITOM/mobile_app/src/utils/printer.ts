@@ -346,6 +346,18 @@ export const printBatchAssets = async (assets: any[]) => {
                 for (const item of template.elements) {
                     if (item.type === 'text') {
                         let val = item.field ? item.field.split('.').reduce((o: any, f: string) => (o ? o[f] : ''), asset) : (item.value || '');
+                        
+                        // 特殊兼容：如果模板指定了"使用日期"但资产没有单独记录此属性，自动兜底使用 created_at（入库日期）
+                        if (!val && item.field && item.field.includes('使用日期')) {
+                            val = asset.created_at;
+                        }
+                        
+                        // 智能格式化时间，切除 T 之后的时分秒
+                        if (val && typeof val === 'string' && val.includes('T')) {
+                            const dateMatch = val.match(/^(\d{4}-\d{2}-\d{2})/);
+                            if (dateMatch) val = dateMatch[1];
+                        }
+                        
                         targetLpapi.drawText({ text: `${item.prefix || ''}${val || '-'}`, x: item.x, y: item.y, fontHeight: item.fontHeight, width: item.width, height: item.height });
                     } else if (item.type === 'qrcode') {
                         targetLpapi.draw2DQRCode({ text: asset.asset_code || '', x: item.x, y: item.y, width: item.width });

@@ -18,6 +18,7 @@ const resetTimer = () => {
 
 onLaunch(() => {
   console.log("App Launch")
+  // 修复：移除强制清空服务器地址的代码，保证用户在手机端配置的 IP 能够永久生效
   resetTimer()
 })
 onShow(() => {

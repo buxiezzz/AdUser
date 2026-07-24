@@ -5,24 +5,43 @@
     </div>
 
     <el-card shadow="never" class="border-0 ring-1 ring-gray-100 rounded-xl relative">
-      <div class="flex items-center space-x-4 mb-6">
-        <el-input 
-          v-model="keyword" 
-          placeholder="输入账号名或显示名称进行模糊搜索" 
-          prefix-icon="Search"
-          class="w-80"
-          clearable
-          @keyup.enter="handleSearch"
-        />
-        <el-button type="primary" :icon="Search" @click="handleSearch" :loading="loading">
+      <div class="flex items-start space-x-4 mb-6">
+        <div class="relative flex-1 max-w-lg">
+          <el-input 
+            v-model="keyword" 
+            type="textarea"
+            :autosize="{ minRows: 1, maxRows: 4 }"
+            placeholder="支持同时搜索多个账号或显示姓名 (按回车直接搜索，Shift+回车换行)" 
+            clearable
+            @keydown="handleKeydown"
+          />
+
+          <div v-if="parsedKeywordsCount > 1" class="text-xs text-primary font-medium mt-1">
+            已识别出 <span class="font-bold">{{ parsedKeywordsCount }}</span> 个检索关键词，将进行合并匹配
+          </div>
+        </div>
+        <el-button type="primary" :icon="Search" @click="handleSearch" :loading="loading" class="mt-0.5">
           在 AD 域中查找
         </el-button>
-        <el-button type="success" plain :icon="Download" @click="handleExport" :loading="exporting">
+        <el-button type="success" plain :icon="Download" @click="handleExport" :loading="exporting" class="mt-0.5">
           导出域用户名单 (Excel)
         </el-button>
+        <el-button 
+          type="danger" 
+          plain 
+          :icon="UserFilled" 
+          :disabled="selectedUsers.length === 0" 
+          @click="openBatchDisableDialog"
+          class="mt-0.5"
+        >
+          批量禁用员工 (已选 {{ selectedUsers.length }} 人)
+        </el-button>
       </div>
+
       
-      <el-table :data="displayUsers" style="width: 100%" v-loading="loading" border stripe>
+      <el-table :data="displayUsers" style="width: 100%" v-loading="loading" border stripe @selection-change="handleSelectionChange">
+         <el-table-column type="selection" width="55" align="center" />
+
          <el-table-column prop="display_name" label="显示名称" min-width="150" />
          <el-table-column prop="username" label="登录账号" min-width="150" />
          <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip>
@@ -133,19 +152,89 @@
         </el-form>
       </div>
     </el-drawer>
+
+    <!-- 批量禁用与部门 (OU) 转移对话框 -->
+    <el-dialog
+      v-model="batchDisableDialogVisible"
+      title="批量禁用员工与转移组织单元 (OU)"
+      width="650px"
+      destroy-on-close
+    >
+      <div class="space-y-4">
+        <el-alert
+          title="说明：此操作将批量禁用所选员工的 AD 账号，保留其原有的所有安全组权限，并可选择将其组织路径 (OU) 平滑转移至指定的离职/备用部门。"
+          type="warning"
+          show-icon
+          :closable="false"
+        />
+
+        <div>
+          <span class="text-sm font-medium text-gray-700 mb-2 block">已选择的员工名单 (共 {{ selectedUsers.length }} 人)：</span>
+          <div class="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 bg-gray-50 rounded border">
+            <el-tag v-for="user in selectedUsers" :key="user.username" type="danger" plain size="small">
+              {{ user.display_name || user.username }} ({{ user.username }})
+            </el-tag>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">选择转移的目标【组织单元 (OU)】：</label>
+          <el-select
+            v-model="targetOuDn"
+            filterable
+            placeholder="请选择转移的目标 OU (可选，留空则仅禁用账号)"
+            clearable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="ou in ouOptions"
+              :key="ou.dn"
+              :label="ou.name"
+              :value="ou.dn"
+            />
+          </el-select>
+          <p class="text-xs text-gray-400 mt-1">用户的原安全组权限将完整保留不作修改。</p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-2">
+          <el-button @click="batchDisableDialogVisible = false">取消</el-button>
+          <el-button type="danger" :loading="submittingBatchDisable" @click="submitBatchDisable">
+            确认执行批量禁用
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { Search, Download } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Download, UserFilled } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import axios from 'axios'
+
 
 const keyword = ref('')
 const loading = ref(false)
 const users = ref<any[]>([])
 const exporting = ref(false)
+
+const parsedKeywordsCount = computed(() => {
+  if (!keyword.value) return 0
+  return keyword.value.split(/[,;\s\n\r]+/).filter(k => k.trim()).length
+})
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    handleSearch()
+  }
+}
+
+
 
 // 分页逻辑
 const currentPage = ref(1)
@@ -381,5 +470,74 @@ const doToggleStatus = async () => {
     } finally {
         togglingStatus.value = false
     }
+}
+
+// ---------------- 批量禁用逻辑 ----------------
+const selectedUsers = ref<any[]>([])
+const batchDisableDialogVisible = ref(false)
+const targetOuDn = ref('')
+const submittingBatchDisable = ref(false)
+
+const handleSelectionChange = (val: any[]) => {
+  selectedUsers.value = val
+}
+
+const openBatchDisableDialog = () => {
+  if (selectedUsers.value.length === 0) {
+    return ElMessage.warning('请先勾选需要禁用的员工')
+  }
+  
+  // 自动寻找匹配“离职”或“禁用”关键词的 OU 作为默认项
+  const matchOu = ouOptions.value.find(o => o.name.includes('离职') || o.name.includes('禁用') || o.dn.includes('离职'))
+  if (matchOu) {
+    targetOuDn.value = matchOu.dn
+  } else {
+    targetOuDn.value = ''
+  }
+
+  batchDisableDialogVisible.value = true
+}
+
+const submitBatchDisable = async () => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要禁用选中的 ${selectedUsers.value.length} 名员工${targetOuDn.value ? '并将其转移至选定的部门 (OU)' : ''}吗？原有安全组权限将完整保留。`,
+      '二次确认',
+      { type: 'warning', confirmButtonText: '确认执行', cancelButtonText: '取消' }
+    )
+  } catch { return }
+
+  submittingBatchDisable.value = true
+  try {
+    const payload = {
+      users: selectedUsers.value.map(u => ({ username: u.username, user_dn: u.dn })),
+      target_ou_dn: targetOuDn.value || null
+    }
+
+    const { data } = await axios.post('/api/ad/users/batch-disable', payload)
+    ElMessage.success(data.message || '批量禁用处理成功')
+    
+    // 如果有明细，通知形式列出
+    if (data.details && data.details.length > 0) {
+      const failItems = data.details.filter((d: any) => !d.success)
+      if (failItems.length > 0) {
+        ElNotification({
+          title: '部分失败明细',
+          message: failItems.map((f: any) => `${f.username}: ${f.message}`).join('; '),
+          type: 'warning',
+          duration: 10000
+        })
+      }
+    }
+
+    batchDisableDialogVisible.value = false
+    selectedUsers.value = []
+    // 重新搜索刷新用户列表
+    handleSearch()
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.detail || '批量禁用请求失败')
+  } finally {
+    submittingBatchDisable.value = false
+  }
 }
 </script>

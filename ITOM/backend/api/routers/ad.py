@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
-from schemas.ad import ADUserCreate, ADUserResponse, OUListResponse, GroupListResponse, UserPasswordUpdate, UserOUUpdate, UserGroupsUpdate, GroupMembersUpdate, UserStatusUpdate
-from core.ad_utils import create_ad_user, get_ou_list, get_group_list, get_base_dn, search_ad_users, get_ad_user_detail, change_user_password, move_user_ou, update_user_groups, get_group_members, update_group_members, toggle_ad_user_status
+from schemas.ad import ADUserCreate, ADUserResponse, OUListResponse, GroupListResponse, UserPasswordUpdate, UserOUUpdate, UserGroupsUpdate, GroupMembersUpdate, UserStatusUpdate, BatchDisableUsersRequest
+from core.ad_utils import create_ad_user, get_ou_list, get_group_list, get_base_dn, search_ad_users, get_ad_user_detail, change_user_password, move_user_ou, update_user_groups, get_group_members, update_group_members, toggle_ad_user_status, batch_disable_ad_users
 from core.utils import simplify_dn
 from api.deps import get_current_active_user, get_device_source
 from database import get_db
@@ -205,3 +205,23 @@ def api_update_group_members(payload: GroupMembersUpdate, current_user: User = D
     if not success:
         raise HTTPException(status_code=400, detail=msg)
     return {"success": True, "message": msg}
+
+@router.post("/users/batch-disable")
+def api_batch_disable_users(payload: BatchDisableUsersRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user), device: str = Depends(get_device_source)):
+    config = load_config(current_user.location_id)
+    sys_bind_user = config.get('BIND_USERNAME', '')
+    sys_bind_pass = config.get('BIND_PASSWORD', '')
+    
+    user_items = [u.dict() for u in payload.users]
+    success, msg, details = batch_disable_ad_users(
+        sys_bind_user, sys_bind_pass, user_items, payload.target_ou_dn, location_id=current_user.location_id
+    )
+    if not success:
+        raise HTTPException(status_code=400, detail=msg)
+    
+    log_action(db, (current_user.display_name or current_user.username), 'ad', 'BATCH_DISABLE_USERS', 
+               f"批量禁用 {len(payload.users)} 名员工", 
+               {'user_count': len(payload.users), 'target_ou': payload.target_ou_dn}, device_source=device)
+    return {"success": True, "message": msg, "details": details}
+
+

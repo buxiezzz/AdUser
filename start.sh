@@ -7,7 +7,7 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # 自定义启动端口 (可根据需要自行修改)
 # -----------------------------------------
 BACKEND_PORT=18000
-FRONTEND_PORT=15173
+FRONTEND_PORT=8081
 
 echo "========================================="
 echo "   ITOM 平台一键启动脚本 (Mac/Linux)"

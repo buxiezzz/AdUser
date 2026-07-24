@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import String, cast
+from sqlalchemy import String, cast, or_
 from uuid import UUID
 import uuid
+import re
+
 
 from models.asset import Asset, Category, Employee, AssetLog, Location, AssetTransfer
 from models.user import User
@@ -185,28 +187,76 @@ def delete_category(db: Session, category_id: int):
     return True
 
 # ====== Asset CRUD ======
-def _build_asset_query(db: Session, keyword: str = "", status: str = "", location_id: int = None):
+def _build_asset_query(db: Session, keyword: str = "", status: str = "", location_id: Any = None, category_id: Any = None, owner: str = "", department: str = "", start_date: str = "", end_date: str = ""):
     query = db.query(Asset).join(Category, isouter=True).join(Employee, isouter=True).join(Location, isouter=True)
     
     if keyword:
-        search = f"%{keyword}%"
-        query = query.filter(
-            (Asset.asset_code.ilike(search)) |
-            (Category.name.ilike(search)) |
-            (Employee.name.ilike(search)) |
-            (cast(Asset.dynamic_attributes, String).ilike(search))
-        )
+        k_list = [k.strip() for k in re.split(r'[,;\s\n\r]+', str(keyword)) if k.strip()]
+        if k_list:
+            conds = []
+            for k in k_list:
+                search = f"%{k}%"
+                conds.append(
+                    (Asset.asset_code.ilike(search)) |
+                    (Category.name.ilike(search)) |
+                    (Employee.name.ilike(search)) |
+                    (cast(Asset.dynamic_attributes, String).ilike(search))
+                )
+            query = query.filter(or_(*conds))
     
     if status:
-        query = query.filter(Asset.status == status)
+        status_list = [s.strip() for s in str(status).split(',') if s.strip()]
+        if len(status_list) == 1:
+            query = query.filter(Asset.status == status_list[0])
+        elif len(status_list) > 1:
+            query = query.filter(Asset.status.in_(status_list))
     
-    if location_id is not None:
-        query = query.filter(Asset.location_id == location_id)
+    if location_id is not None and str(location_id) != "" and str(location_id) != "0":
+        loc_ids = []
+        for l in str(location_id).split(','):
+            if l.strip().isdigit() and int(l.strip()) > 0:
+                loc_ids.append(int(l.strip()))
+        if len(loc_ids) == 1:
+            query = query.filter(Asset.location_id == loc_ids[0])
+        elif len(loc_ids) > 1:
+            query = query.filter(Asset.location_id.in_(loc_ids))
+        
+    if category_id is not None and str(category_id) != "":
+        cat_ids = []
+        for c in str(category_id).split(','):
+            if c.strip().isdigit():
+                cat_ids.append(int(c.strip()))
+        if len(cat_ids) == 1:
+            query = query.filter(Asset.category_id == cat_ids[0])
+        elif len(cat_ids) > 1:
+            query = query.filter(Asset.category_id.in_(cat_ids))
+
+    if owner:
+        owners = [o.strip() for o in re.split(r'[,;\s\n\r]+', str(owner)) if o.strip()]
+        if owners:
+            query = query.filter(or_(*[Employee.name.ilike(f"%{o}%") for o in owners]))
+
+    if department:
+        depts = [d.strip() for d in str(department).split(',') if d.strip()]
+        if depts:
+            conds = []
+            for d in depts:
+                search_dept = f"%{d}%"
+                conds.append((Employee.department.ilike(search_dept)) | (cast(Asset.dynamic_attributes, String).ilike(search_dept)))
+            query = query.filter(or_(*conds))
+
+
+    if start_date:
+        query = query.filter(Asset.created_at >= f"{start_date} 00:00:00")
+        
+    if end_date:
+        query = query.filter(Asset.created_at <= f"{end_date} 23:59:59")
         
     return query
 
-def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = "", sort_by: str = "updated_at", order: str = "desc", location_id: int = None):
-    query = _build_asset_query(db, keyword, status, location_id).options(
+
+def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = "", status: str = "", sort_by: str = "updated_at", order: str = "desc", location_id: int = None, category_id: int = None, owner: str = "", department: str = "", start_date: str = "", end_date: str = ""):
+    query = _build_asset_query(db, keyword, status, location_id, category_id, owner, department, start_date, end_date).options(
         joinedload(Asset.category),
         joinedload(Asset.owner),
         joinedload(Asset.location),
@@ -252,8 +302,8 @@ def get_assets(db: Session, skip: int = 0, limit: int = 10000, keyword: str = ""
     
     return assets
 
-def count_assets(db: Session, keyword: str = "", status: str = "", location_id: int = None):
-    return _build_asset_query(db, keyword, status, location_id).count()
+def count_assets(db: Session, keyword: str = "", status: str = "", location_id: int = None, category_id: int = None, owner: str = "", department: str = "", start_date: str = "", end_date: str = ""):
+    return _build_asset_query(db, keyword, status, location_id, category_id, owner, department, start_date, end_date).count()
 
 def get_asset(db: Session, asset_id: str):
     asset_id_hex = asset_id.replace('-', '')

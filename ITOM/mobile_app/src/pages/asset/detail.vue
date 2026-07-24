@@ -139,7 +139,7 @@
           <view class="print-label-page" id="print-area">
             <table class="print-table">
               <tr>
-                <td colspan="2" class="print-title">先惠自动化技术(武汉)有限责任公司</td>
+                <td colspan="2" class="print-title">{{ previewCompanyName }}</td>
               </tr>
               <tr>
                 <td colspan="2" class="print-row">资产编码: {{ detail.asset_code }}</td>
@@ -248,6 +248,29 @@ const statusClass = (status: string) => {
 }
 
 const printVisible = ref(false)
+const printTemplate = ref<any>(null)
+
+const previewCompanyName = computed(() => {
+  if (printTemplate.value?.company_name) return printTemplate.value.company_name;
+  if (printTemplate.value?.elements) {
+    const titleElement = printTemplate.value.elements.find((e: any) => e.type === 'text' && e.value);
+    if (titleElement) return titleElement.value;
+  }
+  return detail.value?.location?.name ? '先惠自动化技术(' + detail.value.location.name + ')' : '先惠自动化技术';
+})
+
+const loadPrintTemplate = async () => {
+  try {
+    const res = await request.get('/settings/')
+    console.log('[detail] 获取打印模板配置:', JSON.stringify(res))
+    if (res) {
+      printTemplate.value = res.PRINT_TEMPLATE || res.print_template || res.printTemplate
+    }
+  } catch (e) {
+    console.error('获取打印模板失败', e)
+  }
+}
+
 const changeVisible = ref(false)
 const saving = ref(false)
 const statusList = ['在用', '闲置', '维修', '报废', '下账']
@@ -321,6 +344,7 @@ const submitChange = async () => {
 }
 
 const openPrint = () => {
+  loadPrintTemplate()
   printVisible.value = true
 }
 
@@ -361,6 +385,7 @@ onLoad((options: any) => {
       currentTab.value = options.tab
     }
     loadDetail(options.id)
+    loadPrintTemplate() // 提前静默加载打印模板，杜绝预览界面闪烁与时滞
     if (currentTab.value === 'logs') {
       loadLogs(options.id)
     }

@@ -50,3 +50,13 @@ class UserStatusUpdate(BaseModel):
     user_dn: str
     enabled: bool
 
+class UserDisableItem(BaseModel):
+    username: str
+    user_dn: str
+
+class BatchDisableUsersRequest(BaseModel):
+    users: List[UserDisableItem]
+    target_ou_dn: Optional[str] = None
+
+
+

@@ -1,6 +1,8 @@
 # /ad_utils.py
 import ssl
+import re
 from ldap3 import Server, Connection, Tls, ALL, SUBTREE, LEVEL, BASE, MODIFY_ADD, MODIFY_REPLACE
+
 from .utils import load_rules
 from api.routers.settings import load_config
 
@@ -266,8 +268,16 @@ def search_ad_users(bind_username: str, bind_password: str, keyword: str = "", l
         # 采用更专业的 AD 用户过滤语法：sAMAccountType=805306368 专指人员用户
         filter_str = '(&(objectClass=user)(sAMAccountType=805306368)'
         if keyword:
-            filter_str += f'(|(sAMAccountName=*{keyword}*)(displayName=*{keyword}*))'
+            # 支持使用空格、逗号、分号、换行符分隔的多个关键词批量检索
+            k_list = [k.strip() for k in re.split(r'[,;\s\n\r]+', keyword) if k.strip()]
+            if k_list:
+                sub_filters = []
+                for k in k_list:
+                    sub_filters.append(f'(sAMAccountName=*{k}*)')
+                    sub_filters.append(f'(displayName=*{k}*)')
+                filter_str += f"(|{''.join(sub_filters)})"
         filter_str += ')'
+
         
         # 执行分页搜索，generator=False 可以直接从 conn.entries 获取全量合并后的结果
         conn.extend.standard.paged_search(
@@ -537,3 +547,73 @@ def toggle_ad_user_status(bind_username: str, bind_password: str, user_dn: str, 
         return False, f"发生异常: {str(e)}"
     finally:
         if conn and conn.bound: conn.unbind()
+
+
+def batch_disable_ad_users(bind_username: str, bind_password: str, users: list, target_ou_dn: str = None, location_id: int = None):
+    """批量禁用 AD 域用户，并将其移动至选定的目标 OU（保留所有原有安全组权限）"""
+    config = load_config(location_id)
+    dc_ip = config.get('DOMAIN_CONTROLLER_IP', '')
+    
+    conn = None
+    results = []
+    success_count = 0
+    fail_count = 0
+
+    try:
+        tls_config = Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLS_CLIENT)
+        server = Server(dc_ip, port=636, use_ssl=True, tls=tls_config)
+        conn = Connection(server, user=bind_username, password=bind_password, auto_bind=True)
+        if not conn.bound:
+            return False, "连接域控失败", []
+
+        for item in users:
+            username = item.get('username', '')
+            user_dn = item.get('user_dn', '')
+            if not user_dn:
+                fail_count += 1
+                results.append({'username': username, 'success': False, 'message': '未提供有效的用户 DN'})
+                continue
+
+            try:
+                # 1. 查询用户当前的 UAC
+                conn.search(user_dn, '(objectClass=user)', BASE, attributes=['userAccountControl'])
+                if not conn.entries:
+                    fail_count += 1
+                    results.append({'username': username, 'success': False, 'message': 'AD 中未检索到目标用户对象'})
+                    continue
+
+                entry = conn.entries[0]
+                current_uac = int(entry.userAccountControl.value) if 'userAccountControl' in entry else 512
+
+                # 2. 修改 userAccountControl 禁用账号 (加上 0x02 位)
+                new_uac = current_uac | 0x02
+                conn.modify(user_dn, {'userAccountControl': [(MODIFY_REPLACE, [str(new_uac)])]})
+                if conn.result['result'] != 0:
+                    fail_count += 1
+                    results.append({'username': username, 'success': False, 'message': f"禁用账号失败: {conn.result['description']}"})
+                    continue
+
+                msg = "账号已成功禁用"
+
+                # 3. 如果指定了目标 OU，则执行部门移动
+                if target_ou_dn:
+                    cn_part = user_dn.split(',')[0]
+                    conn.modify_dn(user_dn, cn_part, new_superior=target_ou_dn)
+                    if conn.result['result'] == 0:
+                        msg += f"，已平滑转移至新 OU"
+                    else:
+                        msg += f"，但转移 OU 失败: {conn.result['description']}"
+
+                success_count += 1
+                results.append({'username': username, 'success': True, 'message': msg})
+            except Exception as user_err:
+                fail_count += 1
+                results.append({'username': username, 'success': False, 'message': f"处理异常: {str(user_err)}"})
+
+        summary_msg = f"批量禁用完成：成功 {success_count} 人，失败 {fail_count} 人"
+        return True, summary_msg, results
+    except Exception as e:
+        return False, f"发生致命异常: {str(e)}", []
+    finally:
+        if conn and conn.bound:
+            conn.unbind()
