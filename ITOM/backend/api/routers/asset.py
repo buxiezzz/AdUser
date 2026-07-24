@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import io
 import openpyxl
@@ -105,6 +105,45 @@ def delete_category(category_id: int, db: Session = Depends(get_db), current_use
     
     log_action(db, (current_user.display_name or current_user.username), 'asset', 'DELETE_CATEGORY', cat_name, device_source=device)
     return {"message": "Category deleted successfully"}
+
+@router.get("/departments", response_model=List[str])
+def read_departments(
+    keyword: str = "",
+    status: str = "",
+    location_id: Optional[str] = None,
+    category_id: Optional[str] = None,
+    owner: str = "",
+    start_date: str = "",
+    end_date: str = "",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    动态基于当前其它筛选条件（Excel 级联筛选），仅获取符合条件的资产台账中实际分配/使用的部门/所属组织列表
+    """
+    effective_location_id = location_id
+    if not current_user.is_group_admin and current_user.location_id:
+        effective_location_id = str(current_user.location_id)
+
+    query = crud_asset._build_asset_query(
+        db, keyword=keyword, status=status, location_id=effective_location_id,
+        category_id=category_id, owner=owner, department="",
+        start_date=start_date, end_date=end_date
+    )
+    
+    matching_assets = query.options(joinedload(Asset.owner)).all()
+    depts = set()
+    for a in matching_assets:
+        if a.owner and a.owner.department:
+            d = str(a.owner.department).strip()
+            if d:
+                depts.add(d)
+        if a.dynamic_attributes and isinstance(a.dynamic_attributes, dict):
+            org = a.dynamic_attributes.get("所属组织")
+            if org and str(org).strip():
+                depts.add(str(org).strip())
+                
+    return sorted(list(depts))
 
 # --- Employees ---
 @router.get("/employees", response_model=List[EmployeeResponse])

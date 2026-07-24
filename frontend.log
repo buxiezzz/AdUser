@@ -3,8 +3,23 @@
 > vite
 
 
-  VITE v7.3.1  ready in 432 ms
+  VITE v7.3.1  ready in 297 ms
 
   ➜  Local:   http://localhost:8081/
   ➜  Network: http://10.20.133.87:8081/
   ➜  Network: http://172.18.0.1:8081/
+1:24:29 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+1:30:46 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+1:30:55 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+1:38:01 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+1:57:48 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+1:59:42 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:03:59 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:05:09 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:05:20 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:07:06 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:09:32 PM [vite] (client) hmr update /src/views/settings/PrinterTemplate.vue, /src/style.css
+2:09:53 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:11:33 PM [vite] (client) hmr update /src/views/settings/PrinterTemplate.vue, /src/style.css
+2:11:59 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css
+2:35:08 PM [vite] (client) hmr update /src/views/asset/List.vue, /src/style.css

@@ -213,16 +213,16 @@
                    :stroke-width="(item.lineWidth || 0.5) * previewScale"
                 />
 
-                <!-- 文本渲染 -->
-                <text v-if="item.type === 'text'"
-                   :x="item.x * previewScale"
-                   :y="(item.y + item.fontHeight) * previewScale"
-                   :font-size="item.fontHeight * previewScale"
-                   font-family="monospace, sans-serif"
-                   font-weight="bold"
-                   fill="black"
-                   style="dominant-baseline: alphabetic;"
-                >{{ item.prefix || '' }}{{ item.value || (item.field ? `[${item.field}]` : '文本') }}</text>
+                 <!-- 文本渲染 -->
+                 <text v-if="item.type === 'text'"
+                    :x="item.x * previewScale"
+                    :y="(item.y + (item.fontHeight * 0.88)) * previewScale"
+                    :font-size="item.fontHeight * previewScale"
+                    font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', STHeiti, 'Microsoft YaHei', sans-serif"
+                    font-weight="bold"
+                    fill="black"
+                    style="dominant-baseline: alphabetic; white-space: pre;"
+                 >{{ item.prefix || '' }}{{ item.value || (item.field ? `[${item.field}]` : '文本') }}</text>
                 
                 <!-- 二维码渲染 -->
                 <foreignObject v-if="item.type === 'qrcode'"

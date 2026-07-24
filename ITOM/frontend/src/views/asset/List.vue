@@ -387,37 +387,81 @@
     </el-drawer>
 
     <!-- 隐藏的渲染区域，用于生成含有二维码的DOM给打印机 -->
-    <div id="batch-print-area" style="position: absolute; left: -9999px; top: -9999px; width: 70mm; opacity: 0; pointer-events: none;">
-      <div v-for="asset in assetsToPrint" :key="asset.id" class="print-label-page" :style="{ width: printConfig.width + 'mm', height: printConfig.height + 'mm', boxSizing: 'border-box', padding: printConfig.padding + 'mm', pageBreakAfter: 'always', display: 'flex', flexDirection: 'column', background: 'white', color: 'black', fontFamily: '\'Helvetica Neue\', Helvetica, Arial, sans-serif', overflow: 'hidden' }">
-        <table :style="{ width: '100%', height: '100%', borderCollapse: 'collapse', border: printConfig.border + 'px solid black', fontWeight: 'bold', tableLayout: 'fixed' }">
-          <colgroup>
-            <col :style="{ width: (100 - (printConfig.qrColWidth || 30)) + '%' }" />
-            <col :style="{ width: (printConfig.qrColWidth || 30) + '%' }" />
-          </colgroup>
-          <tbody>
-          <tr>
-            <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r1 + 'mm', padding: 0, textAlign: 'center', fontSize: printConfig.fonts.title + 'px', fontWeight: 900, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden' }">{{ printConfig.company_name }}</td>
-          </tr>
-          <tr>
-            <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r2 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.code + 'px', whiteSpace: 'nowrap', overflow: 'hidden' }">资产编码: {{ asset.asset_code }}</td>
-          </tr>
-          <tr>
-            <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r3 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.name + 'px', whiteSpace: 'nowrap', overflow: 'hidden' }">资产名称: {{ getCategoryName(asset.category_id) }}</td>
-          </tr>
-          <tr>
-            <td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r4 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.spec + 'px', whiteSpace: 'nowrap', overflow: 'hidden' }">资产型号: {{ asset.dynamic_attributes?.['规格型号'] || '-' }}</td>
-          </tr>
-          <tr>
-             <td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r5 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.serial + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">序 列 号 &nbsp;: {{ asset.dynamic_attributes?.['序列号'] || '-' }}</td>
-             <td rowspan="2" :style="{ border: printConfig.border + 'px solid black', borderLeft: printConfig.border + 'px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '1%' }">
-                <qrcode-vue :value="getQrUrl(asset)" :size="printConfig.qrSize" level="L" render-as="svg" style="display:block; margin: 0 auto;" />
-             </td>
-          </tr>
-          <tr>
-             <td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">使用日期: {{ formatDate(asset) }}</td>
-          </tr>
-          </tbody>
-        </table>
+    <div id="batch-print-area" style="position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none;">
+      <div v-for="asset in assetsToPrint" :key="asset.id" class="print-label-page"
+           :style="{ position: 'relative', width: effectivePaperWidth + 'mm', height: effectivePaperHeight + 'mm', background: 'white', color: 'black', pageBreakAfter: 'always', overflow: 'hidden', fontFamily: '\'Helvetica Neue\', Helvetica, Arial, sans-serif', fontWeight: 'bold' }">
+
+        <!-- ===== 新版：矢量 SVG 100% 精确打印渲染 ===== -->
+        <template v-if="hasElementTemplate">
+          <svg
+            class="print-svg-canvas"
+            :width="effectivePaperWidth + 'mm'"
+            :height="effectivePaperHeight + 'mm'"
+            :viewBox="`0 0 ${effectivePaperWidth * 4.5} ${effectivePaperHeight * 4.5}`"
+            style="display: block; width: 100%; height: 100%;"
+          >
+            <g :transform="svgGroupTransform">
+              <template v-for="(el, idx) in (printConfig as any).elements" :key="idx">
+                <!-- 矩形 -->
+                <rect v-if="el.type === 'rect'"
+                  :x="el.x * 4.5" :y="el.y * 4.5"
+                  :width="Math.max(el.width * 4.5, 0)" :height="Math.max(el.height * 4.5, 0)"
+                  fill="none" stroke="black" :stroke-width="(el.lineWidth || 0.5) * 4.5"
+                />
+                <!-- 线条 -->
+                <line v-else-if="el.type === 'line'"
+                  :x1="el.x * 4.5" :y1="el.y * 4.5"
+                  :x2="(el.x + (el.width || 0)) * 4.5" :y2="(el.y + (el.height || 0)) * 4.5"
+                  stroke="black" :stroke-width="(el.lineWidth || 0.5) * 4.5"
+                />
+                <!-- 文字 -->
+                <text v-else-if="el.type === 'text'"
+                  :x="el.x * 4.5"
+                  :y="(el.y + (el.fontHeight * 0.88)) * 4.5"
+                  :font-size="el.fontHeight * 4.5"
+                  font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', STHeiti, 'Microsoft YaHei', sans-serif"
+                  font-weight="bold"
+                  fill="black"
+                  style="dominant-baseline: alphabetic; white-space: pre;"
+                >{{ (el.prefix || '') + resolveElementValue(el, asset) }}</text>
+                <!-- 二维码 -->
+                <foreignObject v-else-if="el.type === 'qrcode'"
+                  :x="el.x * 4.5" :y="el.y * 4.5"
+                  :width="el.width * 4.5" :height="el.width * 4.5"
+                >
+                  <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                    <qrcode-vue :value="resolveQrValue(el, asset)" :size="Math.round(el.width * 4.5)" level="L" render-as="svg" style="display:block;" />
+                  </div>
+                </foreignObject>
+              </template>
+            </g>
+          </svg>
+        </template>
+
+        <!-- ===== 旧版：6行表格兜底渲染 ===== -->
+        <template v-else>
+          <div :style="{ position: 'absolute', width: paperWidth + 'mm', height: paperHeight + 'mm', top: '0', left: '0' }">
+            <table :style="{ width: '100%', height: '100%', borderCollapse: 'collapse', border: printConfig.border + 'px solid black', fontWeight: 'bold', tableLayout: 'fixed' }">
+              <colgroup>
+                <col :style="{ width: (100 - (printConfig.qrColWidth || 30)) + '%' }" />
+                <col :style="{ width: (printConfig.qrColWidth || 30) + '%' }" />
+              </colgroup>
+              <tbody>
+                <tr><td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r1 + 'mm', padding: 0, textAlign: 'center', fontSize: printConfig.fonts.title + 'px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden' }">{{ printConfig.company_name }}</td></tr>
+                <tr><td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r2 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.code + 'px', whiteSpace: 'nowrap', overflow: 'hidden' }">资产编码: {{ asset.asset_code }}</td></tr>
+                <tr><td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r3 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.name + 'px', whiteSpace: 'nowrap', overflow: 'hidden' }">资产名称: {{ getCategoryName(asset.category_id) }}</td></tr>
+                <tr><td colspan="2" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r4 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.spec + 'px', whiteSpace: 'nowrap', overflow: 'hidden' }">资产型号: {{ asset.dynamic_attributes?.['规格型号'] || '-' }}</td></tr>
+                <tr>
+                  <td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r5 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.serial + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">序 列 号 &nbsp;: {{ asset.dynamic_attributes?.['序列号'] || '-' }}</td>
+                  <td rowspan="2" :style="{ border: printConfig.border + 'px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '1%' }">
+                    <qrcode-vue :value="getQrUrl(asset)" :size="printConfig.qrSize" level="L" render-as="svg" style="display:block; margin: 0 auto;" />
+                  </td>
+                </tr>
+                <tr><td :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }">使用日期: {{ formatDate(asset) }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -466,106 +510,77 @@
 
        <!-- 居中可视化预览画板 -->
        <div class="flex items-center justify-center bg-gray-100 rounded border border-dashed border-gray-300 relative overflow-hidden" 
-            style="min-height: 400px; user-select: none;" @mousedown.self="selectElement(null)">
-            <span class="absolute top-2 left-2 text-xs text-gray-400 pointer-events-none">直接拖拽表格边框改变大小，单击段落修改字号。</span>
-            
-            <div v-if="assetsToPrint[0]" class="bg-white shadow relative origin-center scale-125 transition-all" 
-                 :style="{ 
-                    width: printConfig.width + 'mm', 
-                    height: printConfig.height + 'mm', 
-                    boxSizing: 'border-box', 
-                    padding: printConfig.padding + 'mm', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    color: 'black', 
-                    fontFamily: '\'Helvetica Neue\', Helvetica, Arial, sans-serif', 
-                    overflow: 'hidden'
-                 }"
-                 @mousemove="onDrag" @mouseup="stopDrag" @mouseleave="stopDrag"
-                 >
-                 
-              <table :style="{ 
-                width: '100%', height: '100%', borderCollapse: 'collapse', 
-                border: printConfig.border + 'px solid black', fontWeight: 'bold', tableLayout: 'fixed', position: 'relative' 
-              }">
+            style="min-height: 400px; user-select: none;">
+            <span class="absolute top-2 left-2 text-xs text-gray-400 pointer-events-none">
+              <template v-if="hasElementTemplate">正在使用「标签打印模版」中配置的自定义排版进行预览。</template>
+              <template v-else>旧版固定表格模板（请到「设置 → 标签打印模板」配置新版排版）。</template>
+            </span>
+
+            <!-- ===== 新版：SVG精确预览（与「标签打印模版」配置页完全一致） ===== -->
+            <div v-if="assetsToPrint[0] && hasElementTemplate" class="flex items-center justify-center p-4">
+              <svg
+                class="bg-white shadow-sm"
+                :width="effectivePaperWidth * 4.5"
+                :height="effectivePaperHeight * 4.5"
+                :viewBox="`0 0 ${effectivePaperWidth * 4.5} ${effectivePaperHeight * 4.5}`"
+              >
+                <g :transform="svgGroupTransform">
+                  <template v-for="(el, idx) in (printConfig as any).elements" :key="idx">
+                    <!-- 矩形 -->
+                    <rect v-if="el.type === 'rect'"
+                      :x="el.x * 4.5" :y="el.y * 4.5"
+                      :width="Math.max(el.width * 4.5, 0)" :height="Math.max(el.height * 4.5, 0)"
+                      fill="none" stroke="black" :stroke-width="(el.lineWidth || 0.5) * 4.5"
+                    />
+                    <!-- 线条 -->
+                    <line v-else-if="el.type === 'line'"
+                      :x1="el.x * 4.5" :y1="el.y * 4.5"
+                      :x2="(el.x + (el.width || 0)) * 4.5" :y2="(el.y + (el.height || 0)) * 4.5"
+                      stroke="black" :stroke-width="(el.lineWidth || 0.5) * 4.5"
+                    />
+                    <!-- 文字（含实际字段值） -->
+                    <text v-else-if="el.type === 'text'"
+                      :x="el.x * 4.5"
+                      :y="(el.y + (el.fontHeight * 0.88)) * 4.5"
+                      :font-size="el.fontHeight * 4.5"
+                      font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', STHeiti, 'Microsoft YaHei', sans-serif"
+                      font-weight="bold"
+                      fill="black"
+                      style="dominant-baseline: alphabetic; white-space: pre;"
+                    >{{ (el.prefix || '') + resolveElementValue(el, assetsToPrint[0]) }}</text>
+                    <!-- 二维码（用实际QR码渲染） -->
+                    <foreignObject v-else-if="el.type === 'qrcode'"
+                      :x="el.x * 4.5" :y="el.y * 4.5"
+                      :width="el.width * 4.5" :height="el.width * 4.5"
+                    >
+                      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                        <qrcode-vue :value="resolveQrValue(el, assetsToPrint[0])" :size="Math.round(el.width * 4.5)" level="L" render-as="svg" style="display:block;" />
+                      </div>
+                    </foreignObject>
+                  </template>
+                </g>
+              </svg>
+            </div>
+
+            <!-- ===== 旧版：6行表格预览 ===== -->
+            <div v-else-if="assetsToPrint[0]" class="bg-white shadow relative origin-center scale-125 transition-all" 
+                 :style="{ width: printConfig.width + 'mm', height: printConfig.height + 'mm', boxSizing: 'border-box', padding: printConfig.padding + 'mm', display: 'flex', flexDirection: 'column', color: 'black', fontFamily: '\'Helvetica Neue\', Helvetica, Arial, sans-serif', overflow: 'hidden' }"
+                 @mousemove="onDrag" @mouseup="stopDrag" @mouseleave="stopDrag">
+              <table :style="{ width: '100%', height: '100%', borderCollapse: 'collapse', border: printConfig.border + 'px solid black', fontWeight: 'bold', tableLayout: 'fixed', position: 'relative' }">
                 <colgroup>
                   <col :style="{ width: (100 - (printConfig.qrColWidth || 30)) + '%' }" />
                   <col :style="{ width: (printConfig.qrColWidth || 30) + '%' }" />
                 </colgroup>
                 <tbody>
-                <!-- Row 1 -->
+                <tr><td colspan="2" @mousedown.stop="selectElement('title')" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r1 + 'mm', padding: 0, textAlign: 'center', fontSize: printConfig.fonts.title + 'px', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'title' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">{{ printConfig.company_name }}<div @mousedown.stop="startDragRow($event, 'r1')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div></td></tr>
+                <tr><td colspan="2" @mousedown.stop="selectElement('code')" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r2 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.code + 'px', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'code' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">资产编码: {{ assetsToPrint[0].asset_code }}<div @mousedown.stop="startDragRow($event, 'r2')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div></td></tr>
+                <tr><td colspan="2" @mousedown.stop="selectElement('name')" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r3 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.name + 'px', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'name' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">资产名称: {{ getCategoryName(assetsToPrint[0].category_id) }}<div @mousedown.stop="startDragRow($event, 'r3')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div></td></tr>
+                <tr><td colspan="2" @mousedown.stop="selectElement('spec')" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r4 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.spec + 'px', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'spec' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">资产型号: {{ assetsToPrint[0].dynamic_attributes?.['规格型号'] || '-' }}<div @mousedown.stop="startDragRow($event, 'r4')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div></td></tr>
                 <tr>
-                  <td colspan="2" 
-                      @mousedown.stop="selectElement('title')"
-                      :style="{ 
-                        border: printConfig.border + 'px solid black', 
-                        height: printConfig.rows.r1 + 'mm', 
-                        padding: 0, textAlign: 'center', 
-                        fontSize: printConfig.fonts.title + 'px', 
-                        fontWeight: 900, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden',
-                        position: 'relative', outline: selectedElement === 'title' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer'
-                      }">
-                    {{ printConfig.company_name }}
-                    <!-- Drag handle for row 1 bottom -->
-                    <div @mousedown.stop="startDragRow($event, 'r1')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div>
-                  </td>
+                  <td @mousedown.stop="selectElement('serial')" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r5 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.serial + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'serial' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">序 列 号 &nbsp;: {{ assetsToPrint[0].dynamic_attributes?.['序列号'] || '-' }}<div @mousedown.stop="startDragRow($event, 'r5')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div></td>
+                  <td rowspan="2" @mousedown.stop="selectElement('qr')" :style="{ border: printConfig.border + 'px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '1%', outline: selectedElement === 'qr' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer', position: 'relative' }"><qrcode-vue :value="getQrUrl(assetsToPrint[0])" :size="printConfig.qrSize" level="L" render-as="svg" style="display:block; margin: 0 auto; pointer-events: none;" /></td>
                 </tr>
-                <!-- Row 2 -->
-                <tr>
-                  <td colspan="2" 
-                      @mousedown.stop="selectElement('code')"
-                      :style="{ 
-                        border: printConfig.border + 'px solid black', 
-                        height: printConfig.rows.r2 + 'mm', 
-                        padding: '0 2mm', fontSize: printConfig.fonts.code + 'px', whiteSpace: 'nowrap', overflow: 'hidden',
-                        position: 'relative', outline: selectedElement === 'code' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer'
-                      }">
-                    资产编码: {{ assetsToPrint[0].asset_code }}
-                    <!-- Drag handle for row 2 bottom -->
-                    <div @mousedown.stop="startDragRow($event, 'r2')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div>
-                  </td>
-                </tr>
-                <!-- Row 3 -->
-                <tr>
-                  <td colspan="2" 
-                      @mousedown.stop="selectElement('name')"
-                      :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r3 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.name + 'px', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'name' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">
-                    资产名称: {{ getCategoryName(assetsToPrint[0].category_id) }}
-                    <!-- Drag handle for row 3 bottom -->
-                    <div @mousedown.stop="startDragRow($event, 'r3')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div>
-                  </td>
-                </tr>
-                <!-- Row 4 -->
-                <tr>
-                  <td colspan="2" 
-                      @mousedown.stop="selectElement('spec')"
-                      :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r4 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.spec + 'px', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'spec' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">
-                    资产型号: {{ assetsToPrint[0].dynamic_attributes?.['规格型号'] || '-' }}
-                    <!-- Drag handle for row 4 bottom -->
-                    <div @mousedown.stop="startDragRow($event, 'r4')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div>
-                  </td>
-                </tr>
-                <!-- Row 5 -->
-                <tr>
-                   <td @mousedown.stop="selectElement('serial')"
-                       :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r5 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.serial + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'serial' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">
-                     序 列 号 &nbsp;: {{ assetsToPrint[0].dynamic_attributes?.['序列号'] || '-' }}
-                     <!-- Drag handle for row 5 bottom -->
-                     <div @mousedown.stop="startDragRow($event, 'r5')" style="position:absolute; bottom:-1px; left:0; right:0; height:3px; background:rgba(0,120,250,0); z-index:10; cursor:row-resize" @mouseenter="setHandleBg($event, true)" @mouseleave="setHandleBg($event, false)"></div>
-                   </td>
-                   <td rowspan="2" 
-                       @mousedown.stop="selectElement('qr')"
-                       :style="{ border: printConfig.border + 'px solid black', borderLeft: printConfig.border + 'px solid black', padding: '2px', textAlign: 'center', verticalAlign: 'middle', width: '1%', outline: selectedElement === 'qr' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer', position: 'relative' }">
-                      <qrcode-vue :value="getQrUrl(assetsToPrint[0])" :size="printConfig.qrSize" level="L" render-as="svg" style="display:block; margin: 0 auto; pointer-events: none;" />
-                   </td>
-                </tr>
-                <!-- Row 6 -->
-                <tr>
-                   <td @mousedown.stop="selectElement('date')"
-                       :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'date' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">
-                      使用日期: {{ formatDate(assetsToPrint[0]) }}
-                   </td>
-                </tr>
+                <tr><td @mousedown.stop="selectElement('date')" :style="{ border: printConfig.border + 'px solid black', height: printConfig.rows.r6 + 'mm', padding: '0 2mm', fontSize: printConfig.fonts.date + 'px', borderRight: 'none', whiteSpace: 'nowrap', overflow: 'hidden', position: 'relative', outline: selectedElement === 'date' ? '2px dashed blue' : 'none', outlineOffset: '-2px', cursor: 'pointer' }">使用日期: {{ formatDate(assetsToPrint[0]) }}</td></tr>
                 </tbody>
               </table>
               <div v-if="isDragging" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:999; cursor: crosshair;"></div>
@@ -846,16 +861,71 @@ const formatDate = (assetOrDate: any) => {
 }
 
 
+// ===== 新版元素模板辅助函数 =====
+
+// 判断当前是否有新版 elements 自由坐标模板
+const hasElementTemplate = computed(() => {
+    const els = (printConfig.value as any).elements
+    return Array.isArray(els) && els.length > 0
+})
+
+// 纸张尺寸与方向计算
+const paperWidth = computed(() => (printConfig.value as any).paper?.width || printConfig.value.width || 70)
+const paperHeight = computed(() => (printConfig.value as any).paper?.height || printConfig.value.height || 50)
+const paperOrientation = computed(() => (printConfig.value as any).paper?.orientation || 0)
+
+// 实际打印纸张尺寸（根据旋转角度换算，如旋转 90/270° 则宽高互换）
+const effectivePaperWidth = computed(() => {
+    const rot = paperOrientation.value
+    return (rot === 90 || rot === 270) ? paperHeight.value : paperWidth.value
+})
+
+const effectivePaperHeight = computed(() => {
+    const rot = paperOrientation.value
+    return (rot === 90 || rot === 270) ? paperWidth.value : paperHeight.value
+})
+
+// SVG 内部 Group 的精准旋转与平移矩阵（无边距偏差，支持 0/90/180/270 度）
+const svgGroupTransform = computed(() => {
+    const rot = paperOrientation.value
+    const w = paperWidth.value * 4.5
+    const h = paperHeight.value * 4.5
+    if (rot === 90) {
+        return `translate(${h}, 0) rotate(90)`
+    } else if (rot === 180) {
+        return `translate(${w}, ${h}) rotate(180)`
+    } else if (rot === 270) {
+        return `translate(0, ${w}) rotate(270)`
+    }
+    return ''
+})
+
+// 解析元素字段值，与 printer.ts 中的 doPrint 逻辑保持完全一致
+const resolveElementValue = (el: any, asset: any): string => {
+    if (!el.field && el.value) return String(el.value)
+    if (!el.field) return ''
+    let val = el.field.split('.').reduce((o: any, k: string) => (o != null ? o[k] : ''), asset)
+    // 兜底：使用日期 → created_at
+    if (!val && el.field.includes('使用日期')) {
+        val = asset.created_at
+    }
+    // 格式化时间字符串（去掉 T 后的时分秒）
+    if (val && typeof val === 'string' && val.includes('T')) {
+        const m = val.match(/^(\d{4}-\d{2}-\d{2})/)
+        if (m) val = m[1]
+    }
+    return val != null && val !== '' ? String(val) : '-'
+}
+
+// 解析二维码内容（asset_code 明文，与 printer.ts 保持一致）
+const resolveQrValue = (el: any, asset: any): string => {
+    if (!el.field) return asset.asset_code || ''
+    const val = el.field.split('.').reduce((o: any, k: string) => (o != null ? o[k] : ''), asset)
+    return val || asset.asset_code || ''
+}
+
 // 保持全量累积的部门列表，防止过滤后选项收缩导致无法继续多选其他部门
 const allDepartments = ref<string[]>([])
-const updateAllDepartments = (assetsList: any[]) => {
-    const depts = new Set<string>(allDepartments.value)
-    assetsList.forEach(a => {
-        const dept = a.owner ? a.owner.department : (a.dynamic_attributes?.['所属组织'] || '')
-        if (dept) depts.add(dept)
-    })
-    allDepartments.value = Array.from(depts).sort((a, b) => a.localeCompare(b, 'zh-CN'))
-}
 
 
 const resetFilters = () => {
@@ -936,6 +1006,25 @@ const buildQueryParams = () => {
     return params
 }
 
+// 动态获取符合当前其它筛选条件的级联部门列表（Excel 级联筛选效果）
+const fetchDepartments = async () => {
+    try {
+        const params = buildQueryParams()
+        delete params.department
+        delete params.skip
+        delete params.limit
+        delete params.sort_by
+        delete params.order
+
+        const res = await axios.get('/api/assets/departments', { params })
+        if (res.data && Array.isArray(res.data)) {
+            const selected = new Set(searchDept.value)
+            const available = new Set([...res.data, ...selected])
+            allDepartments.value = Array.from(available).sort((a, b) => a.localeCompare(b, 'zh-CN'))
+        }
+    } catch {}
+}
+
 // 获取资产列表 (服务端驱动)
 const fetchAssets = async () => {
     loading.value = true
@@ -945,7 +1034,9 @@ const fetchAssets = async () => {
         // 主数据请求：独立执行，绝对不能因 count 失败而被拖垮
         const dataRes = await axios.get('/api/assets/', { params })
         rawAssets.value = dataRes.data || []
-        updateAllDepartments(rawAssets.value)
+        
+        // 动态计算级联部门选项
+        fetchDepartments()
 
         
         // 总数请求：独立执行，失败了只影响页码显示，不影响列表
@@ -1487,13 +1578,32 @@ const executePrint = async () => {
             <head>
               <title>批量定制排版打印标签</title>
               <style>
-                 body { margin: 0; padding: 0; background: #ccc; display: flex; flex-direction: column; align-items: center; }
-                 @media print {
-                     @page { margin: 0; size: ${printConfig.value.width}mm ${printConfig.value.height}mm; }
-                     body { background: white; align-items: flex-start; }
-                     .print-label-page { box-shadow: none !important; margin: 0 !important; }
-                 }
+                 * { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', STHeiti, 'Microsoft YaHei', sans-serif; }
+                 text { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+                 html, body { margin: 0; padding: 0; background: #ccc; }
+                 body { display: flex; flex-direction: column; align-items: center; }
                  .print-label-page { box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 10px 0; }
+                 @media print {
+                     @page { margin: 0; size: ${effectivePaperWidth.value}mm ${effectivePaperHeight.value}mm; }
+                     html, body { margin: 0 !important; padding: 0 !important; background: white !important; display: block !important; width: ${effectivePaperWidth.value}mm !important; height: ${effectivePaperHeight.value}mm !important; }
+                     .print-label-page { 
+                         width: ${effectivePaperWidth.value}mm !important;
+                         height: ${effectivePaperHeight.value}mm !important;
+                         box-shadow: none !important; 
+                         margin: 0 !important; 
+                         padding: 0 !important;
+                         page-break-after: always !important; 
+                         break-after: page !important;
+                         page-break-inside: avoid !important;
+                         break-inside: avoid !important;
+                         box-sizing: border-box !important;
+                         overflow: hidden !important;
+                     }
+                     .print-svg-canvas {
+                         width: ${effectivePaperWidth.value}mm !important;
+                         height: ${effectivePaperHeight.value}mm !important;
+                     }
+                 }
               </style>
             </head>
             <body>

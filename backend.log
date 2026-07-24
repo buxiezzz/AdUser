@@ -1,14 +1,824 @@
 INFO:     Will watch for changes in these directories: ['/Users/admin/Desktop/1230/AdUser/ITOM/backend']
 INFO:     Uvicorn running on http://0.0.0.0:18000 (Press CTRL+C to quit)
-INFO:     Started reloader process [3457] using StatReload
-INFO:     Started server process [3462]
+INFO:     Started reloader process [5941] using StatReload
+INFO:     Started server process [5946]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:54737 - "GET /api/settings/public HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54749 - "POST /api/auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54753 - "GET /api/auth/me HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54752 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54754 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54755 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54756 - "GET /api/settings/ HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54757 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59502 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59504 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59505 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59506 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59508 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59507 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59509 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59510 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59523 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59521 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59522 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59520 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59524 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59525 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59526 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59618 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59619 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59685 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59683 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59684 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59687 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59686 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59688 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60041 - "GET /api/settings/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60049 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60052 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60051 - "GET /api/stats/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60053 - "GET /api/audit/?limit=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60054 - "GET /api/assets/?limit=3&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60056 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60055 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60058 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60057 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60059 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60060 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60084 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60083 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60086 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60085 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60087 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60088 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60122 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60123 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60125 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60126 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60127 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60128 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60129 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5,%E6%AD%A6%E6%B1%893%E8%90%A53%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60130 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5,%E6%AD%A6%E6%B1%893%E8%90%A53%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60137 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60138 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60139 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60140 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60141 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60142 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60143 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60144 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60145 - "GET /api/assets/?skip=0&limit=100000&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60165 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60166 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60171 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60172 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60173 - "GET /api/assets/?skip=0&limit=100000&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60178 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60179 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60186 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60187 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60189 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60190 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60191 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92,%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60196 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60197 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92,%E6%AD%A6%E6%B1%891%E8%90%A53%E8%BF%9E2%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60198 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60199 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A51%E8%BF%9E1%E6%8E%92 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60200 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60201 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60205 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60206 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60212 - "GET /api/assets/?skip=180&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60213 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60214 - "GET /api/assets/?skip=160&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60215 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60216 - "GET /api/assets/?skip=140&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60217 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60223 - "GET /api/assets/?skip=120&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60224 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60228 - "GET /api/assets/?skip=140&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60229 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%893%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60244 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60245 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60246 - "GET /api/assets/?skip=0&limit=200&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60247 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60264 - "GET /api/assets/?skip=0&limit=200&keyword=&status=&sort_by=updated_at&order=desc&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60265 - "GET /api/assets/count?keyword=&status=&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60272 - "GET /api/assets/?skip=0&limit=200&keyword=&status=%E5%9C%A8%E7%94%A8&sort_by=updated_at&order=desc&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60273 - "GET /api/assets/count?keyword=&status=%E5%9C%A8%E7%94%A8&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60307 - "GET /api/assets/?skip=200&limit=200&keyword=&status=%E5%9C%A8%E7%94%A8&sort_by=updated_at&order=desc&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60308 - "GET /api/assets/count?keyword=&status=%E5%9C%A8%E7%94%A8&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60312 - "GET /api/assets/?skip=0&limit=200&keyword=&status=&sort_by=updated_at&order=desc&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60313 - "GET /api/assets/count?keyword=&status=&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60314 - "GET /api/assets/?skip=0&limit=200&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60315 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60319 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60317 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60318 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60316 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60320 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60321 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60322 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [5946]
+INFO:     Started server process [6378]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:60401 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60398 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60397 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60400 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60402 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60399 - "GET /api/assets/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60403 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60407 - "GET /api/assets/departments HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60499 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60497 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60498 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60496 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60501 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60500 - "GET /api/assets/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60502 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60503 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60514 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=Y01%E4%BA%8C%E7%BB%84 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60515 - "GET /api/assets/count?keyword=&status=&department=Y01%E4%BA%8C%E7%BB%84 HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [6378]
+INFO:     Started server process [6458]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:60591 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60592 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60605 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60603 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60602 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60601 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60606 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60604 - "GET /api/assets/departments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60607 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60608 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60619 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60620 - "GET /api/assets/count?keyword=&status=&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61039 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61040 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61043 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61044 - "GET /api/assets/count?keyword=&status=&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61049 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%89%E6%80%BB%E7%BB%8F%E5%8A%9E&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61050 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%89%E6%80%BB%E7%BB%8F%E5%8A%9E&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61083 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61084 - "GET /api/assets/count?keyword=&status=&location_id=1 HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [6458]
+INFO:     Started server process [6707]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:61183 - "GET /api/ad/ous?apply_filter=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61186 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61187 - "GET /api/ad/groups HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61190 - "GET /api/ad/ous HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61193 - "GET /api/ad/groups HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61204 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61205 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61206 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61207 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61209 - "GET /api/assets/departments HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 87, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 122, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 108, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 532, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+  File "/Users/admin/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 134, in read_departments
+    matching_assets = query.options(joinedload(Asset.owner)).all()
+                                    ^^^^^^^^^^
+NameError: name 'joinedload' is not defined
+INFO:     127.0.0.1:61208 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61210 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 87, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 122, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 108, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 532, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+  File "/Users/admin/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 134, in read_departments
+    matching_assets = query.options(joinedload(Asset.owner)).all()
+                                    ^^^^^^^^^^
+NameError: name 'joinedload' is not defined
+INFO:     127.0.0.1:61211 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61219 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61222 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61223 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61224 - "GET /api/assets/departments HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 87, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 122, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 108, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 532, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+  File "/Users/admin/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 134, in read_departments
+    matching_assets = query.options(joinedload(Asset.owner)).all()
+                                    ^^^^^^^^^^
+NameError: name 'joinedload' is not defined
+INFO:     127.0.0.1:61225 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61226 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61227 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61228 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 87, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 122, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 108, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 532, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+  File "/Users/admin/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 134, in read_departments
+    matching_assets = query.options(joinedload(Asset.owner)).all()
+                                    ^^^^^^^^^^
+NameError: name 'joinedload' is not defined
+INFO:     127.0.0.1:61229 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61237 - "GET /api/ad/ous?apply_filter=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61244 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61245 - "GET /api/ad/groups HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61248 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61249 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61250 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61251 - "GET /api/assets/departments HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 87, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 122, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 108, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 532, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+  File "/Users/admin/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 134, in read_departments
+    matching_assets = query.options(joinedload(Asset.owner)).all()
+                                    ^^^^^^^^^^
+NameError: name 'joinedload' is not defined
+INFO:     127.0.0.1:61253 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61252 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61254 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 87, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 122, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 108, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 532, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 318, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/admin/Desktop/1230/AdUser/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+  File "/Users/admin/Desktop/1230/AdUser/ITOM/backend/api/routers/asset.py", line 134, in read_departments
+    matching_assets = query.options(joinedload(Asset.owner)).all()
+                                    ^^^^^^^^^^
+NameError: name 'joinedload' is not defined
+INFO:     127.0.0.1:61255 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'api/routers/asset.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [6707]
+INFO:     Started server process [6748]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:61290 - "GET /api/assets/departments HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:61293 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61292 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61296 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61295 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61294 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61298 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61297 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61299 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61300 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61301 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61302 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61303 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61304 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61306 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61305 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61307 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61309 - "GET /api/assets/count?keyword=&status=&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61308 - "GET /api/assets/departments?keyword=&status=&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61322 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61324 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61323 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61349 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61352 - "GET /api/assets/count?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61351 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61361 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61363 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61362 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61364 - "GET /api/assets/?skip=20&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61366 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61365 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61367 - "GET /api/assets/?skip=40&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61369 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61368 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61370 - "GET /api/assets/?skip=60&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61372 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61371 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61373 - "GET /api/assets/?skip=80&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61374 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61375 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61376 - "GET /api/assets/?skip=120&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61378 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61377 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61385 - "GET /api/assets/?skip=200&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61387 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61386 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61388 - "GET /api/assets/?skip=180&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61390 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61389 - "GET /api/assets/departments?keyword=&status=&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61392 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61394 - "GET /api/assets/count?keyword=&status=&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61393 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61395 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E9%97%B2%E7%BD%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61397 - "GET /api/assets/count?keyword=&status=%E9%97%B2%E7%BD%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61396 - "GET /api/assets/departments?keyword=&status=%E9%97%B2%E7%BD%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61398 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E9%97%B2%E7%BD%AE,%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61400 - "GET /api/assets/count?keyword=&status=%E9%97%B2%E7%BD%AE,%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61399 - "GET /api/assets/departments?keyword=&status=%E9%97%B2%E7%BD%AE,%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61404 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61405 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61406 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61407 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61408 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61410 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61412 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61411 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61413 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61415 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61414 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE&location_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61416 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61418 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61417 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61419 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61420 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE&location_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61421 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5&location_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61422 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61424 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61423 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61425 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&category_id=3&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61426 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61427 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&category_id=3&department=%E6%AD%A6%E6%B1%891%E8%90%A5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61428 - "GET /api/assets/?skip=0&limit=20&keyword=&status=%E7%BB%B4%E4%BF%AE&sort_by=updated_at&order=desc&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61429 - "GET /api/assets/count?keyword=&status=%E7%BB%B4%E4%BF%AE&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61430 - "GET /api/assets/departments?keyword=&status=%E7%BB%B4%E4%BF%AE&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61550 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61549 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61552 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61551 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61553 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61555 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61554 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61654 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61653 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61656 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61655 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61657 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61659 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61658 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61720 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61721 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61723 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61722 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61724 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61725 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61726 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61730 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61731 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61732 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61733 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61734 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61735 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61736 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61738 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61737 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61824 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61823 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61825 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61826 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61827 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61828 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61829 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61983 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61984 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61994 - "GET /api/assets/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61997 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61995 - "GET /api/locations/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61996 - "GET /api/settings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61998 - "GET /api/assets/?skip=0&limit=20&keyword=&status=&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62000 - "GET /api/assets/count?keyword=&status= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61999 - "GET /api/assets/departments?keyword=&status= HTTP/1.1" 200 OK
+INFO:     10.20.133.56:45774 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     10.20.133.56:45774 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:45774 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:45774 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:45774 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:45774 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:58518 - "GET /api/assets/count HTTP/1.1" 200 OK
+INFO:     10.20.133.56:58512 - "GET /api/assets/?skip=0&limit=20&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     10.20.133.56:58530 - "GET /api/assets/count HTTP/1.1" 200 OK
+INFO:     10.20.133.56:54620 - "GET /api/assets/count HTTP/1.1" 200 OK
+INFO:     10.20.133.56:54618 - "GET /api/assets/?skip=0&limit=20&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     10.20.133.56:50132 - "GET /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:50132 - "GET /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:35692 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:35692 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:35692 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:35692 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:35692 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:57968 - "GET /api/assets/?status=%E5%9C%A8%E7%94%A8&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:57968 - "GET /api/assets/?status=%E9%97%B2%E7%BD%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:57968 - "GET /api/assets/?status=%E7%BB%B4%E4%BF%AE&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:57968 - "GET /api/assets/?status=%E6%8A%A5%E5%BA%9F&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:57968 - "GET /api/assets/?status=%E4%B8%8B%E8%B4%A6&limit=9999 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:57968 - "GET /api/assets/?skip=0&limit=20&sort_by=updated_at&order=desc HTTP/1.1" 200 OK
+INFO:     10.20.133.56:57984 - "GET /api/assets/count HTTP/1.1" 200 OK
+INFO:     10.20.133.56:37638 - "GET /api/inventory/tasks?limit=20 HTTP/1.1" 200 OK
+INFO:     10.20.133.56:59566 - "GET /api/ad/groups HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'crud/asset.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [6748]
+INFO:     Started server process [8315]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
